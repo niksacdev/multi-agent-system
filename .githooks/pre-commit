@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# Pre-commit hook for loan processing multi-agent system
+# Ensures all tests pass before allowing commits
+#
+# To install this hook, run from project root:
+# git config core.hooksPath .githooks
+# chmod +x .githooks/pre-commit
+
+set -e  # Exit on any error
+
+echo "🧪 Running pre-commit checks..."
+echo "================================================"
+
+# Check if we're in the right directory
+if [ ! -f "run_tests.py" ]; then
+    echo "❌ Error: run_tests.py not found. Are you in the project root?"
+    exit 1
+fi
+
+# Check if virtual environment is activated
+if [ -z "$VIRTUAL_ENV" ]; then
+    echo "🔄 Activating virtual environment..."
+    if [ -f ".venv/bin/activate" ]; then
+        source .venv/bin/activate
+    else
+        echo "❌ Error: Virtual environment not found at .venv/"
+        echo "   Please run: uv venv && source .venv/bin/activate && uv sync"
+        exit 1
+    fi
+fi
+
+# Run the comprehensive test suite
+echo "🧪 Running comprehensive test suite..."
+echo "   Command: python run_tests.py --type all"
+echo ""
+
+# Capture both stdout and stderr, and the exit code
+if python run_tests.py --type all; then
+    echo ""
+    echo "✅ All tests passed! Commit allowed."
+    echo "================================================"
+    exit 0
+else
+    echo ""
+    echo "❌ Tests failed! Commit blocked."
+    echo "================================================"
+    echo ""
+    echo "🔧 To fix:"
+    echo "   1. Fix failing tests"
+    echo "   2. Ensure coverage ≥90%"
+    echo "   3. Run: python run_tests.py --type all"
+    echo "   4. Retry your commit"
+    echo ""
+    echo "💡 To skip this check (NOT RECOMMENDED):"
+    echo "   git commit --no-verify"
+    echo ""
+    exit 1
+fi

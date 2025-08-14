@@ -47,7 +47,10 @@ class MCPDocumentProcessingService(DocumentProcessingService):
                 "document_type": document_type
             }
         )
-        parsed_result = json.loads(result) if isinstance(result, str) else result
+        try:
+            parsed_result = json.loads(result) if isinstance(result, str) else result
+        except (json.JSONDecodeError, TypeError):
+            return {}
         return parsed_result if isinstance(parsed_result, dict) else {}
     async def classify_document_type(
         self,
@@ -58,7 +61,10 @@ class MCPDocumentProcessingService(DocumentProcessingService):
             "classify_document_type",
             {"document_content": document_content}
         )
-        parsed_result = json.loads(result) if isinstance(result, str) else result
+        try:
+            parsed_result = json.loads(result) if isinstance(result, str) else result
+        except (json.JSONDecodeError, TypeError):
+            return {}
         return parsed_result if isinstance(parsed_result, dict) else {}
     async def validate_document_format(
         self,
@@ -73,7 +79,10 @@ class MCPDocumentProcessingService(DocumentProcessingService):
                 "expected_format": expected_format
             }
         )
-        parsed_result = json.loads(result) if isinstance(result, str) else result
+        try:
+            parsed_result = json.loads(result) if isinstance(result, str) else result
+        except (json.JSONDecodeError, TypeError):
+            return {}
         return parsed_result if isinstance(parsed_result, dict) else {}
     async def extract_structured_data(
         self,
@@ -88,7 +97,10 @@ class MCPDocumentProcessingService(DocumentProcessingService):
                 "data_schema": json.dumps(data_schema)
             }
         )
-        parsed_result = json.loads(result) if isinstance(result, str) else result
+        try:
+            parsed_result = json.loads(result) if isinstance(result, str) else result
+        except (json.JSONDecodeError, TypeError):
+            return {}
         return parsed_result if isinstance(parsed_result, dict) else {}
     async def convert_document_format(
         self,
@@ -103,5 +115,8 @@ class MCPDocumentProcessingService(DocumentProcessingService):
                 "output_format": output_format
             }
         )
-        parsed_result = json.loads(result) if isinstance(result, str) else result
+        try:
+            parsed_result = json.loads(result) if isinstance(result, str) else result
+        except (json.JSONDecodeError, TypeError):
+            return {}
         return parsed_result if isinstance(parsed_result, dict) else {}

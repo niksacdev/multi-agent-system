@@ -1,0 +1,79 @@
+name: 🔒 Branch Protection
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC to catch any drift
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  validate-main-branch:
+    name: Validate Main Branch Health
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: 📥 Checkout main
+      uses: actions/checkout@v4
+      with:
+        ref: main
+        
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+        
+    - name: 📦 Install UV
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        
+    - name: 🔄 Install dependencies
+      run: |
+        uv sync
+        
+    - name: 🧪 Comprehensive validation
+      run: |
+        echo "🧪 Running full test suite on main branch..."
+        uv run python run_tests.py --type all --html
+        
+    - name: 📊 Verify coverage
+      run: |
+        echo "📊 Checking that main branch maintains ≥90% coverage..."
+        uv run python -c "
+        import subprocess
+        import re
+        import sys
+        
+        result = subprocess.run([
+            'uv', 'run', 'python', '-m', 'pytest', 
+            'tests/mcp_servers/', 
+            '--cov=mcp_servers', 
+            '--cov-config=.coveragerc',
+            '--cov-report=term-missing'
+        ], capture_output=True, text=True)
+        
+        output = result.stdout
+        coverage_match = re.search(r'TOTAL.*?(\d+)%', output)
+        
+        if coverage_match:
+            coverage = int(coverage_match.group(1))
+            if coverage < 90:
+                print(f'🚨 ALERT: Main branch coverage dropped to {coverage}%')
+                sys.exit(1)
+            else:
+                print(f'✅ Main branch coverage: {coverage}%')
+        else:
+            print('❌ Could not determine main branch coverage')
+            sys.exit(1)
+        "
+        
+    - name: 🚨 Alert on failure
+      if: failure()
+      run: |
+        echo "🚨 CRITICAL: Main branch health check failed!"
+        echo "This indicates that main branch may have been compromised."
+        echo "Immediate investigation required."
+        
+        # In a real setup, you'd send alerts to Slack/Teams/Email here
+        echo "Notification would be sent to dev team."

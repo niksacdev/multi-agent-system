@@ -43,6 +43,9 @@ uv sync
 # AZURE_OPENAI_API_KEY=your_azure_key_here
 # AZURE_OPENAI_ENDPOINT=your_azure_endpoint_here
 
+# Run the comprehensive test suite (required before any commits)
+uv run python run_tests.py --type all
+
 # Run the basic demo
 uv run python main.py
 
@@ -179,6 +182,55 @@ final_result = await agents.risk.assess(application, context=all_results)
 | **Credit** | Assess creditworthiness | Credit bureau checks, score analysis, history review |
 | **Income** | Verify employment & income | Employment validation, income stability analysis |
 | **Risk** | Make final decisions | Risk synthesis, policy application, final approval |
+
+## Development & Testing
+
+### Quality Assurance
+This project maintains **enterprise-grade quality** through automated testing and quality gates:
+
+- **🧪 Comprehensive Test Suite**: 83+ tests with >90% coverage requirement
+- **⚡ GitHub Actions CI/CD**: Automated testing on every push and PR
+- **🔒 Branch Protection**: Main branch protected with required status checks
+- **🎯 Multiple Test Types**: Unit, integration, performance, and edge case testing
+
+### Running Tests
+
+```bash
+# Run all tests with coverage (required before committing)
+python run_tests.py --type all
+
+# Run specific test types
+python run_tests.py --type unit        # Unit tests only
+python run_tests.py --type integration # Integration tests only
+python run_tests.py --type server      # MCP server tests only
+
+# Generate HTML coverage report
+python run_tests.py --type all --html
+```
+
+### GitHub Actions Workflows
+
+The project includes automated quality gates:
+
+- **🧪 Test Suite** (`.github/workflows/test.yml`)
+  - Runs comprehensive test suite
+  - Enforces 90% coverage minimum
+  - Validates architecture boundaries
+  - Type checking and linting
+
+- **🔒 Branch Protection** (`.github/workflows/branch-protection.yml`)
+  - Daily main branch health checks
+  - Coverage drift detection
+  - Automated alerts for issues
+
+### Contributing
+
+1. **Fork & Branch**: Create feature branch from `main`
+2. **Develop**: Write code with tests (maintain >90% coverage)
+3. **Test Locally**: Run `python run_tests.py --type all`
+4. **Submit PR**: GitHub Actions will validate automatically
+5. **Review**: Code review + automated checks must pass
+6. **Merge**: Only after all status checks are green
 
 ## Documentation
 

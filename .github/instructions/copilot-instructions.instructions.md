@@ -30,6 +30,15 @@ This is a **loan processing multi-agent system** demonstrating enterprise-grade 
 - **Testing**: >90% coverage, unit/integration/e2e tests
 - **Documentation**: Update docs immediately with code changes
 - **Domain Purity**: Models/services contain no SDK type imports
+- **Pre-Commit Testing**: ALWAYS run tests before git commits (use `python run_tests.py --type all`)
+
+### Test-First Development
+- **Required**: Run full test suite before any git commit
+- **Command**: `python run_tests.py --type all` (must pass with >90% coverage)
+- **No Exceptions**: Never commit code that breaks existing tests
+- **New Features**: Must include comprehensive tests achieving 90%+ coverage
+- **Test Types**: Unit tests, integration tests, performance tests, edge cases
+- **CI/CD Enforcement**: GitHub Actions automatically validate all PRs and commits
 
 ### Provider / SDK Integration
 - **Current Default**: OpenAI / OpenAI Agents SDK
@@ -81,10 +90,13 @@ loan_processing/
 ### Before Committing
 - [ ] All type hints present and correct
 - [ ] Tests written and passing (>90% coverage)
+- [ ] **CRITICAL**: Run `python run_tests.py --type all` and verify all tests pass
 - [ ] Documentation updated
 - [ ] Lint errors resolved (`ruff check`, `mypy`)
 - [ ] Domain layers free of SDK imports
 - [ ] Added/changed prompts aligned with persona guidelines
+- [ ] No failing tests or reduced coverage
+- [ ] GitHub Actions will automatically validate PR (but test locally first)
 
 ### Code Review Checklist
 - [ ] Business logic separated from AI implementation

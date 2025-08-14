@@ -1,0 +1,202 @@
+name: 🧪 Test Suite
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch: # Allow manual triggers
+
+env:
+  PYTHON_VERSION: "3.10"
+
+jobs:
+  test:
+    name: Run Tests & Coverage
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: 📦 Install UV
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        
+    - name: 🔄 Install dependencies
+      run: |
+        uv sync
+        
+    - name: 🧪 Run comprehensive test suite
+      run: |
+        uv run python run_tests.py --type all --html
+        
+    - name: 📊 Check test coverage
+      run: |
+        echo "Test coverage must be ≥90%"
+        uv run python -c "
+        import sys
+        import re
+        
+        # Read coverage output (should be captured from previous step)
+        # For now, we'll re-run with coverage reporting
+        import subprocess
+        result = subprocess.run([
+            'uv', 'run', 'python', '-m', 'pytest', 
+            'tests/mcp_servers/', 
+            '--cov=mcp_servers', 
+            '--cov-config=.coveragerc',
+            '--cov-report=term-missing'
+        ], capture_output=True, text=True)
+        
+        # Extract coverage percentage
+        output = result.stdout
+        coverage_match = re.search(r'TOTAL.*?(\d+)%', output)
+        
+        if coverage_match:
+            coverage = int(coverage_match.group(1))
+            print(f'Coverage: {coverage}%')
+            if coverage < 90:
+                print(f'❌ Coverage {coverage}% is below required 90%')
+                sys.exit(1)
+            else:
+                print(f'✅ Coverage {coverage}% meets requirement')
+        else:
+            print('❌ Could not determine coverage percentage')
+            sys.exit(1)
+        "
+        
+    - name: 📈 Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: success()
+      with:
+        file: ./htmlcov/coverage.xml
+        fail_ci_if_error: false
+        
+    - name: 🎯 Test Results Summary
+      if: always()
+      run: |
+        echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ ${{ job.status }} == 'success' ]; then
+          echo "✅ **All tests passed with ≥90% coverage!**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The code is ready for merge." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Tests failed or coverage below 90%**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please fix failing tests before merging." >> $GITHUB_STEP_SUMMARY
+        fi
+
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Set up Python  
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: 📦 Install UV
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        
+    - name: 🔄 Install dependencies
+      run: |
+        uv sync
+        
+    - name: 🔍 Run type checking (mypy)
+      run: |
+        uv run mypy loan_processing/ mcp_servers/ --ignore-missing-imports
+        
+    - name: 🧹 Run linting (ruff)
+      run: |
+        uv run ruff check .
+        
+    - name: 🎨 Check code formatting (ruff format)
+      run: |
+        uv run ruff format --check .
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: 📦 Install UV
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        
+    - name: 🔄 Install dependencies
+      run: |
+        uv sync
+        
+    - name: 🔒 Run security audit
+      run: |
+        uv run pip-audit --desc --output=json --local
+      continue-on-error: true  # Don't fail build on security warnings, just report
+      
+    - name: 🛡️ Upload security results
+      if: always()
+      run: |
+        echo "Security scan completed. Review any warnings manually."
+
+  validate-architecture:
+    name: Architecture Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🏗️ Validate domain boundaries
+      run: |
+        echo "🔍 Checking for SDK imports in domain layers..."
+        
+        # Check that models/ and services/ don't import SDK-specific code
+        sdk_imports=$(grep -r "from openai\|import openai\|from anthropic\|import anthropic" loan_processing/models/ loan_processing/services/ || true)
+        
+        if [ -n "$sdk_imports" ]; then
+          echo "❌ Found SDK imports in domain layers:"
+          echo "$sdk_imports"
+          echo ""
+          echo "Domain models and services must remain provider-agnostic."
+          echo "Move SDK-specific code to providers/ or agents/ directories."
+          exit 1
+        else
+          echo "✅ Domain boundaries are clean - no SDK imports found"
+        fi
+        
+    - name: 📁 Validate file organization
+      run: |
+        echo "🔍 Checking project structure..."
+        
+        required_dirs=("loan_processing/models" "loan_processing/services" "loan_processing/providers" "mcp_servers" "tests")
+        
+        for dir in "${required_dirs[@]}"; do
+          if [ ! -d "$dir" ]; then
+            echo "❌ Required directory missing: $dir"
+            exit 1
+          else
+            echo "✅ Found: $dir"
+          fi
+        done
