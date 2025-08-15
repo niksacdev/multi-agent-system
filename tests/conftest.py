@@ -13,9 +13,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from mcp_servers.application_verification.service import ApplicationVerificationServiceImpl
-from mcp_servers.document_processing.service import MCPDocumentProcessingService
-from mcp_servers.financial_calculations.service import FinancialCalculationsServiceImpl
+from loan_processing.tools.mcp_servers.application_verification.service import ApplicationVerificationServiceImpl
+from loan_processing.tools.mcp_servers.document_processing.service import MCPDocumentProcessingService
+from loan_processing.tools.mcp_servers.financial_calculations.service import FinancialCalculationsServiceImpl
 
 
 # Test configuration
@@ -26,6 +26,9 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "performance: mark test as a performance test")
     config.addinivalue_line("markers", "slow: mark test as slow running")
     config.addinivalue_line("markers", "edge_case: mark test as an edge case test")
+    config.addinivalue_line("markers", "orchestration: mark test as an orchestration test")
+    config.addinivalue_line("markers", "agent_registry: mark test as an agent registry test")
+    config.addinivalue_line("markers", "pattern_config: mark test as a pattern configuration test")
 
 
 # Service fixtures
