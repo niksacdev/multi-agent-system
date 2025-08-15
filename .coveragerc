@@ -1,0 +1,21 @@
+[run]
+source = mcp_servers
+omit = 
+    */tests/*
+    */__pycache__/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if __name__ == .__main__.:
+    raise AssertionError
+    raise NotImplementedError
+    if 0:
+    if False:
+    print\(
+    import sys
+    sys.argv
+
+[html]
+directory = htmlcov
