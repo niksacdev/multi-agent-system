@@ -229,15 +229,11 @@ class OrchestrationEngine:
     def _evaluate_condition(self, condition: str, result: Dict[str, Any]) -> bool:
         """Evaluate a single condition against agent result."""
         
-        # Simple condition evaluation (can be enhanced with more sophisticated logic)
+        # Safe condition evaluation without eval()
         try:
-            # Replace field references with actual values
-            for field, value in result.items():
-                condition = condition.replace(field, repr(value))
-            
-            # Evaluate the condition
-            return eval(condition)
-        except:
+            from loan_processing.agents.shared.utils import evaluate_condition
+            return evaluate_condition(condition, result)
+        except Exception:
             return False
     
     def _generate_error_decision(self, context: OrchestrationContext, error: Exception) -> LoanDecision:

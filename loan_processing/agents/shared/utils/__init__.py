@@ -8,9 +8,12 @@ across different agent providers while maintaining consistency.
 from .config_loader import ConfigurationLoader
 from .output_formatter import OutputFormatGenerator
 from .persona_loader import load_persona
+from .safe_evaluator import evaluate_condition, SafeConditionEvaluator
 
 __all__ = [
     "ConfigurationLoader",
     "OutputFormatGenerator", 
-    "load_persona"
+    "load_persona",
+    "evaluate_condition",
+    "SafeConditionEvaluator"
 ]
