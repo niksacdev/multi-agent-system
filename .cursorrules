@@ -1,5 +1,7 @@
 # Cursor AI Rules for Multi-Agent Loan Processing System
 
+<!-- 📋 Sync Note: This file syncs with CLAUDE.md (master reference). Update from CLAUDE.md only. See .github/sync-instructions.md -->
+
 ## Project Overview
 Multi-Agent Loan Processing System using OpenAI Agents SDK with MCP (Model Context Protocol) servers as tools. Autonomous agents process loan applications through coordinated workflows.
 
@@ -69,11 +71,11 @@ loan_processing/
 │       ├── config/
 │       │   └── agents.yaml           # Agent configurations
 │       ├── models/                   # Data models
-│       └── utils/                    # Shared utilities
+│       ├── utils/                    # Shared utilities
+│       └── agent-persona/            # Agent instruction markdown files
 ├── tools/
 │   ├── mcp_servers/                  # MCP server implementations
 │   └── services/                     # Business services
-└── agent-persona/                    # Agent instruction markdown files
 ```
 
 ## Testing Requirements

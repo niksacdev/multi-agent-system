@@ -1,6 +1,8 @@
 ---
 applyTo: '**'
 ---
+<!-- 📋 Sync Note: This file syncs with CLAUDE.md (master reference). Update from CLAUDE.md only. See .github/sync-instructions.md -->
+
 Provide project context and coding guidelines that AI should follow when generating code, answering questions, or reviewing changes.
 
 # Copilot Instructions - Loan Processing Multi-Agent Sample

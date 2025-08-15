@@ -1,5 +1,7 @@
 # Claude Development Rules for Multi-Agent System
 
+> **📋 Instruction Sync**: This is the **master reference** for all development practices. When updating, sync changes to `.cursorrules` and `.github/instructions/copilot-instructions.md`. See `.github/sync-instructions.md` for guidelines.
+
 ## Project Overview
 This is a Multi-Agent Loan Processing System using OpenAI Agents SDK with MCP (Model Context Protocol) servers as tools. The system implements autonomous agents that process loan applications through a coordinated workflow.
 
