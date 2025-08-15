@@ -46,11 +46,12 @@ context["agent2_result"] = await agent2.run(context)
 
 ### Must Follow
 1. **Use uv for all commands** - `uv run`, `uv add`, `uv sync` (never pip/poetry)
-2. **AgentRegistry.create_agent()** for agent creation from YAML config
-3. **Keep orchestrators thin** - no business logic, just coordination
-4. **Use applicant_id** for all verifications - never SSN
-5. **Test before commit** - run `uv run pytest tests/test_agent_registry.py`
-6. **Update personas/config** to change behavior - not code
+2. **Commit often** - atomic commits, one logical change per commit
+3. **AgentRegistry.create_agent()** for agent creation from YAML config
+4. **Keep orchestrators thin** - no business logic, just coordination
+5. **Use applicant_id** for all verifications - never SSN
+6. **Test before commit** - run `uv run pytest tests/test_agent_registry.py`
+7. **Update personas/config** to change behavior - not code
 
 ### Never Do
 1. **Never hardcode agent instructions** in Python code
