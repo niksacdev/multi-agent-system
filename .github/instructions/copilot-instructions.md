@@ -108,6 +108,7 @@ loan_processing/
 ## Quality Assurance
 
 ### Before Committing
+- [ ] **COMMIT OFTEN**: Make atomic commits after each logical change
 - [ ] All type hints present and correct
 - [ ] Tests written and passing (>90% coverage)
 - [ ] **CRITICAL**: Run `uv run pytest tests/test_agent_registry.py -v` and verify all tests pass and coverage is > 90%
@@ -116,6 +117,7 @@ loan_processing/
 - [ ] Domain layers free of SDK imports
 - [ ] Added/changed prompts aligned with persona guidelines
 - [ ] No failing tests or reduced coverage
+- [ ] **Small PRs**: Target 50-200 lines changed per PR
 - [ ] GitHub Actions will automatically validate PR (but test locally first)
 
 ### Code Review Checklist
