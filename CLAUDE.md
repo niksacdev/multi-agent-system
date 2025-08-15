@@ -115,6 +115,38 @@ agent = AgentRegistry.create_agent("intake", model="gpt-4")
 
 ## Development Guidelines
 
+### Commit Best Practices
+
+#### Commit Frequency (CRITICAL)
+- **Commit often**: After each logical change (not after hours of work)
+- **Atomic commits**: One logical change per commit
+- **Small PRs**: Target 50-200 lines changed per PR
+- **Test before commit**: Always run tests before committing
+
+#### Good Commit Examples
+```bash
+# ✅ Good: Specific, focused commits
+git commit -m "feat: add agent registry configuration loading"
+git commit -m "test: add coverage for persona loading functionality" 
+git commit -m "fix: update persona_loader path for shared directory"
+git commit -m "docs: sync .cursorrules with new repository structure"
+
+# ❌ Bad: Large, unfocused commits
+git commit -m "update everything"
+git commit -m "fix tests and update docs and refactor code"
+```
+
+#### Commit Message Format
+```
+<type>: <short description>
+
+<optional longer description>
+<optional breaking changes>
+<optional issues closed>
+```
+
+**Types**: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`
+
 ### Support Agent Integration
 - **ALWAYS consult appropriate support agents** before making significant changes
 - **Use Task tool** to launch support agents with detailed prompts
