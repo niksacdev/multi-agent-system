@@ -148,8 +148,8 @@ class TestAgentRegistryCreation:
         for server in agent.mcp_servers:
             assert isinstance(server, MCPServerSse)
         
-        # Instructions enhanced with structured output (fallback persona used)
-        assert "You are the intake agent" in agent.instructions
+        # Instructions enhanced with structured output (real persona loaded)
+        assert "Application Intake Agent" in agent.instructions
         assert "Structured Output Requirements" in agent.instructions
         assert "validation_status" in agent.instructions
         assert "confidence_score" in agent.instructions

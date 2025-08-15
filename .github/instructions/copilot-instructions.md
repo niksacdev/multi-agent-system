@@ -96,7 +96,7 @@ loan_processing/
 ```
 
 ### Agent Persona
-- **Location**: `agent-persona/`
+- **Location**: `loan_processing/agents/shared/agent-persona/`
 - **Purpose**: Complete agent instructions including responsibilities, tool usage, and decision authority
 - **Files**: `intake-agent-persona.md`, `credit-agent-persona.md`, `income-agent-persona.md`, `risk-agent-persona.md`
 - **Usage**: Configured in `agents.yaml`, loaded automatically via `AgentRegistry`
@@ -128,7 +128,7 @@ loan_processing/
 
 ### Development Guidelines
 - **Package Manager**: ALWAYS use `uv` commands (`uv run`, `uv add`, `uv sync`) - NEVER pip/poetry
-- **Adding Agents**: Create persona markdown, add config to `agents.yaml`, use `AgentRegistry.create_agent()`
+- **Adding Agents**: Create persona markdown in `agents/shared/agent-persona/`, add config to `agents.yaml`, use `AgentRegistry.create_agent()`
 - **Modifying Behavior**: Update persona files or `agents.yaml` config, not orchestrator code
 - **MCP Integration**: Agents autonomously select tools based on persona instructions
 - **Testing**: Run `uv run pytest tests/test_agent_registry.py` before commits

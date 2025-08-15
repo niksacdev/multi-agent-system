@@ -86,7 +86,7 @@ loan_processing/
 ## Common Tasks
 
 ### Add New Agent
-1. Create persona markdown in `agent-persona/`
+1. Create persona markdown in `loan_processing/agents/shared/agent-persona/`
 2. Add configuration in `agents/shared/config/agents.yaml`
 3. Configure name, persona_file, mcp_servers, capabilities, output_format
 4. Use `AgentRegistry.create_agent(type)` to create instances

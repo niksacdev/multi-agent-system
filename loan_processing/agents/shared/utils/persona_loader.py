@@ -18,9 +18,8 @@ def load_persona(persona_key: str) -> str:
     Args:
         persona_key: e.g. "credit", "income", "risk", "intake".
     """
-    # Path to top-level agent-persona directory
-    root = Path(__file__).resolve().parents[4]  # Go up to project root
-    personas_dir = root / "agent-persona"
+    # Path to agents/shared/agent-persona directory
+    personas_dir = Path(__file__).parent.parent / "agent-persona"
     path = personas_dir / f"{persona_key}-agent-persona.md"
     try:
         return path.read_text(encoding="utf-8")

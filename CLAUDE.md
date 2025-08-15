@@ -72,14 +72,14 @@ loan_processing/
 │       ├── config/
 │       │   └── agents.yaml           # Agent configurations and MCP server mappings
 │       ├── models/                   # Data models (application, assessment, decision)
-│       └── utils/                    # Shared utilities (config loader, output formatter, persona loader)
+│       ├── utils/                    # Shared utilities (config loader, output formatter, persona loader)
+│       └── agent-persona/            # Agent instruction markdown files
 ├── tools/
 │   ├── mcp_servers/                  # MCP server implementations
 │   │   ├── application_verification/
 │   │   ├── document_processing/
 │   │   └── financial_calculations/
 │   └── services/                     # Business services used by MCP servers
-└── agent-persona/                    # Agent instruction markdown files
 ```
 
 ### Configuration-Driven Agent Creation
@@ -109,7 +109,7 @@ agent = AgentRegistry.create_agent("intake", model="gpt-4")
 ### Shared Utilities
 - **ConfigurationLoader**: Loads and validates YAML configuration
 - **OutputFormatGenerator**: Adds structured output instructions to agent personas  
-- **persona_loader**: Loads agent persona files from `agent-persona/` directory
+- **persona_loader**: Loads agent persona files from `agents/shared/agent-persona/` directory
 
 ## Development Guidelines
 
@@ -135,7 +135,7 @@ agent = AgentRegistry.create_agent("intake", model="gpt-4")
 **Purpose**: Create clear audit trail so future developers understand why architectural and implementation decisions were made
 
 ### 1. Adding New Agents
-- Create persona markdown file in `agent-persona/`
+- Create persona markdown file in `loan_processing/agents/shared/agent-persona/`
 - Add agent configuration in `loan_processing/agents/shared/config/agents.yaml`
 - Configure MCP servers, capabilities, and output formats
 - Use `AgentRegistry.create_agent()` to create instances
@@ -328,7 +328,7 @@ except AgentTimeoutError:
 ## Quick Reference
 
 ### Key Files
-- Agent Personas: `agent-persona/*.md`
+- Agent Personas: `loan_processing/agents/shared/agent-persona/*.md`
 - Agent Registry: `loan_processing/agents/providers/openai/agentregistry.py`
 - Agent Configuration: `loan_processing/agents/shared/config/agents.yaml`
 - Orchestrators: `loan_processing/agents/providers/openai/orchestration/*.py`
