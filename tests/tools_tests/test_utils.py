@@ -7,7 +7,6 @@ Provides common fixtures, helpers, and mock data for testing MCP servers.
 from __future__ import annotations
 
 import json
-import random
 from typing import Any
 from unittest.mock import AsyncMock
 
@@ -158,11 +157,11 @@ class MCPTestHelpers:
 def mock_application_verification_service():
     """Mock application verification service with realistic responses."""
     service = AsyncMock()
-    
+
     service.retrieve_credit_report.return_value = MCPTestHelpers.create_mock_credit_report()
     service.verify_employment.return_value = MCPTestHelpers.create_mock_employment_data()
     service.get_bank_account_data.return_value = MCPTestHelpers.create_mock_bank_data()
-    
+
     return service
 
 
@@ -170,7 +169,7 @@ def mock_application_verification_service():
 def mock_document_mcp_client():
     """Mock MCP client for document processing with realistic responses."""
     client = AsyncMock()
-    
+
     # Default responses for different tool calls
     responses = {
         "extract_text_from_document": MCPTestHelpers.create_mock_document_extraction(),
@@ -188,12 +187,12 @@ def mock_document_mcp_client():
             "type": "validation"
         }
     }
-    
+
     def mock_call_tool(tool_name: str, params: dict[str, Any]) -> str:
         """Mock implementation of call_tool method."""
         response = responses.get(tool_name, {"error": f"Unknown tool: {tool_name}"})
         return json.dumps(response)
-    
+
     client.call_tool.side_effect = mock_call_tool
     return client
 
@@ -202,10 +201,10 @@ def mock_document_mcp_client():
 def mock_financial_service():
     """Mock financial calculations service with realistic responses."""
     service = AsyncMock()
-    
+
     service.calculate_debt_to_income_ratio.return_value = MCPTestHelpers.create_mock_financial_calculation("dti_calculation")
     service.calculate_monthly_payment.return_value = MCPTestHelpers.create_mock_financial_calculation("payment_calculation")
-    
+
     return service
 
 
@@ -328,16 +327,16 @@ class MCPServerTestRunner:
             test_categories = ["unit", "integration", "edge_cases"]
 
         results = {}
-        
+
         for category in test_categories:
             cmd = [
                 sys.executable, "-m", "pytest",
-                f"tests/mcp_servers/",
+                "tests/mcp_servers/",
                 "-v",
                 "--tb=short",
                 f"--junit-xml=test_results_{category}.xml"
             ]
-            
+
             if category == "unit":
                 cmd.extend(["-k", "not integration"])
             elif category == "integration":

@@ -1,16 +1,16 @@
 """Tests for the multi-agent loan processing system."""
 
-from decimal import Decimal
 from datetime import datetime
-import pytest
-from unittest.mock import AsyncMock, MagicMock
+from decimal import Decimal
 
-from loan_processing.models.application import (
+import pytest
+
+from loan_processing.agents.providers.openai.agentregistry import AgentRegistry
+from loan_processing.agents.shared.models.application import (
+    EmploymentStatus,
     LoanApplication,
     LoanPurpose,
-    EmploymentStatus,
 )
-from loan_processing.providers.openai.agents import AgentRegistry
 
 
 @pytest.fixture
@@ -104,7 +104,7 @@ class TestOrchestrationEngine:
     async def test_orchestration_engine_import(self):
         """Test that orchestration engine can be imported."""
         from loan_processing.orchestration.engine import OrchestrationEngine
-        
+
         engine = OrchestrationEngine()
         assert engine is not None
         assert hasattr(engine, 'execute_pattern')
@@ -120,12 +120,12 @@ class TestAgentBehavior:
     async def test_agent_persona_loading(self):
         """Test that agents load personas correctly."""
         from loan_processing.providers.persona_loader import load_persona
-        
+
         # Test that persona files can be loaded
         intake_persona = load_persona("intake")
         assert intake_persona is not None
         assert len(intake_persona) > 0
-        
+
         credit_persona = load_persona("credit")
         assert credit_persona is not None
         assert len(credit_persona) > 0
@@ -133,10 +133,10 @@ class TestAgentBehavior:
     def test_mcp_server_configuration(self):
         """Test MCP server configuration."""
         agent = intake_agent()
-        
+
         # Verify MCP servers are configured
         assert len(agent.mcp_servers) > 0
-        
+
         # Each server should have proper configuration
         for server in agent.mcp_servers:
             assert hasattr(server, 'params')
@@ -152,7 +152,7 @@ class TestSecurityCompliance:
         internal_id = sample_application.get_custom_field("internal_applicant_id")
         assert internal_id is not None
         assert internal_id.startswith("APP-")
-        
+
         # SSN should not be used in MCP tool calls (this is a design contract)
         # This test serves as documentation of the security requirement
 
@@ -160,7 +160,7 @@ class TestSecurityCompliance:
         """Test that application data remains immutable during processing."""
         original_amount = sample_application.loan_amount
         original_name = sample_application.applicant_name
-        
+
         # Application data should not change during processing
         assert sample_application.loan_amount == original_amount
         assert sample_application.applicant_name == original_name

@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from mcp_servers.document_processing.server import (
+from loan_processing.tools.mcp_servers.document_processing.server import (
     classify_document_type,
     convert_document_format,
     document_service,
@@ -20,7 +20,7 @@ from mcp_servers.document_processing.server import (
     extract_text_from_document,
     validate_document_format,
 )
-from mcp_servers.document_processing.service import MCPDocumentProcessingService
+from loan_processing.tools.mcp_servers.document_processing.service import MCPDocumentProcessingService
 
 
 class TestMCPDocumentProcessingService:
@@ -38,7 +38,7 @@ class TestMCPDocumentProcessingService:
 
     @pytest.mark.asyncio
     async def test_extract_text_from_document(
-        self, 
+        self,
         service_impl: MCPDocumentProcessingService,
         mock_mcp_client: AsyncMock
     ) -> None:
@@ -285,7 +285,7 @@ class TestDocumentProcessingMCPServer:
 
             # Verify the service was called correctly
             mock_extract.assert_called_once_with("/path/to/test.pdf", "pdf")
-            
+
             # Verify result is converted to string
             assert result_str == str(expected_result)
 

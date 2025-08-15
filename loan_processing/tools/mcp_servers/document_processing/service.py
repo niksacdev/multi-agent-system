@@ -16,7 +16,7 @@ from loan_processing.tools.services.document_processing import DocumentProcessin
 class MCPDocumentProcessingService(DocumentProcessingService):
     """
     MCP-based implementation of document processing service.
-    
+
     Uses Document Processing MCP server (Port 8011) for:
     - OCR text extraction
     - Document type classification
@@ -24,16 +24,16 @@ class MCPDocumentProcessingService(DocumentProcessingService):
     - Structured data extraction
     - Document format conversion
     """
-    
+
     def __init__(self, mcp_client: Any = None):
         """
         Initialize with MCP client connection.
-        
+
         Args:
             mcp_client: Client connection to Document Processing MCP server
         """
         self.mcp_client = mcp_client
-    
+
     async def extract_text_from_document(
         self,
         document_path: str,

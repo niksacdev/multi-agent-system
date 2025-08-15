@@ -7,23 +7,23 @@ from configuration specifications that can be used across different agent provid
 
 from __future__ import annotations
 
-from typing import Dict, Any
+from typing import Any
 
 
 class OutputFormatGenerator:
     """Generates structured output instructions from configuration."""
-    
+
     @classmethod
-    def generate_output_instructions(cls, output_format: Dict[str, Any]) -> str:
+    def generate_output_instructions(cls, output_format: dict[str, Any]) -> str:
         """Generate JSON output instructions from format specification."""
         field_descriptions = []
-        
+
         for field_name, field_spec in output_format.items():
             # Build field description based on type and constraints
             description_parts = [f'    "{field_name}": ']
-            
+
             field_type = field_spec.get("type", "string")
-            
+
             if field_type == "enum":
                 values = "|".join(field_spec.get("values", []))
                 description_parts.append(f'"{values}"')
@@ -50,29 +50,29 @@ class OutputFormatGenerator:
                 description_parts.append("true|false")
             else:
                 description_parts.append("string value")
-            
+
             # Add comment with description if available
             if "description" in field_spec:
                 description_parts.append(f",  // {field_spec['description']}")
-            
+
             field_descriptions.append("".join(description_parts))
-        
+
         return "\n".join(field_descriptions)
-    
+
     @classmethod
     def add_structured_output_instructions(
-        cls, 
-        base_instructions: str, 
-        output_format: Dict[str, Any]
+        cls,
+        base_instructions: str,
+        output_format: dict[str, Any]
     ) -> str:
         """Add structured output requirements to agent instructions."""
-        
+
         if not output_format:
             return base_instructions
-        
+
         # Generate field specifications from configuration
         field_specs = cls.generate_output_instructions(output_format)
-        
+
         structured_output = f"""
 
 ## Structured Output Requirements
@@ -89,7 +89,7 @@ CRITICAL: Your output must be valid JSON that can be parsed by the orchestration
 Focus on your core responsibilities as defined in your persona above.
 Use secure applicant_id (from application additional_data) for all MCP tool calls, never use SSN.
 """
-        
+
         return base_instructions + structured_output
 
 

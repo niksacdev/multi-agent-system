@@ -4,21 +4,20 @@ Tests for the configuration-driven orchestration engine.
 Tests the OrchestrationEngine, AgentRegistry, and pattern execution.
 """
 
-import pytest
-import asyncio
 import json
 from datetime import datetime
-from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, patch
 
+import pytest
+
+from loan_processing.agents.providers.openai.agentregistry import AgentRegistry, MCPServerFactory
+from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationContext, OrchestrationEngine
 from loan_processing.agents.shared.models.application import (
+    EmploymentStatus,
     LoanApplication,
     LoanPurpose,
-    EmploymentStatus,
 )
 from loan_processing.agents.shared.models.decision import LoanDecision, LoanDecisionStatus
-from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationEngine, OrchestrationContext
-from loan_processing.agents.providers.openai.agentregistry import AgentRegistry, MCPServerFactory
 
 
 @pytest.fixture
@@ -99,7 +98,7 @@ def mock_runner():
                 "compliance_verified": True
             }
         }
-        
+
         def mock_run(agent, input=None):
             # Extract agent type from input or use fallback
             agent_type = "intake"  # Default
@@ -111,69 +110,69 @@ def mock_runner():
                     agent_type = 'income'
                 elif 'risk' in name_lower:
                     agent_type = 'risk'
-            
+
             response_data = mock_responses.get(agent_type, mock_responses['intake'])
             return AsyncMock(return_value=json.dumps(response_data))()
-        
+
         mock.run = AsyncMock(side_effect=mock_run)
         yield mock
 
 
 class TestAgentRegistry:
     """Test the AgentRegistry functionality."""
-    
+
     def test_create_intake_agent(self):
         """Test creating an intake agent."""
         agent = AgentRegistry.create_agent("intake")
-        
+
         assert agent.name == "Intake Agent"
         assert agent.instructions is not None
         assert len(agent.mcp_servers) == 2  # application_verification + document_processing
         assert "JSON format" in agent.instructions  # Structured output instructions
-    
+
     def test_create_credit_agent(self):
         """Test creating a credit agent."""
         agent = AgentRegistry.create_agent("credit", model="gpt-4")
-        
+
         assert agent.name == "Credit Agent"
         assert agent.model == "gpt-4"
         assert len(agent.mcp_servers) == 3  # All three MCP servers
         assert "credit_score" in agent.instructions
-    
+
     def test_create_income_agent(self):
         """Test creating an income agent."""
         agent = AgentRegistry.create_agent("income")
-        
+
         assert agent.name == "Income Verification Agent"
         assert len(agent.mcp_servers) == 3
         assert "employment_verification_status" in agent.instructions
-    
+
     def test_create_risk_agent(self):
         """Test creating a risk agent."""
         agent = AgentRegistry.create_agent("risk")
-        
+
         assert agent.name == "Risk Evaluation Agent"
         assert len(agent.mcp_servers) == 3
         assert "final_risk_category" in agent.instructions
-    
+
     def test_invalid_agent_type(self):
         """Test handling of invalid agent types."""
         with pytest.raises(ValueError, match="Unknown agent type"):
             AgentRegistry.create_agent("invalid_agent")
-    
+
     def test_get_agent_info(self):
         """Test getting agent information."""
         info = AgentRegistry.get_agent_info("intake")
-        
+
         assert info["name"] == "Intake Agent"
         assert info["persona_file"] == "intake"
         assert "application_verification" in info["mcp_servers"]
         assert "Application validation" in info["capabilities"]
-    
+
     def test_list_agent_types(self):
         """Test listing available agent types."""
         types = AgentRegistry.list_agent_types()
-        
+
         assert "intake" in types
         assert "credit" in types
         assert "income" in types
@@ -183,18 +182,18 @@ class TestAgentRegistry:
 
 class TestMCPServerFactory:
     """Test the MCP server factory."""
-    
+
     def test_get_server_creates_instance(self):
         """Test that get_server creates server instances."""
         server = MCPServerFactory.get_server("application_verification")
         assert server is not None
-    
+
     def test_get_server_caches_instances(self):
         """Test that get_server caches server instances."""
         server1 = MCPServerFactory.get_server("financial_calculations")
         server2 = MCPServerFactory.get_server("financial_calculations")
         assert server1 is server2  # Same instance
-    
+
     def test_invalid_server_type(self):
         """Test handling of invalid server types."""
         with pytest.raises(ValueError, match="Unknown server type"):
@@ -203,7 +202,7 @@ class TestMCPServerFactory:
 
 class TestOrchestrationContext:
     """Test the OrchestrationContext functionality."""
-    
+
     def test_context_initialization(self, sample_application):
         """Test context initialization."""
         context = OrchestrationContext(
@@ -212,13 +211,13 @@ class TestOrchestrationContext:
             processing_start_time=datetime.now(),
             pattern_name="sequential"
         )
-        
+
         assert context.application.application_id == "TEST-001"
         assert context.session_id == "test-session"
         assert context.pattern_name == "sequential"
         assert context.intake_result is None
         assert len(context.audit_trail) == 0
-    
+
     def test_add_audit_entry(self, sample_application):
         """Test adding audit entries."""
         context = OrchestrationContext(
@@ -227,13 +226,13 @@ class TestOrchestrationContext:
             processing_start_time=datetime.now(),
             pattern_name="sequential"
         )
-        
+
         context.add_audit_entry("Test message")
-        
+
         assert len(context.audit_trail) == 1
         assert "Test message" in context.audit_trail[0]
         assert "[" in context.audit_trail[0]  # Contains timestamp
-    
+
     def test_set_agent_result(self, sample_application):
         """Test setting agent results."""
         context = OrchestrationContext(
@@ -242,10 +241,10 @@ class TestOrchestrationContext:
             processing_start_time=datetime.now(),
             pattern_name="sequential"
         )
-        
+
         result = {"status": "completed", "score": 0.85}
         context.set_agent_result("intake", result, 2.5)
-        
+
         assert context.intake_result == result
         assert context.agent_durations["intake"] == 2.5
         assert len(context.audit_trail) == 1
@@ -255,55 +254,55 @@ class TestOrchestrationContext:
 @pytest.mark.asyncio
 class TestOrchestrationEngine:
     """Test the OrchestrationEngine functionality."""
-    
+
     def test_engine_initialization(self):
         """Test orchestration engine initialization."""
         engine = OrchestrationEngine()
-        
+
         assert engine.patterns_dir.name == "patterns"
         assert engine.agent_registry is not None
         assert isinstance(engine._pattern_cache, dict)
-    
+
     async def test_execute_sequential_pattern(self, sample_application, mock_runner):
         """Test executing sequential orchestration pattern."""
         engine = OrchestrationEngine()
-        
+
         decision = await engine.execute_pattern(
             pattern_name="sequential",
             application=sample_application,
             model="gpt-4"
         )
-        
+
         assert isinstance(decision, LoanDecision)
         assert decision.application_id == "TEST-001"
         assert decision.orchestration_pattern == "sequential"
         assert decision.decision_maker == "sequential_orchestrator"
         assert decision.processing_duration_seconds > 0
-    
+
     async def test_execute_parallel_pattern(self, sample_application, mock_runner):
         """Test executing parallel orchestration pattern."""
         engine = OrchestrationEngine()
-        
+
         decision = await engine.execute_pattern(
             pattern_name="parallel",
             application=sample_application,
             model="gpt-4"
         )
-        
+
         assert isinstance(decision, LoanDecision)
         assert decision.orchestration_pattern == "parallel"
         assert decision.decision_maker == "parallel_orchestrator"
-    
+
     async def test_invalid_pattern(self, sample_application):
         """Test handling of invalid pattern names."""
         engine = OrchestrationEngine()
-        
+
         with pytest.raises(FileNotFoundError):
             await engine.execute_pattern(
                 pattern_name="invalid_pattern",
                 application=sample_application
             )
-    
+
     def test_prepare_agent_input(self, sample_application):
         """Test preparing agent input with context."""
         engine = OrchestrationEngine()
@@ -313,46 +312,46 @@ class TestOrchestrationEngine:
             processing_start_time=datetime.now(),
             pattern_name="sequential"
         )
-        
+
         # Test intake agent input (no previous results)
         intake_input = engine._prepare_agent_input("intake", context)
-        
+
         assert "Application Data:" in intake_input
         assert sample_application.application_id in intake_input
         assert "Session ID: test-session" in intake_input
         assert "Processing Pattern: sequential" in intake_input
-        
+
         # Add intake result and test credit agent input
         context.intake_result = {"validation_status": "PASSED", "confidence_score": 0.85}
         credit_input = engine._prepare_agent_input("credit", context)
-        
+
         assert "Intake Assessment:" in credit_input
         assert "validation_status" in credit_input
-    
+
     def test_parse_agent_result_json(self):
         """Test parsing JSON agent results."""
         engine = OrchestrationEngine()
-        
+
         # Test valid JSON result
         json_result = '{"status": "completed", "score": 0.85}'
         parsed = engine._parse_agent_result(json_result)
-        
+
         assert parsed["status"] == "completed"
         assert parsed["score"] == 0.85
         assert parsed.get("parsed_successfully") != False
-    
+
     def test_parse_agent_result_fallback(self):
         """Test parsing non-JSON agent results."""
         engine = OrchestrationEngine()
-        
+
         # Test non-JSON result
         text_result = "This is not JSON"
         parsed = engine._parse_agent_result(text_result)
-        
+
         assert parsed["raw_output"] == "This is not JSON"
         assert parsed["parsed_successfully"] == False
         assert "timestamp" in parsed
-    
+
     def test_check_handoff_conditions_success(self, sample_application):
         """Test successful handoff condition checking."""
         engine = OrchestrationEngine()
@@ -362,19 +361,19 @@ class TestOrchestrationEngine:
             processing_start_time=datetime.now(),
             pattern_name="sequential"
         )
-        
+
         # Set up successful intake result
         context.intake_result = {"validation_status": "PASSED", "confidence_score": 0.85}
-        
+
         handoff_rules = {
             "intake": {
                 "conditions": ["validation_status == 'PASSED'", "confidence_score >= 0.8"]
             }
         }
-        
+
         result = engine._check_handoff_conditions(handoff_rules, "intake", context)
         assert result == True
-    
+
     def test_check_handoff_conditions_failure(self, sample_application):
         """Test failed handoff condition checking."""
         engine = OrchestrationEngine()
@@ -384,19 +383,19 @@ class TestOrchestrationEngine:
             processing_start_time=datetime.now(),
             pattern_name="sequential"
         )
-        
+
         # Set up failed intake result
         context.intake_result = {"validation_status": "FAILED", "confidence_score": 0.5}
-        
+
         handoff_rules = {
             "intake": {
                 "conditions": ["validation_status == 'PASSED'"]
             }
         }
-        
+
         result = engine._check_handoff_conditions(handoff_rules, "intake", context)
         assert result == False
-    
+
     def test_apply_decision_matrix(self, sample_application):
         """Test applying decision matrix logic."""
         engine = OrchestrationEngine()
@@ -406,7 +405,7 @@ class TestOrchestrationEngine:
             processing_start_time=datetime.now(),
             pattern_name="sequential"
         )
-        
+
         # Set up results for auto-approval
         context.risk_result = {
             "final_risk_category": "LOW",
@@ -415,7 +414,7 @@ class TestOrchestrationEngine:
             "employment_verification_status": "VERIFIED",
             "red_flags": []
         }
-        
+
         decision_matrix = {
             "auto_approve": {
                 "description": "Auto approve",
@@ -427,9 +426,9 @@ class TestOrchestrationEngine:
                 ]
             }
         }
-        
+
         status, reasoning = engine._apply_decision_matrix(decision_matrix, context)
-        
+
         assert status == LoanDecisionStatus.APPROVED
         assert "Auto approve" in reasoning
 
@@ -437,19 +436,19 @@ class TestOrchestrationEngine:
 @pytest.mark.integration
 class TestOrchestrationIntegration:
     """Integration tests for the full orchestration system."""
-    
+
     @pytest.mark.asyncio
     async def test_full_sequential_workflow(self, sample_application, mock_runner):
         """Test complete sequential workflow from start to finish."""
         engine = OrchestrationEngine()
-        
+
         # Execute full workflow
         decision = await engine.execute_pattern(
             pattern_name="sequential",
             application=sample_application,
             model="gpt-4"
         )
-        
+
         # Verify decision structure
         assert isinstance(decision, LoanDecision)
         assert decision.application_id == sample_application.application_id
@@ -463,24 +462,24 @@ class TestOrchestrationIntegration:
         assert decision.confidence_score <= 1.0
         assert decision.processing_duration_seconds > 0
         assert decision.orchestration_pattern == "sequential"
-        
+
         # Verify reasoning contains orchestration information
         assert "Orchestration Pattern: sequential" in decision.reasoning
         assert "Session ID:" in decision.reasoning
-        
-    @pytest.mark.asyncio 
+
+    @pytest.mark.asyncio
     async def test_pattern_error_handling(self, sample_application):
         """Test error handling in pattern execution."""
         engine = OrchestrationEngine()
-        
+
         with patch.object(engine, '_execute_sequential_pattern') as mock_execute:
             mock_execute.side_effect = Exception("Test error")
-            
+
             decision = await engine.execute_pattern(
                 pattern_name="sequential",
                 application=sample_application
             )
-            
+
             # Should return error decision instead of raising
             assert decision.decision == LoanDecisionStatus.MANUAL_REVIEW
             assert "Processing error" in decision.decision_reason

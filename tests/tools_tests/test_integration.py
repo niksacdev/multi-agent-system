@@ -8,13 +8,13 @@ and handle real-world scenarios.
 from __future__ import annotations
 
 import json
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
-from mcp_servers.application_verification.service import ApplicationVerificationServiceImpl
-from mcp_servers.document_processing.service import MCPDocumentProcessingService
-from mcp_servers.financial_calculations.service import FinancialCalculationsServiceImpl
+from loan_processing.tools.mcp_servers.application_verification.service import ApplicationVerificationServiceImpl
+from loan_processing.tools.mcp_servers.document_processing.service import MCPDocumentProcessingService
+from loan_processing.tools.mcp_servers.financial_calculations.service import FinancialCalculationsServiceImpl
 
 
 class TestMCPServerIntegration:
@@ -49,7 +49,7 @@ class TestMCPServerIntegration:
         mock_mcp_client: AsyncMock
     ) -> None:
         """Test a complete loan application workflow using all MCP servers."""
-        
+
         # Step 1: Process uploaded documents
         mock_mcp_client.call_tool.return_value = json.dumps({
             "extracted_data": {
@@ -164,7 +164,7 @@ class TestMCPServerIntegration:
         mock_mcp_client: AsyncMock
     ) -> None:
         """Test document classification followed by appropriate processing."""
-        
+
         # Step 1: Classify uploaded document
         mock_mcp_client.call_tool.side_effect = [
             # First call: classify_document_type
@@ -236,7 +236,7 @@ class TestMCPServerIntegration:
         mock_mcp_client: AsyncMock
     ) -> None:
         """Test asset verification and its impact on loan calculations."""
-        
+
         # Step 1: Process asset documentation
         mock_mcp_client.call_tool.return_value = json.dumps({
             "extracted_data": {
@@ -294,11 +294,11 @@ class TestMCPServerIntegration:
         # that the calculation is working correctly
         assert ltv_ratio > 0  # Must be positive
         assert asset_value > 0  # Asset must have positive value
-        
+
         # If asset value is sufficient, LTV should be reasonable
         if asset_value >= loan_amount:
             assert ltv_ratio <= 100  # LTV can't exceed 100% if asset >= loan
-        
+
         assert base_affordability["loan_amount"] == loan_amount
 
     @pytest.mark.asyncio
@@ -308,7 +308,7 @@ class TestMCPServerIntegration:
         financial_service: FinancialCalculationsServiceImpl
     ) -> None:
         """Test verification and calculation with multiple income sources."""
-        
+
         # Primary employment verification
         primary_employment = await app_verification_service.verify_employment(
             applicant_id="app-789",
@@ -331,7 +331,7 @@ class TestMCPServerIntegration:
         # Calculate total verified income
         primary_monthly = primary_employment["annual_income"] / 12
         tax_monthly = tax_data["adjusted_gross_income"] / 12
-        
+
         # Use the higher of employment vs tax income for conservative approach
         verified_monthly_income = max(primary_monthly, tax_monthly)
 
@@ -364,7 +364,7 @@ class TestMCPServerIntegration:
         mock_mcp_client: AsyncMock
     ) -> None:
         """Test error handling when services encounter issues."""
-        
+
         # Test document processing error
         mock_mcp_client.call_tool.return_value = json.dumps({
             "error": "Document could not be processed",
@@ -396,7 +396,7 @@ class TestMCPServerIntegration:
         financial_service: FinancialCalculationsServiceImpl
     ) -> None:
         """Test validation of data consistency across different sources."""
-        
+
         # Get employment verification
         employment = await app_verification_service.verify_employment(
             applicant_id="consistency-test",

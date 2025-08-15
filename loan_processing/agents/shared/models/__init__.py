@@ -7,7 +7,7 @@ services, and orchestration patterns.
 
 Architecture:
 - application.py: Core loan application data models
-- assessment.py: Assessment result models for loan processing 
+- assessment.py: Assessment result models for loan processing
 - decision.py: Final loan decision and audit models
 
 All models follow enterprise-grade validation patterns and are designed
@@ -16,32 +16,30 @@ for extensibility and maintainability.
 
 from .application import (
     EmploymentStatus,
-    LoanPurpose,
     LoanApplication,
+    LoanPurpose,
 )
-
 from .assessment import (
     AssessmentStatus,
-    RiskLevel,
     BaseAssessment,
+    ComprehensiveAssessment,
     CreditAssessment,
     IncomeVerification,
     RiskAssessment,
-    ComprehensiveAssessment,
+    RiskLevel,
 )
-
 from .decision import (
-    LoanDecisionStatus,
-    LoanDecision,
     DecisionAuditLog,
+    LoanDecision,
+    LoanDecisionStatus,
 )
 
 __all__ = [
     # Application models
     "EmploymentStatus",
-    "LoanPurpose", 
+    "LoanPurpose",
     "LoanApplication",
-    
+
     # Assessment models
     "AssessmentStatus",
     "RiskLevel",
@@ -50,7 +48,7 @@ __all__ = [
     "IncomeVerification",
     "RiskAssessment",
     "ComprehensiveAssessment",
-    
+
     # Decision models
     "LoanDecisionStatus",
     "LoanDecision",

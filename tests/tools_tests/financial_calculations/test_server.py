@@ -8,19 +8,17 @@ including both the server tools and the service implementation.
 from __future__ import annotations
 
 import json
-from unittest.mock import patch
 
 import pytest
 
-from mcp_servers.financial_calculations.server import (
+from loan_processing.tools.mcp_servers.financial_calculations.server import (
     calculate_credit_utilization_ratio,
     calculate_debt_to_income_ratio,
     calculate_loan_affordability,
     calculate_monthly_payment,
     calculate_total_debt_service_ratio,
-    financial_service,
 )
-from mcp_servers.financial_calculations.service import FinancialCalculationsServiceImpl
+from loan_processing.tools.mcp_servers.financial_calculations.service import FinancialCalculationsServiceImpl
 
 
 class TestFinancialCalculationsServiceImpl:
@@ -48,7 +46,7 @@ class TestFinancialCalculationsServiceImpl:
         assert result["qualification_status"] == "excellent"
         assert result["risk_level"] == "low"
         assert result["type"] == "dti_calculation"
-        
+
         # Max additional debt should be 43% - current 30% = 13% of income
         expected_max_debt = (5000.0 * 0.43) - 1500.0
         assert result["max_additional_debt"] == expected_max_debt
@@ -504,7 +502,7 @@ class TestFinancialCalculationsEdgeCases:
         # Should be rounded to 2 decimal places
         expected_dti = round((1111.11 / 3333.33) * 100, 2)
         assert result["debt_to_income_ratio"] == expected_dti
-        
+
         # Verify max additional debt calculation
         expected_max_debt = max(0, (3333.33 * 0.43) - 1111.11)
         assert result["max_additional_debt"] == expected_max_debt

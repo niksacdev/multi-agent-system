@@ -5,7 +5,7 @@ This module provides both the MCP server implementation and the service
 contract implementation for external data verification capabilities.
 
 Exports:
-- server: MCP server implementation  
+- server: MCP server implementation
 - service: Service contract implementation
 """
 

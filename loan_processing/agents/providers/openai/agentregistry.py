@@ -8,9 +8,7 @@ No hardcoded agent configurations - everything is configuration-driven.
 
 from __future__ import annotations
 
-import yaml
-from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any
 
 from agents import Agent
 from agents.mcp.server import MCPServerSse
@@ -20,16 +18,16 @@ from loan_processing.agents.shared.utils import ConfigurationLoader, OutputForma
 
 class MCPServerFactory:
     """Factory for creating MCP server instances."""
-    
-    _server_cache: Dict[str, MCPServerSse] = {}
-    
+
+    _server_cache: dict[str, MCPServerSse] = {}
+
     @classmethod
     def get_server(cls, server_type: str) -> MCPServerSse:
         """Get or create an MCP server instance."""
         if server_type not in cls._server_cache:
             cls._server_cache[server_type] = cls._create_server(server_type)
         return cls._server_cache[server_type]
-    
+
     @classmethod
     def _create_server(cls, server_type: str) -> MCPServerSse:
         """Create a new MCP server instance from configuration."""
@@ -39,43 +37,43 @@ class MCPServerFactory:
 
 class AgentRegistry:
     """Central registry for agent types and configurations."""
-    
+
     @classmethod
     def create_agent(cls, agent_type: str, model: str | None = None) -> Agent:
         """
         Create a configuration-driven agent instance.
-        
+
         Agents are created based on external configuration files,
         making it easy to add new agent types without code changes.
-        
+
         Args:
             agent_type: Type of agent to create (defined in agents.yaml)
             model: OpenAI model to use (e.g., "gpt-4")
-            
+
         Returns:
             Configured Agent instance without hardcoded workflow dependencies
-            
+
         Raises:
             ValueError: If agent_type is not defined in configuration
         """
         # Load agent configuration
         agent_config = ConfigurationLoader.get_agent_config(agent_type)
-        
+
         # Create MCP server instances for this agent
         mcp_servers = [
-            MCPServerFactory.get_server(server_type) 
+            MCPServerFactory.get_server(server_type)
             for server_type in agent_config["mcp_servers"]
         ]
-        
+
         # Load persona instructions (without handoff configurations)
         persona_instructions = load_persona(agent_config["persona_file"])
-        
+
         # Add structured output requirements for orchestration
         enhanced_instructions = OutputFormatGenerator.add_structured_output_instructions(
-            persona_instructions, 
+            persona_instructions,
             agent_config.get("output_format", {})
         )
-        
+
         return Agent(
             name=agent_config["name"],
             instructions=enhanced_instructions,
@@ -83,22 +81,22 @@ class AgentRegistry:
             mcp_servers=mcp_servers,
             # No handoffs - orchestrator manages workflow
         )
-    
+
     @classmethod
-    def get_agent_info(cls, agent_type: str) -> Dict[str, Any]:
+    def get_agent_info(cls, agent_type: str) -> dict[str, Any]:
         """Get information about an agent type from configuration."""
         return ConfigurationLoader.get_agent_config(agent_type).copy()
-    
+
     @classmethod
-    def list_agent_types(cls) -> List[str]:
+    def list_agent_types(cls) -> list[str]:
         """Get list of available agent types from configuration."""
         return ConfigurationLoader.list_agent_types()
-    
+
     @classmethod
-    def get_agent_capabilities(cls, agent_type: str) -> List[str]:
+    def get_agent_capabilities(cls, agent_type: str) -> list[str]:
         """Get capabilities of a specific agent type."""
         return ConfigurationLoader.get_agent_capabilities(agent_type)
-    
+
     @classmethod
     def reload_configuration(cls) -> None:
         """Force reload of configuration from disk."""

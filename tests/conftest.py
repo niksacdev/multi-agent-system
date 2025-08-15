@@ -48,7 +48,7 @@ def financial_service() -> FinancialCalculationsServiceImpl:
 def mock_mcp_client() -> AsyncMock:
     """Create mock MCP client for document processing."""
     client = AsyncMock()
-    
+
     # Default successful responses
     default_responses = {
         "extract_text_from_document": {
@@ -88,15 +88,15 @@ def mock_mcp_client() -> AsyncMock:
             "type": "conversion"
         }
     }
-    
+
     def mock_call_tool(tool_name: str, params: dict[str, Any]) -> str:
         """Mock implementation of call_tool method."""
         response = default_responses.get(
-            tool_name, 
+            tool_name,
             {"error": f"Unknown tool: {tool_name}", "type": "error"}
         )
         return json.dumps(response)
-    
+
     client.call_tool.side_effect = mock_call_tool
     return client
 
@@ -234,7 +234,7 @@ def sample_loan_affordability() -> dict[str, Any]:
 @pytest.fixture
 def validation_helpers():
     """Helper functions for test validation."""
-    
+
     class ValidationHelpers:
         @staticmethod
         def assert_response_structure(
@@ -246,7 +246,7 @@ def validation_helpers():
             for field in required_fields:
                 assert field in response, f"Missing required field: {field}"
             assert response.get("type") == response_type, f"Expected type {response_type}, got {response.get('type')}"
-        
+
         @staticmethod
         def assert_financial_ranges(result: dict[str, Any]) -> None:
             """Assert financial values are within reasonable ranges."""
@@ -260,7 +260,7 @@ def validation_helpers():
                 assert 0 <= result["utilization_ratio"] <= 100
             if "approval_probability" in result:
                 assert 0 <= result["approval_probability"] <= 1
-        
+
         @staticmethod
         def assert_dates_valid(result: dict[str, Any]) -> None:
             """Assert that date fields are valid ISO format."""
@@ -270,7 +270,7 @@ def validation_helpers():
                     # Basic check for ISO format
                     assert "T" in result[field]
                     assert result[field].endswith("Z") or "+" in result[field] or "-" in result[field][-6:]
-    
+
     return ValidationHelpers()
 
 
@@ -301,22 +301,22 @@ def utilization_test_cases(request):
 @pytest.fixture
 def async_test_helpers():
     """Helper functions for async testing."""
-    
+
     class AsyncTestHelpers:
         @staticmethod
         async def run_concurrent_calls(callable_func, args_list: list, max_concurrency: int = 10):
             """Run multiple async calls concurrently with concurrency limit."""
             import asyncio
-            
+
             semaphore = asyncio.Semaphore(max_concurrency)
-            
+
             async def limited_call(args):
                 async with semaphore:
                     return await callable_func(*args)
-            
+
             tasks = [limited_call(args) for args in args_list]
             return await asyncio.gather(*tasks)
-        
+
         @staticmethod
         async def measure_execution_time(callable_func, *args, **kwargs):
             """Measure execution time of an async function."""
@@ -325,7 +325,7 @@ def async_test_helpers():
             result = await callable_func(*args, **kwargs)
             execution_time = time.time() - start_time
             return result, execution_time
-    
+
     return AsyncTestHelpers()
 
 
@@ -365,7 +365,7 @@ def test_config():
 @pytest.fixture
 def mock_data_factory():
     """Factory for creating mock test data."""
-    
+
     class MockDataFactory:
         @staticmethod
         def create_applicant(
@@ -382,7 +382,7 @@ def mock_data_factory():
                 "monthly_debt": monthly_debt,
                 "dti_ratio": (monthly_debt / (annual_income / 12)) * 100
             }
-        
+
         @staticmethod
         def create_loan_scenario(
             loan_amount: float = 250000.0,
@@ -397,5 +397,5 @@ def mock_data_factory():
                 "loan_type": "conventional",
                 "purpose": "home_purchase"
             }
-    
+
     return MockDataFactory()
