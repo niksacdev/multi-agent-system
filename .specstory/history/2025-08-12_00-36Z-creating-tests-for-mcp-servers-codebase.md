@@ -435,7 +435,19 @@ _**User**_
 
 _**Assistant**_
 
-I'll run the tests to confirm everything is working properly with our comprehensive test suite and GitHub Actions setup. Let me activate the virtual environment first: 
+I'll run the tests to confirm everything is working properly with our comprehensive test suite and GitHub Actions setup. Let me activate the virtual environment first: Perfect! Let me also test specific test types to ensure our test runner is working correctly: Interesting! The unit tests filtered out the integration tests correctly (77 passed, 6 deselected), but the coverage dropped slightly to 89.74% because the integration tests help exercise some code paths. Let me test the integration tests specifically: 
+
+---
+
+_**User**_
+
+you still have multiple test files like validate_test, conftest, run_tests, are we using them if not we should delete
+
+---
+
+_**Assistant**_
+
+You're absolutely right! Let me check what files we have and clean up any unused test-related files. Now let me check what's in these files to see if they're being used: Now let me check if these files are actually being used or if they can be removed: The `validate_tests.py` seems to have some issues and isn't very useful since it's trying to import modules directly. Let me check if our test files are actually using the conftest.py: I can see the tests are defining their own fixtures instead of using the `conftest.py` ones. Let me check if any test files are actually importing from conftest.py: The tests are duplicating fixtures. Let me see how many fixtures are actually in `conftest.py` vs being redefined: I can see that the tests are redefining all their fixtures locally instead of using the conftest.py. Also, the `validate_tests.py` seems to be redundant since we have `run_tests.py` which works better. Let me clean up these unused files: 
 
 ---
 

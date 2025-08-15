@@ -15,9 +15,9 @@ def check_dependencies():
     """Check that required dependencies are available."""
     required_modules = [
         'pytest',
-        'mcp_servers.application_verification',
-        'mcp_servers.document_processing', 
-        'mcp_servers.financial_calculations'
+        'loan_processing.tools.mcp_servers.application_verification',
+        'loan_processing.tools.mcp_servers.document_processing', 
+        'loan_processing.tools.mcp_servers.financial_calculations'
     ]
     
     missing = []
@@ -40,16 +40,16 @@ def validate_test_structure():
     expected_files = [
         "tests/__init__.py",
         "tests/conftest.py", 
-        "tests/mcp_servers/__init__.py",
-        "tests/mcp_servers/test_integration.py",
-        "tests/mcp_servers/test_utils.py",
-        "tests/mcp_servers/test_performance.py",
-        "tests/mcp_servers/application_verification/__init__.py",
-        "tests/mcp_servers/application_verification/test_server.py",
-        "tests/mcp_servers/document_processing/__init__.py",
-        "tests/mcp_servers/document_processing/test_server.py",
-        "tests/mcp_servers/financial_calculations/__init__.py",
-        "tests/mcp_servers/financial_calculations/test_server.py",
+        "tests/tools_tests/__init__.py",
+        "tests/tools_tests/test_integration.py",
+        "tests/tools_tests/test_utils.py",
+        "tests/tools_tests/test_performance.py",
+        "tests/tools_tests/application_verification/__init__.py",
+        "tests/tools_tests/application_verification/test_server.py",
+        "tests/tools_tests/document_processing/__init__.py",
+        "tests/tools_tests/document_processing/test_server.py",
+        "tests/tools_tests/financial_calculations/__init__.py",
+        "tests/tools_tests/financial_calculations/test_server.py",
     ]
     
     missing_files = []
@@ -75,8 +75,8 @@ def run_quick_tests():
     # Run a small subset of tests
     cmd = [
         sys.executable, "-m", "pytest",
-        "tests/mcp_servers/application_verification/test_server.py::TestApplicationVerificationServiceImpl::test_retrieve_credit_report",
-        "tests/mcp_servers/financial_calculations/test_server.py::TestFinancialCalculationsServiceImpl::test_calculate_debt_to_income_ratio_excellent",
+        "tests/test_agent_registry.py::TestMCPServerFactory::test_create_application_verification_server",
+        "tests/tools_tests/test_utils.py",
         "-v", "--tb=short"
     ]
     

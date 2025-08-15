@@ -1,0 +1,220 @@
+# Parallel Loan Processing Pattern
+# Credit and income assessments run in parallel after intake, then synthesized by risk agent
+
+name: "parallel_loan_processing"
+description: "Parallel processing for faster loan evaluation with independent assessments"
+pattern_type: "parallel"
+version: "1.0.0"
+
+# Agent execution configuration with parallel branches
+agents:
+  - type: "intake"
+    name: "Application Intake"
+    required: true
+    timeout_seconds: 180
+    description: "Validates application data and checks for fraud indicators"
+    execution_stage: "initial"
+    success_conditions:
+      - "validation_status in ['PASSED', 'REQUIRES_REVIEW']"
+      - "confidence_score >= 0.7"
+
+# Parallel execution branches after intake
+parallel_branches:
+  # Branch 1: Credit Assessment
+  - branch_name: "credit_branch"
+    agents:
+      - type: "credit"
+        name: "Credit Assessment" 
+        required: true
+        timeout_seconds: 240
+        depends_on: ["intake"]
+        description: "Evaluates creditworthiness independently"
+        success_conditions:
+          - "credit_score is not null"
+          - "risk_category is not null"
+          - "confidence_score >= 0.7"
+  
+  # Branch 2: Income Verification  
+  - branch_name: "income_branch"
+    agents:
+      - type: "income"
+        name: "Income Verification"
+        required: true
+        timeout_seconds: 240
+        depends_on: ["intake"] 
+        description: "Verifies employment independently"
+        success_conditions:
+          - "employment_verification_status != 'FAILED'"
+          - "confidence_score >= 0.7"
+
+# Final synthesis agent
+synthesis_agents:
+  - type: "risk"
+    name: "Risk Evaluation & Synthesis"
+    required: true
+    timeout_seconds: 300
+    depends_on: ["credit", "income"]
+    description: "Synthesizes parallel assessments and provides final recommendation"
+    success_conditions:
+      - "recommendation is not null"
+      - "compliance_verified == true"
+      - "confidence_score >= 0.8"
+
+# Handoff rules for parallel pattern
+handoff_rules:
+  # Initial handoff from intake to parallel branches
+  - from: "intake"
+    to: ["credit", "income"]  # Parallel execution
+    conditions:
+      - "validation_status == 'PASSED'"
+      - "confidence_score >= 0.8"
+    context_fields:
+      - "validation_status"
+      - "data_completeness_score"
+      - "fraud_indicators"
+      - "verification_results"
+      - "processing_path"
+    failure_action: "manual_review"
+    
+  # Synthesis handoff from parallel branches to risk agent
+  - from: ["credit", "income"]
+    to: "risk"
+    conditions:
+      # Both branches must complete successfully
+      - "credit.risk_category != 'VERY_HIGH'"
+      - "income.employment_verification_status == 'VERIFIED'"
+      - "credit.confidence_score >= 0.7"
+      - "income.confidence_score >= 0.7"
+    context_fields:
+      # All fields from both assessments
+      - "credit.*"  # All credit assessment fields
+      - "income.*"  # All income assessment fields
+    failure_action: "consolidation_review"
+
+# Branch synchronization rules
+synchronization:
+  wait_for_all_branches: true
+  branch_timeout_seconds: 300
+  partial_completion_threshold: 0.8  # Proceed if 80% of branches complete
+  
+  failure_handling:
+    single_branch_failure: "continue_with_available"
+    multiple_branch_failure: "escalate_to_manual"
+    
+  load_balancing:
+    enabled: true
+    max_concurrent_branches: 4
+    resource_allocation: "equal"
+
+# Decision matrix optimized for parallel processing
+decision_matrix:
+  auto_approve:
+    description: "Fast approval for clearly qualified applications"
+    conditions:
+      - "final_risk_category == 'LOW'"
+      - "credit_score >= 750"
+      - "debt_to_income_ratio <= 0.28"
+      - "employment_verification_status == 'VERIFIED'"
+      - "len(red_flags) == 0"
+      - "processing_duration_seconds <= 300"  # Fast processing bonus
+    max_amount: 500000
+    rate_adjustment: -0.1  # Small rate benefit for fast processing
+    
+  conditional_approval:
+    description: "Approval with conditions, may require additional review"
+    conditions:
+      - "final_risk_category in ['LOW', 'MODERATE']" 
+      - "credit_score >= 650"
+      - "debt_to_income_ratio <= 0.43"
+      - "employment_verification_status in ['VERIFIED', 'PENDING']"
+    max_amount: 400000
+    rate_adjustment: 0.25
+    required_conditions:
+      - "Complete any pending verifications"
+      - "Provide additional documentation if requested"
+      
+  manual_review:
+    description: "Complex cases requiring human expertise"
+    conditions:
+      - "final_risk_category in ['HIGH', 'VERY_HIGH']"
+      - "any_branch_failed == true"
+      - "synchronization_issues_detected == true"
+    escalation_priority: "high"  # Higher priority due to parallel processing complexity
+    
+  auto_deny:
+    description: "Clear denial cases"
+    conditions:
+      - "validation_status == 'FAILED'"
+      - "credit_score < 580"
+      - "debt_to_income_ratio > 0.50" 
+      - "len(fraud_indicators) > 0"
+    denial_reason_required: true
+
+# Parallel-specific error handling
+error_handling:
+  branch_timeout:
+    action: "continue_with_completed"
+    minimum_branches_required: 1
+    fallback: "sequential_processing"
+    
+  branch_failure:
+    action: "retry_failed_branch"
+    max_retries: 1
+    fallback: "sequential_processing"
+    
+  synchronization_failure:
+    action: "escalate_with_partial_results"
+    fallback: "manual_review"
+    
+  resource_contention:
+    action: "dynamic_load_balancing"
+    fallback: "sequential_processing"
+
+# Performance optimization
+performance:
+  target_processing_time: 180  # seconds
+  branch_optimization:
+    credit_branch_priority: "high"  # Credit assessment often takes longer
+    income_branch_priority: "medium"
+    
+  caching:
+    enabled: true
+    cache_duration: 300  # 5 minutes
+    cache_keys: ["applicant_id", "credit_score", "employment_status"]
+    
+  resource_limits:
+    max_memory_per_branch: "512MB"
+    max_cpu_per_branch: "1 core"
+
+# Monitoring for parallel execution
+monitoring:
+  track_metrics:
+    - "total_processing_duration"
+    - "branch_processing_duration"
+    - "synchronization_duration"
+    - "parallel_efficiency_ratio"
+    - "branch_failure_rate"
+    - "resource_utilization"
+    
+  performance_alerts:
+    - trigger: "processing_duration > 300"
+      action: "investigate_bottleneck"
+    - trigger: "branch_failure_rate > 0.1"
+      action: "fallback_to_sequential"
+      
+  audit_points:
+    - "parallel_branch_execution"
+    - "synchronization_events"
+    - "performance_metrics"
+    - "resource_allocation"
+
+# Compliance for parallel processing
+compliance:
+  audit_trail_required: true
+  parallel_execution_logging: true
+  decision_reconstruction: true  # Must be able to reconstruct decision from parallel results
+  
+  regulatory_considerations:
+    - "Ensure consistent decision making across parallel branches"
+    - "Maintain audit trail for all parallel activities"
+    - "Document any synchronization or timing issues"

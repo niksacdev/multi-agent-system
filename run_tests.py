@@ -41,16 +41,16 @@ def run_tests(
     
     # Add test path based on type
     if test_type == "all":
-        cmd.append("tests/mcp_servers/")
+        cmd.append("tests/")
     elif test_type == "unit":
-        cmd.extend(["tests/mcp_servers/", "-k", "not integration"])
+        cmd.extend(["tests/", "-k", "not integration"])
     elif test_type == "integration":
-        cmd.extend(["tests/mcp_servers/test_integration.py"])
+        cmd.extend(["tests/tools_tests/test_integration.py"])
     elif test_type == "server":
         cmd.extend([
-            "tests/mcp_servers/application_verification/test_server.py",
-            "tests/mcp_servers/document_processing/test_server.py", 
-            "tests/mcp_servers/financial_calculations/test_server.py"
+            "tests/tools_tests/application_verification/test_server.py",
+            "tests/tools_tests/document_processing/test_server.py", 
+            "tests/tools_tests/financial_calculations/test_server.py"
         ])
     else:
         print(f"Unknown test type: {test_type}")
@@ -63,7 +63,7 @@ def run_tests(
         cmd.append("-q")
     
     if coverage:
-        cmd.extend(["--cov=mcp_servers", "--cov-config=.coveragerc", "--cov-report=term-missing"])
+        cmd.extend(["--cov=loan_processing", "--cov-report=term-missing"])
         if html_report:
             cmd.append("--cov-report=html")
     
@@ -128,7 +128,7 @@ def main() -> int:
     try:
         import pytest
     except ImportError:
-        print("pytest is not installed. Please install it with: uv add pytest")
+        print("pytest is not installed. Please install it with: uv add --dev pytest pytest-cov")
         return 1
     
     # Coverage dependency check is optional - pytest-cov will fail gracefully if not installed

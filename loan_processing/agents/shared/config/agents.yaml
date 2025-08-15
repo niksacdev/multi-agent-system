@@ -1,0 +1,282 @@
+# Agent Configuration
+# This file defines all agent types, their capabilities, and configurations
+# To add a new agent, simply add a new entry with the required fields
+
+agents:
+  intake:
+    name: "Intake Agent"
+    description: "Validates applications and performs initial assessments"
+    persona_file: "intake"
+    mcp_servers:
+      - "application_verification"
+      - "document_processing"
+    capabilities:
+      - "Application validation"
+      - "Identity verification"
+      - "Fraud detection"
+      - "Data enrichment"
+      - "Routing decisions"
+    provider_config:
+      openai:
+        model: "gpt-4"
+        temperature: 0.1
+        timeout_seconds: 180
+    output_format:
+      validation_status:
+        type: "enum"
+        values: ["PASSED", "FAILED", "REQUIRES_REVIEW"]
+        description: "Overall validation status"
+      data_completeness_score:
+        type: "float"
+        range: [0.0, 1.0]
+        description: "Score indicating data completeness"
+      fraud_indicators:
+        type: "array"
+        item_type: "string"
+        description: "List of detected fraud indicators"
+      verification_results:
+        type: "object"
+        description: "Dictionary of verification outcomes"
+      processing_path:
+        type: "enum"
+        values: ["FAST_TRACK", "STANDARD", "ENHANCED_REVIEW"]
+        description: "Recommended processing path"
+      issues_found:
+        type: "array"
+        item_type: "string"
+        description: "List of issues requiring attention"
+      confidence_score:
+        type: "float"
+        range: [0.0, 1.0]
+        description: "Agent's confidence in assessment"
+
+  credit:
+    name: "Credit Agent"
+    description: "Evaluates creditworthiness and financial risk"
+    persona_file: "credit"
+    mcp_servers:
+      - "application_verification"
+      - "financial_calculations"
+      - "document_processing"
+    capabilities:
+      - "Credit report analysis"
+      - "Credit scoring"
+      - "Debt-to-income calculations"
+      - "Risk categorization"
+      - "Payment history assessment"
+    provider_config:
+      openai:
+        model: "gpt-4"
+        temperature: 0.1
+        timeout_seconds: 240
+    output_format:
+      credit_score:
+        type: "integer"
+        range: [300, 850]
+        description: "FICO credit score"
+      credit_tier:
+        type: "enum"
+        values: ["EXCELLENT", "VERY_GOOD", "GOOD", "FAIR", "POOR"]
+        description: "Credit tier classification"
+      debt_to_income_ratio:
+        type: "float"
+        description: "DTI ratio as decimal"
+      credit_utilization_ratio:
+        type: "float"
+        range: [0.0, 1.0]
+        description: "Credit utilization percentage"
+      payment_history_score:
+        type: "float"
+        range: [0.0, 1.0]
+        description: "Payment history reliability score"
+      risk_category:
+        type: "enum"
+        values: ["LOW", "MODERATE", "HIGH", "VERY_HIGH"]
+        description: "Overall risk category"
+      red_flags:
+        type: "array"
+        item_type: "string"
+        description: "List of credit red flags"
+      confidence_score:
+        type: "float"
+        range: [0.0, 1.0]
+        description: "Agent's confidence in assessment"
+
+  income:
+    name: "Income Verification Agent"
+    description: "Verifies employment and income information"
+    persona_file: "income"
+    mcp_servers:
+      - "application_verification"
+      - "document_processing"
+      - "financial_calculations"
+    capabilities:
+      - "Employment verification"
+      - "Income calculation"
+      - "Income stability analysis"
+      - "Tax transcript verification"
+      - "Alternative income assessment"
+    provider_config:
+      openai:
+        model: "gpt-4"
+        temperature: 0.1
+        timeout_seconds: 240
+    output_format:
+      verified_monthly_income:
+        type: "decimal"
+        description: "Verified monthly income amount"
+      employment_verification_status:
+        type: "enum"
+        values: ["VERIFIED", "FAILED", "PENDING"]
+        description: "Employment verification status"
+      employment_stability_score:
+        type: "float"
+        range: [0.0, 1.0]
+        description: "Employment stability score"
+      income_trend:
+        type: "enum"
+        values: ["STABLE", "INCREASING", "DECREASING", "VOLATILE"]
+        description: "Income trend over time"
+      income_sources:
+        type: "array"
+        item_type: "string"
+        description: "List of income sources"
+      qualifying_income:
+        type: "decimal"
+        description: "Income that qualifies for loan"
+      concerns:
+        type: "array"
+        item_type: "string"
+        description: "List of income-related concerns"
+      confidence_score:
+        type: "float"
+        range: [0.0, 1.0]
+        description: "Agent's confidence in verification"
+
+  risk:
+    name: "Risk Evaluation Agent"
+    description: "Synthesizes all assessments and makes final lending decisions"
+    persona_file: "risk"
+    mcp_servers:
+      - "application_verification"
+      - "financial_calculations"
+      - "document_processing"
+    capabilities:
+      - "Risk synthesis"
+      - "Policy application"
+      - "Final recommendations"
+      - "Compliance verification"
+      - "Compensating factor evaluation"
+    provider_config:
+      openai:
+        model: "gpt-4"
+        temperature: 0.1
+        timeout_seconds: 300
+    output_format:
+      final_risk_category:
+        type: "enum"
+        values: ["LOW", "MODERATE", "HIGH", "VERY_HIGH"]
+        description: "Final risk assessment"
+      recommendation:
+        type: "enum"
+        values: ["APPROVE", "DENY", "CONDITIONAL_APPROVAL", "MANUAL_REVIEW"]
+        description: "Final lending recommendation"
+      approved_amount:
+        type: "decimal"
+        description: "Approved loan amount if applicable"
+        optional: true
+      recommended_rate:
+        type: "float"
+        description: "Recommended interest rate"
+        optional: true
+      recommended_terms:
+        type: "integer"
+        description: "Recommended term in months"
+        optional: true
+      key_risk_factors:
+        type: "array"
+        item_type: "string"
+        description: "List of key risk factors"
+      mitigating_factors:
+        type: "array"
+        item_type: "string"
+        description: "List of mitigating factors"
+      conditions:
+        type: "array"
+        item_type: "string"
+        description: "List of approval conditions"
+      reasoning:
+        type: "string"
+        description: "Detailed explanation of decision"
+      confidence_score:
+        type: "float"
+        range: [0.0, 1.0]
+        description: "Agent's confidence in decision"
+      compliance_verified:
+        type: "boolean"
+        description: "Compliance verification status"
+
+# MCP Server Configuration
+mcp_servers:
+  application_verification:
+    url: "http://localhost:8010/sse"
+    description: "Handles identity, address, and employment verification"
+    tools:
+      - "verify_identity"
+      - "verify_address"
+      - "check_fraud_indicators"
+      - "verify_employment"
+      - "get_credit_report"
+      - "verify_bank_account"
+
+  document_processing:
+    url: "http://localhost:8011/sse"
+    description: "Processes and extracts data from documents"
+    tools:
+      - "extract_text_from_document"
+      - "classify_document_type"
+      - "validate_document_format"
+      - "extract_structured_data"
+      - "convert_document_format"
+
+  financial_calculations:
+    url: "http://localhost:8012/sse"
+    description: "Performs financial calculations and risk assessments"
+    tools:
+      - "calculate_debt_to_income"
+      - "calculate_loan_affordability"
+      - "calculate_credit_utilization"
+      - "calculate_risk_score"
+      - "calculate_amortization_schedule"
+
+# Global provider configuration
+providers:
+  openai:
+    provider_class: "loan_processing.providers.openai.provider.OpenAIAgentProvider"
+    default_model: "gpt-4"
+    default_timeout_seconds: 300
+    default_temperature: 0.1
+    is_default: true
+  # Future providers can be added here:
+  # semantic_kernel:
+  #   provider_class: "loan_processing.providers.semantic_kernel.provider.SemanticKernelProvider"
+  #   default_model: "gpt-4"
+  #   is_default: false
+
+# Runtime configuration
+runtime:
+  default_provider: "openai"
+  provider_selection_strategy: "configured"  # or "round_robin", "failover"
+
+# Configuration metadata  
+metadata:
+  version: "1.2.0"
+  last_updated: "2025-08-15"
+  description: "Agent configuration for loan processing system with multi-provider support"
+  
+# Instructions for adding new agents
+# 1. Add a new entry under 'agents' with a unique key
+# 2. Include all required fields: name, description, persona_file, mcp_servers, capabilities, output_format
+# 3. Create the corresponding persona file in agent-persona/{persona_file}.md
+# 4. Ensure MCP servers listed exist in the mcp_servers section
+# 5. Define the output_format with proper types and validations
