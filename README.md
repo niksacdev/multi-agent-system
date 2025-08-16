@@ -14,9 +14,16 @@
 **ROI: 416% in Year 1** for organizations processing 1,000+ applications/month  
 [→ See detailed business case](docs/getting-started/business-case.md)
 
-## What This Is
+## What This Demonstrates
 
-A production-ready multi-agent system using OpenAI's Agents SDK that automates loan processing through intelligent collaboration between specialized AI agents. Each agent handles specific aspects of loan evaluation - from application intake to risk assessment - working together to deliver fast, accurate, and compliant lending decisions.
+A comprehensive example of **orchestrator patterns** and **domain-aligned agents** that automate end-to-end business processes. This system showcases:
+
+- **Multi-Agent Orchestration**: Intelligent coordination between specialized AI agents using OpenAI Agents SDK
+- **Domain-Driven Design**: Each agent represents a specific business domain (credit, income, risk)
+- **Autonomous Tool Selection**: Agents intelligently choose appropriate tools and data sources
+- **Complete Business Process Automation**: From application intake to final lending decisions
+
+Beyond loan processing, this repository demonstrates modern AI development practices including Claude Code integration, GitHub Copilot workflows, and using AI agents for software development itself.
 
 ## Quick Start (3 Steps)
 
@@ -57,14 +64,14 @@ Five specialized agents collaborate to process loan applications:
 - **Orchestrator**: Coordinates workflow and makes final decisions
 
 Each agent uses the Jobs-to-be-Done framework to ensure customer-centric outcomes.  
-[→ Learn about the architecture](docs/architecture/system-overview.md)
+[→ Learn about the architecture](docs/architecture/agent-strategy.md)
 
 ## Documentation
 
 | For | Start Here |
 |-----|------------|
 | **Business Leaders** | [Business Case & ROI Analysis](docs/getting-started/business-case.md) |
-| **Technical Evaluators** | [Architecture Overview](docs/architecture/system-overview.md) |
+| **Technical Evaluators** | [Architecture Overview](docs/architecture/agent-strategy.md) |
 | **Developers** | [Implementation Guide](docs/getting-started/quick-start.md) |
 | **Product Teams** | [Jobs-to-be-Done Framework](docs/architecture/jobs-to-be-done.md) |
 
