@@ -33,9 +33,7 @@ class TestApplicationVerificationServiceImpl:
     async def test_retrieve_credit_report(self, service_impl: ApplicationVerificationServiceImpl) -> None:
         """Test credit report retrieval with valid data."""
         result = await service_impl.retrieve_credit_report(
-            applicant_id="test-123",
-            full_name="John Doe",
-            address="123 Main St, Anytown, ST 12345"
+            applicant_id="test-123", full_name="John Doe", address="123 Main St, Anytown, ST 12345"
         )
 
         # Verify structure and required fields
@@ -66,9 +64,7 @@ class TestApplicationVerificationServiceImpl:
     async def test_verify_employment(self, service_impl: ApplicationVerificationServiceImpl) -> None:
         """Test employment verification with valid data."""
         result = await service_impl.verify_employment(
-            applicant_id="test-456",
-            employer_name="Tech Corp",
-            position="Software Engineer"
+            applicant_id="test-456", employer_name="Tech Corp", position="Software Engineer"
         )
 
         # Verify structure and required fields
@@ -97,10 +93,7 @@ class TestApplicationVerificationServiceImpl:
     @pytest.mark.asyncio
     async def test_get_bank_account_data(self, service_impl: ApplicationVerificationServiceImpl) -> None:
         """Test bank account data retrieval."""
-        result = await service_impl.get_bank_account_data(
-            account_number="1234567890",
-            routing_number="987654321"
-        )
+        result = await service_impl.get_bank_account_data(account_number="1234567890", routing_number="987654321")
 
         # Verify structure and required fields
         assert "account_number_suffix" in result
@@ -125,10 +118,7 @@ class TestApplicationVerificationServiceImpl:
     @pytest.mark.asyncio
     async def test_get_tax_transcript_data(self, service_impl: ApplicationVerificationServiceImpl) -> None:
         """Test tax transcript data retrieval."""
-        result = await service_impl.get_tax_transcript_data(
-            applicant_id="test-789",
-            tax_year=2023
-        )
+        result = await service_impl.get_tax_transcript_data(applicant_id="test-789", tax_year=2023)
 
         # Verify structure and required fields
         assert "applicant_id" in result
@@ -153,10 +143,7 @@ class TestApplicationVerificationServiceImpl:
         """Test asset information verification."""
         asset_details = {"description": "2019 Honda Civic", "vin": "12345678901234567"}
 
-        result = await service_impl.verify_asset_information(
-            asset_type="vehicle",
-            asset_details=asset_details
-        )
+        result = await service_impl.verify_asset_information(asset_type="vehicle", asset_details=asset_details)
 
         # Verify structure and required fields
         assert "asset_type" in result
@@ -183,11 +170,7 @@ class TestApplicationVerificationMCPServer:
     @pytest.mark.asyncio
     async def test_retrieve_credit_report_tool(self) -> None:
         """Test the MCP tool wrapper for credit report retrieval."""
-        result_str = await retrieve_credit_report(
-            applicant_id="test-123",
-            full_name="John Doe",
-            address="123 Main St"
-        )
+        result_str = await retrieve_credit_report(applicant_id="test-123", full_name="John Doe", address="123 Main St")
 
         # Verify result is valid JSON
         result = json.loads(result_str)
@@ -198,9 +181,7 @@ class TestApplicationVerificationMCPServer:
     async def test_verify_employment_tool(self) -> None:
         """Test the MCP tool wrapper for employment verification."""
         result_str = await verify_employment(
-            applicant_id="test-456",
-            employer_name="Tech Corp",
-            position="Software Engineer"
+            applicant_id="test-456", employer_name="Tech Corp", position="Software Engineer"
         )
 
         # Verify result is valid JSON
@@ -211,10 +192,7 @@ class TestApplicationVerificationMCPServer:
     @pytest.mark.asyncio
     async def test_get_bank_account_data_tool(self) -> None:
         """Test the MCP tool wrapper for bank account data."""
-        result_str = await get_bank_account_data(
-            account_number="1234567890",
-            routing_number="987654321"
-        )
+        result_str = await get_bank_account_data(account_number="1234567890", routing_number="987654321")
 
         # Verify result is valid JSON
         result = json.loads(result_str)
@@ -224,10 +202,7 @@ class TestApplicationVerificationMCPServer:
     @pytest.mark.asyncio
     async def test_get_tax_transcript_data_tool(self) -> None:
         """Test the MCP tool wrapper for tax transcript data."""
-        result_str = await get_tax_transcript_data(
-            applicant_id="test-789",
-            tax_year=2023
-        )
+        result_str = await get_tax_transcript_data(applicant_id="test-789", tax_year=2023)
 
         # Verify result is valid JSON
         result = json.loads(result_str)
@@ -240,10 +215,7 @@ class TestApplicationVerificationMCPServer:
         """Test the MCP tool wrapper for asset verification."""
         asset_details_json = json.dumps({"description": "2019 Honda Civic", "vin": "12345678901234567"})
 
-        result_str = await verify_asset_information(
-            asset_type="vehicle",
-            asset_details_json=asset_details_json
-        )
+        result_str = await verify_asset_information(asset_type="vehicle", asset_details_json=asset_details_json)
 
         # Verify result is valid JSON
         result = json.loads(result_str)
@@ -253,10 +225,7 @@ class TestApplicationVerificationMCPServer:
     @pytest.mark.asyncio
     async def test_verify_asset_information_tool_invalid_json(self) -> None:
         """Test asset verification tool with invalid JSON."""
-        result_str = await verify_asset_information(
-            asset_type="vehicle",
-            asset_details_json="invalid json"
-        )
+        result_str = await verify_asset_information(asset_type="vehicle", asset_details_json="invalid json")
 
         # Verify result is valid JSON and handles error gracefully
         result = json.loads(result_str)
@@ -266,10 +235,7 @@ class TestApplicationVerificationMCPServer:
     @pytest.mark.asyncio
     async def test_verify_asset_information_tool_empty_json(self) -> None:
         """Test asset verification tool with empty JSON."""
-        result_str = await verify_asset_information(
-            asset_type="vehicle",
-            asset_details_json=""
-        )
+        result_str = await verify_asset_information(asset_type="vehicle", asset_details_json="")
 
         # Verify result is valid JSON and handles empty input
         result = json.loads(result_str)
@@ -291,9 +257,7 @@ class TestApplicationVerificationServiceConsistency:
         # Run multiple times to test consistency
         for _ in range(10):
             result = await service_impl.retrieve_credit_report(
-                applicant_id="test-consistency",
-                full_name="Test User",
-                address="123 Test St"
+                applicant_id="test-consistency", full_name="Test User", address="123 Test St"
             )
 
             score = result["credit_score"]
@@ -308,13 +272,13 @@ class TestApplicationVerificationServiceConsistency:
                 assert risk_level == "high"
 
     @pytest.mark.asyncio
-    async def test_employment_income_stability_consistency(self, service_impl: ApplicationVerificationServiceImpl) -> None:
+    async def test_employment_income_stability_consistency(
+        self, service_impl: ApplicationVerificationServiceImpl
+    ) -> None:
         """Test employment verification income stability logic."""
         for _ in range(10):
             result = await service_impl.verify_employment(
-                applicant_id="test-stability",
-                employer_name="Test Corp",
-                position="Test Position"
+                applicant_id="test-stability", employer_name="Test Corp", position="Test Position"
             )
 
             tenure = result["tenure_months"]
@@ -329,16 +293,18 @@ class TestApplicationVerificationServiceConsistency:
     @pytest.mark.asyncio
     async def test_bank_account_data_structure(self, service_impl: ApplicationVerificationServiceImpl) -> None:
         """Test bank account data always has required structure."""
-        result = await service_impl.get_bank_account_data(
-            account_number="9876543210",
-            routing_number="123456789"
-        )
+        result = await service_impl.get_bank_account_data(account_number="9876543210", routing_number="123456789")
 
         # Verify required fields are always present
         required_fields = [
-            "account_number_suffix", "routing_number", "current_balance",
-            "average_daily_balance", "owner_verified", "recent_transactions",
-            "overdrafts_last_90_days", "type"
+            "account_number_suffix",
+            "routing_number",
+            "current_balance",
+            "average_daily_balance",
+            "owner_verified",
+            "recent_transactions",
+            "overdrafts_last_90_days",
+            "type",
         ]
 
         for field in required_fields:
@@ -357,8 +323,7 @@ class TestApplicationVerificationServiceConsistency:
         """Test asset verification confidence is always in valid range."""
         for _ in range(20):
             result = await service_impl.verify_asset_information(
-                asset_type="real_estate",
-                asset_details={"address": "456 Property Lane", "year_built": 2015}
+                asset_type="real_estate", asset_details={"address": "456 Property Lane", "year_built": 2015}
             )
 
             confidence = result["verification_confidence"]

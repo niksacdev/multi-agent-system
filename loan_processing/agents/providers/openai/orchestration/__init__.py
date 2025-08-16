@@ -17,5 +17,5 @@ __all__ = [
     "ParallelPatternExecutor",
     "PatternExecutor",
     "AgentExecutionService",
-    "HandoffValidationService"
+    "HandoffValidationService",
 ]

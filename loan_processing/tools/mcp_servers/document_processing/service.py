@@ -34,86 +34,52 @@ class MCPDocumentProcessingService(DocumentProcessingService):
         """
         self.mcp_client = mcp_client
 
-    async def extract_text_from_document(
-        self,
-        document_path: str,
-        document_type: str = "auto"
-    ) -> dict[str, Any]:
+    async def extract_text_from_document(self, document_path: str, document_type: str = "auto") -> dict[str, Any]:
         """Extract text from document using Document Processing MCP server."""
         result = await self.mcp_client.call_tool(
-            "extract_text_from_document",
-            {
-                "document_path": document_path,
-                "document_type": document_type
-            }
+            "extract_text_from_document", {"document_path": document_path, "document_type": document_type}
         )
         try:
             parsed_result = json.loads(result) if isinstance(result, str) else result
         except (json.JSONDecodeError, TypeError):
             return {}
         return parsed_result if isinstance(parsed_result, dict) else {}
-    async def classify_document_type(
-        self,
-        document_content: str
-    ) -> dict[str, Any]:
+
+    async def classify_document_type(self, document_content: str) -> dict[str, Any]:
         """Classify document type using Document Processing MCP server."""
-        result = await self.mcp_client.call_tool(
-            "classify_document_type",
-            {"document_content": document_content}
-        )
+        result = await self.mcp_client.call_tool("classify_document_type", {"document_content": document_content})
         try:
             parsed_result = json.loads(result) if isinstance(result, str) else result
         except (json.JSONDecodeError, TypeError):
             return {}
         return parsed_result if isinstance(parsed_result, dict) else {}
-    async def validate_document_format(
-        self,
-        document_path: str,
-        expected_format: str
-    ) -> dict[str, Any]:
+
+    async def validate_document_format(self, document_path: str, expected_format: str) -> dict[str, Any]:
         """Validate document format using Document Processing MCP server."""
         result = await self.mcp_client.call_tool(
-            "validate_document_format",
-            {
-                "document_path": document_path,
-                "expected_format": expected_format
-            }
+            "validate_document_format", {"document_path": document_path, "expected_format": expected_format}
         )
         try:
             parsed_result = json.loads(result) if isinstance(result, str) else result
         except (json.JSONDecodeError, TypeError):
             return {}
         return parsed_result if isinstance(parsed_result, dict) else {}
-    async def extract_structured_data(
-        self,
-        document_path: str,
-        data_schema: dict[str, Any]
-    ) -> dict[str, Any]:
+
+    async def extract_structured_data(self, document_path: str, data_schema: dict[str, Any]) -> dict[str, Any]:
         """Extract structured data using Document Processing MCP server."""
         result = await self.mcp_client.call_tool(
-            "extract_structured_data",
-            {
-                "document_path": document_path,
-                "data_schema": json.dumps(data_schema)
-            }
+            "extract_structured_data", {"document_path": document_path, "data_schema": json.dumps(data_schema)}
         )
         try:
             parsed_result = json.loads(result) if isinstance(result, str) else result
         except (json.JSONDecodeError, TypeError):
             return {}
         return parsed_result if isinstance(parsed_result, dict) else {}
-    async def convert_document_format(
-        self,
-        input_path: str,
-        output_format: str
-    ) -> dict[str, Any]:
+
+    async def convert_document_format(self, input_path: str, output_format: str) -> dict[str, Any]:
         """Convert document format using Document Processing MCP server."""
         result = await self.mcp_client.call_tool(
-            "convert_document_format",
-            {
-                "input_path": input_path,
-                "output_format": output_format
-            }
+            "convert_document_format", {"input_path": input_path, "output_format": output_format}
         )
         try:
             parsed_result = json.loads(result) if isinstance(result, str) else result

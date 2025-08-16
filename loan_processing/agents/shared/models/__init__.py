@@ -39,7 +39,6 @@ __all__ = [
     "EmploymentStatus",
     "LoanPurpose",
     "LoanApplication",
-
     # Assessment models
     "AssessmentStatus",
     "RiskLevel",
@@ -48,7 +47,6 @@ __all__ = [
     "IncomeVerification",
     "RiskAssessment",
     "ComprehensiveAssessment",
-
     # Decision models
     "LoanDecisionStatus",
     "LoanDecision",

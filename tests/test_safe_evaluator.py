@@ -23,7 +23,7 @@ class TestSafeConditionEvaluator:
             "risk_level": "low",
             "amount": 250000,
             "age": 35,
-            "categories": ["prime", "qualified"]
+            "categories": ["prime", "qualified"],
         }
 
     def test_basic_numeric_comparisons(self):
@@ -79,7 +79,9 @@ class TestSafeConditionEvaluator:
         assert not SafeConditionEvaluator.evaluate_condition("credit_score > 800 or income > 100000", self.context)
 
         # Complex compound conditions
-        assert SafeConditionEvaluator.evaluate_condition("credit_score >= 720 and debt_ratio <= 0.3 and status == 'approved'", self.context)
+        assert SafeConditionEvaluator.evaluate_condition(
+            "credit_score >= 720 and debt_ratio <= 0.3 and status == 'approved'", self.context
+        )
 
     def test_convenience_function(self):
         """Test the convenience evaluate_condition function."""
@@ -154,7 +156,7 @@ class TestSafeConditionEvaluator:
             "loan_amount": 300000,
             "down_payment": 60000,
             "property_type": "primary",
-            "loan_purpose": "purchase"
+            "loan_purpose": "purchase",
         }
 
         # Loan approval conditions

@@ -30,12 +30,7 @@ class ApplicationVerificationService(ABC):
     """
 
     @abstractmethod
-    async def retrieve_credit_report(
-        self,
-        applicant_id: str,
-        full_name: str,
-        address: str
-    ) -> dict[str, Any]:
+    async def retrieve_credit_report(self, applicant_id: str, full_name: str, address: str) -> dict[str, Any]:
         """
         Retrieve credit report from credit bureaus.
 
@@ -54,12 +49,7 @@ class ApplicationVerificationService(ABC):
         pass
 
     @abstractmethod
-    async def verify_employment(
-        self,
-        applicant_id: str,
-        employer_name: str,
-        position: str
-    ) -> dict[str, Any]:
+    async def verify_employment(self, applicant_id: str, employer_name: str, position: str) -> dict[str, Any]:
         """
         Verify employment status and income with employer.
 
@@ -77,11 +67,7 @@ class ApplicationVerificationService(ABC):
         pass
 
     @abstractmethod
-    async def get_bank_account_data(
-        self,
-        account_number: str,
-        routing_number: str
-    ) -> dict[str, Any]:
+    async def get_bank_account_data(self, account_number: str, routing_number: str) -> dict[str, Any]:
         """
         Retrieve bank account data for asset verification.
 
@@ -98,11 +84,7 @@ class ApplicationVerificationService(ABC):
         pass
 
     @abstractmethod
-    async def get_tax_transcript_data(
-        self,
-        applicant_id: str,
-        tax_year: int
-    ) -> dict[str, Any]:
+    async def get_tax_transcript_data(self, applicant_id: str, tax_year: int) -> dict[str, Any]:
         """
         Retrieve tax transcript data from IRS.
 
@@ -119,11 +101,7 @@ class ApplicationVerificationService(ABC):
         pass
 
     @abstractmethod
-    async def verify_asset_information(
-        self,
-        asset_type: str,
-        asset_details: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def verify_asset_information(self, asset_type: str, asset_details: dict[str, Any]) -> dict[str, Any]:
         """
         Verify asset information using internal applicant tracking.
         """

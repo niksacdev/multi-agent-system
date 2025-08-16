@@ -32,9 +32,7 @@ class FinancialCalculationsService(ABC):
 
     @abstractmethod
     async def calculate_debt_to_income_ratio(
-        self,
-        monthly_income: float,
-        monthly_debt_payments: float
+        self, monthly_income: float, monthly_debt_payments: float
     ) -> dict[str, Any]:
         """
         Calculate debt-to-income ratio for loan qualification.
@@ -53,9 +51,7 @@ class FinancialCalculationsService(ABC):
 
     @abstractmethod
     async def calculate_credit_utilization_ratio(
-        self,
-        total_credit_used: float,
-        total_credit_available: float
+        self, total_credit_used: float, total_credit_available: float
     ) -> dict[str, Any]:
         """
         Calculate credit utilization ratio.
@@ -79,7 +75,7 @@ class FinancialCalculationsService(ABC):
         existing_debt: float,
         loan_amount: float,
         interest_rate: float,
-        loan_term_months: int
+        loan_term_months: int,
     ) -> dict[str, Any]:
         """
         Calculate loan affordability based on income and existing debt.
@@ -105,7 +101,7 @@ class FinancialCalculationsService(ABC):
         loan_amount: float,
         interest_rate: float,
         loan_term_months: int,
-        payment_type: str = "principal_and_interest"
+        payment_type: str = "principal_and_interest",
     ) -> dict[str, Any]:
         """
         Calculate monthly loan payment.
@@ -126,9 +122,7 @@ class FinancialCalculationsService(ABC):
 
     @abstractmethod
     async def analyze_income_stability(
-        self,
-        income_history: list[dict[str, Any]],
-        employment_history: list[dict[str, Any]]
+        self, income_history: list[dict[str, Any]], employment_history: list[dict[str, Any]]
     ) -> dict[str, Any]:
         """
         Analyze income stability and consistency over time.
@@ -152,7 +146,7 @@ class FinancialCalculationsService(ABC):
         total_monthly_debt: float,
         property_taxes: float = 0,
         insurance: float = 0,
-        hoa_fees: float = 0
+        hoa_fees: float = 0,
     ) -> dict[str, Any]:
         """
         Calculate total debt service ratio including housing expenses.

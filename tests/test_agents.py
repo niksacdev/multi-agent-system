@@ -107,7 +107,7 @@ class TestOrchestrationEngine:
 
         engine = OrchestrationEngine()
         assert engine is not None
-        assert hasattr(engine, 'execute_pattern')
+        assert hasattr(engine, "execute_pattern")
 
     # NOTE: Full integration tests would require running MCP servers
     # These would be added in a separate test file for integration testing
@@ -139,8 +139,8 @@ class TestAgentBehavior:
 
         # Each server should have proper configuration
         for server in agent.mcp_servers:
-            assert hasattr(server, 'params')
-            assert 'url' in server.params
+            assert hasattr(server, "params")
+            assert "url" in server.params
 
 
 class TestSecurityCompliance:

@@ -30,6 +30,7 @@ class LoanProcessingSystem:
         """Create provider-specific orchestration engine."""
         if provider == "openai":
             from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationEngine
+
             return OrchestrationEngine()
         elif provider == "semantic_kernel":
             # Future implementation
@@ -42,10 +43,7 @@ class LoanProcessingSystem:
             raise ValueError(f"Unknown provider: {provider}. Available: {available_providers}")
 
     async def process_application(
-        self,
-        application: LoanApplication,
-        pattern: str = "sequential",
-        model: str | None = None
+        self, application: LoanApplication, pattern: str = "sequential", model: str | None = None
     ) -> LoanDecision:
         """
         Process a loan application using the configured provider.
@@ -70,7 +68,7 @@ class LoanProcessingSystem:
         return {
             "name": self.provider,
             "engine_type": type(self.engine).__name__,
-            "module": type(self.engine).__module__
+            "module": type(self.engine).__module__,
         }
 
 
@@ -96,5 +94,5 @@ __all__ = [
     "create_semantic_kernel_system",
     "create_autogen_system",
     "LoanApplication",
-    "LoanDecision"
+    "LoanDecision",
 ]

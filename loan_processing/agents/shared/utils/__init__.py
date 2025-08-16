@@ -15,5 +15,5 @@ __all__ = [
     "OutputFormatGenerator",
     "load_persona",
     "evaluate_condition",
-    "SafeConditionEvaluator"
+    "SafeConditionEvaluator",
 ]

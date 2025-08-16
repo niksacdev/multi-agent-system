@@ -24,7 +24,7 @@ from loan_processing.agents.shared.models.decision import LoanDecision, LoanDeci
 def sample_application():
     """Create a sample loan application for testing."""
     return LoanApplication(
-        application_id="TEST-001",
+        application_id="LN1234567890",
         applicant_name="Test Applicant",
         ssn="123-45-6789",
         email="test@example.com",
@@ -45,26 +45,26 @@ def sample_application():
             "internal_applicant_id": "APP-TEST-001",
             "property_address": "123 Test St, Test City, TS 12345",
             "property_value": 500000.00,
-        }
+        },
     )
 
 
 @pytest.fixture
 def mock_runner():
     """Mock the OpenAI Agents SDK Runner."""
-    with patch('loan_processing.orchestration.engine.Runner') as mock:
+    with patch("loan_processing.orchestration.engine.Runner") as mock:
         # Mock successful agent responses
         mock_responses = {
-            'intake': {
+            "intake": {
                 "validation_status": "PASSED",
                 "confidence_score": 0.85,
                 "data_completeness_score": 0.90,
                 "fraud_indicators": [],
                 "verification_results": {"identity": True, "address": True},
                 "processing_path": "FAST_TRACK",
-                "issues_found": []
+                "issues_found": [],
             },
-            'credit': {
+            "credit": {
                 "credit_score": 720,
                 "credit_tier": "GOOD",
                 "debt_to_income_ratio": 0.32,
@@ -72,9 +72,9 @@ def mock_runner():
                 "payment_history_score": 0.92,
                 "risk_category": "LOW",
                 "red_flags": [],
-                "confidence_score": 0.88
+                "confidence_score": 0.88,
             },
-            'income': {
+            "income": {
                 "verified_monthly_income": 10000.00,
                 "employment_verification_status": "VERIFIED",
                 "employment_stability_score": 0.95,
@@ -82,9 +82,9 @@ def mock_runner():
                 "income_sources": ["primary_employment"],
                 "qualifying_income": 10000.00,
                 "concerns": [],
-                "confidence_score": 0.92
+                "confidence_score": 0.92,
             },
-            'risk': {
+            "risk": {
                 "final_risk_category": "LOW",
                 "recommendation": "APPROVE",
                 "approved_amount": 400000.00,
@@ -95,23 +95,23 @@ def mock_runner():
                 "conditions": [],
                 "reasoning": "Low risk application with stable income",
                 "confidence_score": 0.90,
-                "compliance_verified": True
-            }
+                "compliance_verified": True,
+            },
         }
 
         def mock_run(agent, input=None):
             # Extract agent type from input or use fallback
             agent_type = "intake"  # Default
-            if hasattr(agent, 'name'):
+            if hasattr(agent, "name"):
                 name_lower = agent.name.lower()
-                if 'credit' in name_lower:
-                    agent_type = 'credit'
-                elif 'income' in name_lower:
-                    agent_type = 'income'
-                elif 'risk' in name_lower:
-                    agent_type = 'risk'
+                if "credit" in name_lower:
+                    agent_type = "credit"
+                elif "income" in name_lower:
+                    agent_type = "income"
+                elif "risk" in name_lower:
+                    agent_type = "risk"
 
-            response_data = mock_responses.get(agent_type, mock_responses['intake'])
+            response_data = mock_responses.get(agent_type, mock_responses["intake"])
             return AsyncMock(return_value=json.dumps(response_data))()
 
         mock.run = AsyncMock(side_effect=mock_run)
@@ -209,10 +209,10 @@ class TestOrchestrationContext:
             application=sample_application,
             session_id="test-session",
             processing_start_time=datetime.now(),
-            pattern_name="sequential"
+            pattern_name="sequential",
         )
 
-        assert context.application.application_id == "TEST-001"
+        assert context.application.application_id == "LN1234567890"
         assert context.session_id == "test-session"
         assert context.pattern_name == "sequential"
         assert context.intake_result is None
@@ -224,7 +224,7 @@ class TestOrchestrationContext:
             application=sample_application,
             session_id="test-session",
             processing_start_time=datetime.now(),
-            pattern_name="sequential"
+            pattern_name="sequential",
         )
 
         context.add_audit_entry("Test message")
@@ -239,7 +239,7 @@ class TestOrchestrationContext:
             application=sample_application,
             session_id="test-session",
             processing_start_time=datetime.now(),
-            pattern_name="sequential"
+            pattern_name="sequential",
         )
 
         result = {"status": "completed", "score": 0.85}
@@ -268,13 +268,11 @@ class TestOrchestrationEngine:
         engine = OrchestrationEngine()
 
         decision = await engine.execute_pattern(
-            pattern_name="sequential",
-            application=sample_application,
-            model="gpt-4"
+            pattern_name="sequential", application=sample_application, model="gpt-4"
         )
 
         assert isinstance(decision, LoanDecision)
-        assert decision.application_id == "TEST-001"
+        assert decision.application_id == "LN1234567890"
         assert decision.orchestration_pattern == "sequential"
         assert decision.decision_maker == "sequential_orchestrator"
         assert decision.processing_duration_seconds > 0
@@ -283,11 +281,7 @@ class TestOrchestrationEngine:
         """Test executing parallel orchestration pattern."""
         engine = OrchestrationEngine()
 
-        decision = await engine.execute_pattern(
-            pattern_name="parallel",
-            application=sample_application,
-            model="gpt-4"
-        )
+        decision = await engine.execute_pattern(pattern_name="parallel", application=sample_application, model="gpt-4")
 
         assert isinstance(decision, LoanDecision)
         assert decision.orchestration_pattern == "parallel"
@@ -298,10 +292,7 @@ class TestOrchestrationEngine:
         engine = OrchestrationEngine()
 
         with pytest.raises(FileNotFoundError):
-            await engine.execute_pattern(
-                pattern_name="invalid_pattern",
-                application=sample_application
-            )
+            await engine.execute_pattern(pattern_name="invalid_pattern", application=sample_application)
 
     def test_prepare_agent_input(self, sample_application):
         """Test preparing agent input with context."""
@@ -310,7 +301,7 @@ class TestOrchestrationEngine:
             application=sample_application,
             session_id="test-session",
             processing_start_time=datetime.now(),
-            pattern_name="sequential"
+            pattern_name="sequential",
         )
 
         # Test intake agent input (no previous results)
@@ -359,17 +350,13 @@ class TestOrchestrationEngine:
             application=sample_application,
             session_id="test-session",
             processing_start_time=datetime.now(),
-            pattern_name="sequential"
+            pattern_name="sequential",
         )
 
         # Set up successful intake result
         context.intake_result = {"validation_status": "PASSED", "confidence_score": 0.85}
 
-        handoff_rules = {
-            "intake": {
-                "conditions": ["validation_status == 'PASSED'", "confidence_score >= 0.8"]
-            }
-        }
+        handoff_rules = {"intake": {"conditions": ["validation_status == 'PASSED'", "confidence_score >= 0.8"]}}
 
         result = engine._check_handoff_conditions(handoff_rules, "intake", context)
         assert result == True
@@ -381,17 +368,13 @@ class TestOrchestrationEngine:
             application=sample_application,
             session_id="test-session",
             processing_start_time=datetime.now(),
-            pattern_name="sequential"
+            pattern_name="sequential",
         )
 
         # Set up failed intake result
         context.intake_result = {"validation_status": "FAILED", "confidence_score": 0.5}
 
-        handoff_rules = {
-            "intake": {
-                "conditions": ["validation_status == 'PASSED'"]
-            }
-        }
+        handoff_rules = {"intake": {"conditions": ["validation_status == 'PASSED'"]}}
 
         result = engine._check_handoff_conditions(handoff_rules, "intake", context)
         assert result == False
@@ -403,7 +386,7 @@ class TestOrchestrationEngine:
             application=sample_application,
             session_id="test-session",
             processing_start_time=datetime.now(),
-            pattern_name="sequential"
+            pattern_name="sequential",
         )
 
         # Set up results for auto-approval
@@ -412,7 +395,7 @@ class TestOrchestrationEngine:
             "credit_score": 760,
             "debt_to_income_ratio": 0.25,
             "employment_verification_status": "VERIFIED",
-            "red_flags": []
+            "red_flags": [],
         }
 
         decision_matrix = {
@@ -422,8 +405,8 @@ class TestOrchestrationEngine:
                     "final_risk_category == 'LOW'",
                     "credit_score >= 750",
                     "debt_to_income_ratio <= 0.28",
-                    "len(red_flags) == 0"
-                ]
+                    "len(red_flags) == 0",
+                ],
             }
         }
 
@@ -444,9 +427,7 @@ class TestOrchestrationIntegration:
 
         # Execute full workflow
         decision = await engine.execute_pattern(
-            pattern_name="sequential",
-            application=sample_application,
-            model="gpt-4"
+            pattern_name="sequential", application=sample_application, model="gpt-4"
         )
 
         # Verify decision structure
@@ -456,7 +437,7 @@ class TestOrchestrationIntegration:
             LoanDecisionStatus.APPROVED,
             LoanDecisionStatus.CONDITIONAL_APPROVAL,
             LoanDecisionStatus.MANUAL_REVIEW,
-            LoanDecisionStatus.DENIED
+            LoanDecisionStatus.DENIED,
         ]
         assert decision.confidence_score >= 0.0
         assert decision.confidence_score <= 1.0
@@ -472,13 +453,10 @@ class TestOrchestrationIntegration:
         """Test error handling in pattern execution."""
         engine = OrchestrationEngine()
 
-        with patch.object(engine, '_execute_sequential_pattern') as mock_execute:
+        with patch.object(engine, "_execute_sequential_pattern") as mock_execute:
             mock_execute.side_effect = Exception("Test error")
 
-            decision = await engine.execute_pattern(
-                pattern_name="sequential",
-                application=sample_application
-            )
+            decision = await engine.execute_pattern(pattern_name="sequential", application=sample_application)
 
             # Should return error decision instead of raising
             assert decision.decision == LoanDecisionStatus.MANUAL_REVIEW

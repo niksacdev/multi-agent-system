@@ -60,18 +60,14 @@ class AgentRegistry:
         agent_config = ConfigurationLoader.get_agent_config(agent_type)
 
         # Create MCP server instances for this agent
-        mcp_servers = [
-            MCPServerFactory.get_server(server_type)
-            for server_type in agent_config["mcp_servers"]
-        ]
+        mcp_servers = [MCPServerFactory.get_server(server_type) for server_type in agent_config["mcp_servers"]]
 
         # Load persona instructions (without handoff configurations)
         persona_instructions = load_persona(agent_config["persona_file"])
 
         # Add structured output requirements for orchestration
         enhanced_instructions = OutputFormatGenerator.add_structured_output_instructions(
-            persona_instructions,
-            agent_config.get("output_format", {})
+            persona_instructions, agent_config.get("output_format", {})
         )
 
         return Agent(
