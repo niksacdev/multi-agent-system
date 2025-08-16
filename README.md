@@ -70,10 +70,10 @@ Each agent uses the Jobs-to-be-Done framework to ensure customer-centric outcome
 
 | For | Start Here |
 |-----|------------|
-| **Business Leaders** | [Business Case & ROI Analysis](docs/getting-started/business-case.md) |
-| **Technical Evaluators** | [Architecture Overview](docs/architecture/agent-strategy.md) |
+| **Business Context** | [Business Case & ROI Analysis](docs/getting-started/business-case.md) |
+| **Architecture** | [Architecture Overview](docs/architecture/agent-strategy.md) |
 | **Developers** | [Implementation Guide](docs/getting-started/quick-start.md) |
-| **Product Teams** | [Jobs-to-be-Done Framework](docs/architecture/jobs-to-be-done.md) |
+| **UX Research** | [Jobs-to-be-Done Framework](docs/architecture/jobs-to-be-done.md) |
 
 ## Key Capabilities
 
