@@ -147,5 +147,5 @@ The Multi-Agent Loan Processing System represents a transformative opportunity t
 
 ---
 
-*For detailed technical architecture, see [System Overview](../architecture/system-overview.md)*  
+*For detailed technical architecture, see [Agent Strategy](../architecture/agent-strategy.md)*  
 *For implementation guide, see [Quick Start Guide](quick-start.md)*

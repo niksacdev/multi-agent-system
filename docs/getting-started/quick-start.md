@@ -209,9 +209,9 @@ export LOG_LEVEL=DEBUG
 
 ## Next Steps
 
-- **Customize Agents**: See [Adding New Agents](../implementation/agent-development.md)
-- **Production Deployment**: See [Deployment Guide](deployment-guide.md)
-- **Understand Architecture**: See [System Overview](../architecture/system-overview.md)
+- **Customize Agents**: See [Adding New Agents](../adding-new-agents.md)
+- **Production Deployment**: See [Extension Guide](../extension-guide.md)
+- **Understand Architecture**: See [Agent Strategy](../architecture/agent-strategy.md)
 - **Explore JTBD Framework**: See [Jobs-to-be-Done](../architecture/jobs-to-be-done.md)
 
 ## Support
