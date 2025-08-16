@@ -29,7 +29,7 @@ Beyond loan processing, this repository demonstrates modern AI development pract
 
 ```bash
 # 1. Clone and install (using uv package manager)
-git clone https://github.com/yourusername/multi-agent-system.git
+git clone https://github.com/niksacdev/multi-agent-system.git
 cd multi-agent-system
 uv sync
 
@@ -71,7 +71,7 @@ Each agent uses the Jobs-to-be-Done framework to ensure customer-centric outcome
 | For | Start Here |
 |-----|------------|
 | **Business Context** | [Business Case & ROI Analysis](docs/getting-started/business-case.md) |
-| **Architecture** | [Architecture Overview](docs/architecture/agent-strategy.md) |
+| **Architecture** | [Agent Strategy](docs/architecture/agent-strategy.md) |
 | **Developers** | [Implementation Guide](docs/getting-started/quick-start.md) |
 | **UX Research** | [Jobs-to-be-Done Framework](docs/architecture/jobs-to-be-done.md) |
 

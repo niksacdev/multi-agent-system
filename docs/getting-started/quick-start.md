@@ -14,7 +14,7 @@ This guide walks you through setting up and running the Multi-Agent Loan Process
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/multi-agent-system.git
+git clone https://github.com/niksacdev/multi-agent-system.git
 cd multi-agent-system
 ```
 
@@ -210,13 +210,13 @@ export LOG_LEVEL=DEBUG
 ## Next Steps
 
 - **Customize Agents**: See [Adding New Agents](../adding-new-agents.md)
-- **Production Deployment**: See [Extension Guide](../extension-guide.md)
+- **Extend the System**: See [Extension Guide](../extension-guide.md)
 - **Understand Architecture**: See [Agent Strategy](../architecture/agent-strategy.md)
 - **Explore JTBD Framework**: See [Jobs-to-be-Done](../architecture/jobs-to-be-done.md)
 
 ## Support
 
 For issues or questions:
-- GitHub Issues: [Create an issue](https://github.com/yourusername/multi-agent-system/issues)
+- GitHub Issues: [Create an issue](https://github.com/niksacdev/multi-agent-system/issues)
 - Documentation: [Full documentation](../README.md)
 - Examples: See `/examples` directory for more use cases
