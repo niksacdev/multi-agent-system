@@ -44,13 +44,39 @@ context["agent2_result"] = await agent2.run(context)
 
 ## Development Rules
 
+### Pre-Commit Quality Checks (MANDATORY)
+**CRITICAL**: Always run these checks locally BEFORE any commit to prevent CI failures:
+
+```bash
+# 1. MANDATORY Code Quality Checks (in order)
+uv run ruff check .                    # Check for issues
+uv run ruff check . --fix             # Auto-fix issues
+uv run ruff format --check .          # Check formatting
+uv run ruff format .                   # Auto-format
+uv run ruff check .                    # Final verification (must pass)
+
+# 2. MANDATORY Test Validation  
+uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v
+uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v \
+  --cov=loan_processing.agents.providers.openai.agentregistry \
+  --cov=loan_processing.agents.shared --cov-report=term-missing  # ≥85% coverage
+
+# 3. RECOMMENDED Type Checking
+uv run mypy loan_processing/ --ignore-missing-imports
+
+# 4. Complete Validation (recommended)
+uv run python validate_ci_fix.py
+```
+
+**⚠️ NEVER COMMIT if any checks fail. Fix issues locally first.**
+
 ### Must Follow
-1. **Use uv for all commands** - `uv run`, `uv add`, `uv sync` (never pip/poetry)
-2. **Commit often** - atomic commits, one logical change per commit
-3. **AgentRegistry.create_agent()** for agent creation from YAML config
-4. **Keep orchestrators thin** - no business logic, just coordination
-5. **Use applicant_id** for all verifications - never SSN
-6. **Test before commit** - run `uv run pytest tests/test_agent_registry.py`
+1. **Run pre-commit checks** - MANDATORY before every commit (see above)
+2. **Use uv for all commands** - `uv run`, `uv add`, `uv sync` (never pip/poetry)
+3. **Commit often** - atomic commits, one logical change per commit
+4. **AgentRegistry.create_agent()** for agent creation from YAML config
+5. **Keep orchestrators thin** - no business logic, just coordination
+6. **Use applicant_id** for all verifications - never SSN
 7. **Update personas/config** to change behavior - not code
 
 ### Never Do

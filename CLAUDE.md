@@ -39,8 +39,9 @@ Claude has access to specialized development agents that MUST be used proactivel
 1. User requests feature → Use product-manager-advisor for requirements
 2. Design solution → Use system-architecture-reviewer for validation  
 3. Implement code → Write the implementation
-4. Review code → Use code-reviewer for feedback
-5. If UI involved → Use ux-ui-designer for validation
+4. Pre-commit checks → Run MANDATORY local quality checks (ruff, tests, coverage)
+5. Review code → Use code-reviewer for feedback (AFTER checks pass)
+6. If UI involved → Use ux-ui-designer for validation
 ```
 
 ## Architecture Principles
@@ -114,6 +115,61 @@ agent = AgentRegistry.create_agent("intake", model="gpt-4")
 - **persona_loader**: Loads agent persona files from `agents/shared/agent-persona/` directory
 
 ## Development Guidelines
+
+### Pre-Commit Quality Checks (MANDATORY)
+
+**CRITICAL**: Always run these checks locally BEFORE making any commit to prevent GitHub Actions failures:
+
+#### 1. Code Quality Checks (MANDATORY)
+```bash
+# Run ALL checks in this exact order before committing:
+
+# 1. Linting check (must pass)
+uv run ruff check .
+
+# 2. Auto-fix any fixable issues
+uv run ruff check . --fix
+
+# 3. Format check (must pass)
+uv run ruff format --check .
+
+# 4. Auto-format if needed
+uv run ruff format .
+
+# 5. Final verification (must show "All checks passed!")
+uv run ruff check .
+```
+
+#### 2. Test Validation (MANDATORY)
+```bash
+# Run core stable tests (must pass)
+uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v
+
+# Run with coverage check (must be ≥85%)
+uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v \
+  --cov=loan_processing.agents.providers.openai.agentregistry \
+  --cov=loan_processing.agents.shared \
+  --cov-report=term-missing
+```
+
+#### 3. Type Checking (RECOMMENDED)
+```bash
+# Check types (warnings okay, but no errors)
+uv run mypy loan_processing/ --ignore-missing-imports
+```
+
+#### 4. Complete Pre-Commit Validation Script
+Use the validation script to check everything at once:
+```bash
+uv run python validate_ci_fix.py
+```
+
+**⚠️ NEVER COMMIT if any of these checks fail. Fix issues locally first.**
+
+#### Integration with Support Agents
+- **ALWAYS run pre-commit checks** before using the code-reviewer agent
+- **Include check results** when asking for agent feedback
+- **Fix any issues** identified by checks before requesting code review
 
 ### Commit Best Practices
 
@@ -286,17 +342,23 @@ uv run pytest tests/test_agent_registry.py -v
 
 3. Implementation → Write code following patterns
 
-4. Code Review → Use code-reviewer:
+4. Pre-Commit Validation (MANDATORY) → Run local quality checks:
+   - uv run ruff check . --fix (auto-fix issues)
+   - uv run ruff format . (auto-format)
+   - uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v
+   - Verify ≥85% coverage on core components
+
+5. Code Review → Use code-reviewer (ONLY after checks pass):
    - Review for best practices
    - Check architecture alignment
    - Validate code quality
 
-5. UI Components → Use ux-ui-designer (if applicable):
+6. UI Components → Use ux-ui-designer (if applicable):
    - Review user experience
    - Validate interface design
    - Ensure usability standards
 
-6. Document Decisions → Create ADR (MANDATORY):
+7. Document Decisions → Create ADR (MANDATORY):
    - Document context and changes made based on support agent feedback
    - Explain rationale for future developers
    - Include support agent assessments and scores
@@ -315,11 +377,17 @@ uv run pytest tests/test_agent_registry.py -v
 
 3. Implementation → Write fix
 
-4. Review → Use code-reviewer:
+4. Pre-Commit Validation (MANDATORY) → Run local quality checks:
+   - uv run ruff check . --fix (auto-fix issues)
+   - uv run ruff format . (auto-format)
+   - uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v
+   - Verify fix doesn't break existing functionality
+
+5. Review → Use code-reviewer (ONLY after checks pass):
    - Ensure fix doesn't introduce regressions
    - Validate approach
 
-5. Document Fix → Create ADR (if significant):
+6. Document Fix → Create ADR (if significant):
    - Document root cause analysis from support agents
    - Explain solution approach and alternatives considered
    - Record lessons learned for future similar issues
