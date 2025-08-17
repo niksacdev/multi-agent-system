@@ -91,7 +91,7 @@ class TestSequentialPatternConfiguration:
             assert "success_conditions" in agent
 
             # All agents should be required
-            assert agent["required"] == True
+            assert agent["required"] is True
 
             # Verify dependency chain (except first agent)
             if i > 0:

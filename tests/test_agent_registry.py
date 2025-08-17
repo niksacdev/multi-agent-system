@@ -462,16 +462,17 @@ class TestAgentRegistryIntegration:
 
             # Verify agents share the same server instances where applicable
             # Both use application_verification, so they should share that instance
-            intake_app_server = None
-            credit_app_server = None
+            # Variables removed - were unused (F841)
 
             for server in intake_agent.mcp_servers:
                 if hasattr(server, "params") and "localhost:8010" in server.params.get("url", ""):
                     pass  # Server found - intake uses application verification
+                    break
 
             for server in credit_agent.mcp_servers:
                 if hasattr(server, "params") and "localhost:8010" in server.params.get("url", ""):
                     pass  # Server found - credit uses application verification
+                    break
 
             # Note: Server sharing verification depends on implementation details
             # This test verifies that the factory pattern is working correctly
