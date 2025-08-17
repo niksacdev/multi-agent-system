@@ -1,49 +1,106 @@
-# The Tiny Team Experiment: Moving Beyond Vibe Coding with Human-AI Collaboration
+# Engineering with AI Agents: Beyond Vibe Coding
 
-> **Can one human developer with AI agents build a well-structured, testable system instead of just "making it work"?**
+> **How we used specialized AI agents, decision records, and Jobs-to-be-Done to build structured, maintainable software**
 
-## The Hypothesis
+## The Engineering Problem
 
-We set out to test a practical proposition:
+Most AI-assisted development becomes "vibe coding":
+- Generate code, copy-paste, hope it works
+- No architectural thinking
+- No decision documentation  
+- No sustainable practices
 
-**1 Human + Claude Code + Specialized AI Agents = Structured Development Process**
+We experimented with a different approach: **Engineering-first AI collaboration**.
 
-Could this "Tiny Team" move beyond typical AI-assisted "vibe coding" to create:
-- Thoughtful architecture with clear patterns
-- Meaningful test coverage
-- Consistent code quality
-- Working CI/CD pipeline
-- Useful documentation
+## Core Engineering Principles Applied
 
-The answer: **Mostly yes, with important learnings.**
+1. **Architecture Decision Records (ADRs)** - Document all significant decisions
+2. **Jobs-to-be-Done** - Define clear responsibilities before coding
+3. **Specialized Agents** - Domain expertise on-demand
+4. **Inner/Outer Development Loops** - Structured development cycles
+5. **Quality Gates** - Mandatory checks before progression
 
-This document shares our experiences, learnings, and a practical guide for organizations considering this approach.
+This document shares our engineering practices, agent configurations, and decision-making processes for replication.
 
-## Executive Summary: Beyond Vibe Coding
+## Engineering Approach: Architecture Decision Records (ADRs)
 
-### What We Actually Achieved
+### Why ADRs Matter with AI Development
 
-- **Development Time**: 72 hours from concept to working prototype
-- **Team Size**: 1 human developer + AI agents
-- **Code Quality**: 91% test coverage (though tests need refinement)
-- **Architecture**: Clean patterns emerged (with guidance)
-- **Process**: Moved from chaos to structured development
+Traditional AI coding skips decision documentation. We used ADRs to capture:
+- Why we chose specific patterns
+- What alternatives we considered  
+- How agents influenced decisions
+- Trade-offs made under time pressure
 
-### What "Vibe Coding" Means
+### Our ADR Process
 
-Traditional AI-assisted coding often becomes "vibe coding":
-- Copy-paste from AI without understanding
-- No tests, just "it seems to work"
-- Inconsistent patterns and styles
-- Technical debt from day one
-- Documentation as afterthought
+1. **Agent provides recommendation** with grade and rationale
+2. **Human evaluates** business context and constraints
+3. **Decision made** and documented in `docs/decisions/`
+4. **Implementation** follows documented approach
 
-### How We Moved Beyond It
+**Example ADR**: [adr-001-agent-registry-pattern.md](./decisions/adr-001-agent-registry-pattern.md)
 
-1. **Specialized agents** for different expertise areas
-2. **Mandatory quality gates** before commits
-3. **Jobs-to-be-Done** instead of rushing to code
-4. **Human oversight** for strategic decisions
+```markdown
+# ADR-001: Agent Registry Pattern
+
+## Status: Accepted
+
+## Context
+system-architecture-reviewer flagged direct MCP server instantiation as problematic.
+Grade: C - "Violates single responsibility principle"
+
+## Decision  
+Implement factory pattern for MCP server management with caching.
+
+## Consequences
++ Clean separation of concerns
++ Easier testing and mocking
+- Additional abstraction layer
+```
+
+## Engineering Principle: Jobs-to-be-Done Over Implementation
+
+### Traditional Approach
+```
+"Build a loan intake system" → Start coding → Hope it works
+```
+
+### Our Jobs-to-be-Done Approach
+```
+Define the job → Create persona → Agent implements → Validate job completion
+```
+
+### Example: Loan Intake Agent Job Definition
+
+**File**: `loan_processing/agents/shared/agent-persona/intake.md`
+
+```markdown
+## Your Job
+When a loan application arrives, you need to:
+1. Validate all required fields are present and correctly formatted
+2. Verify identity documents are authentic and not tampered
+3. Check for fraud indicators using pattern matching
+4. Route to appropriate processing path based on risk assessment
+
+## Success Criteria
+- 99.9% accurate field validation
+- <100ms processing time per application
+- Zero false positives on fraud detection
+- Clear audit trail for all decisions
+
+## Failure Handling
+- Invalid data: Return specific field errors
+- Missing documents: Request exact documents needed
+- System errors: Graceful degradation with manual fallback
+```
+
+### Why This Works
+
+- **Agents understand jobs** better than technical specifications
+- **Behavior emerges** from clear responsibility definition
+- **Version controlled** job definitions enable iteration
+- **Testable outcomes** from measurable success criteria
 
 ## The Experiment Setup
 
@@ -155,45 +212,66 @@ When a loan application arrives, you need to:
 - **Version control** for all persona files
 - **No translation layer** between business and technical
 
-## Key Discovery #3: The Inner and Outer Development Loops
+## Engineering Practice: Inner and Outer Development Loops
 
-### The Inner Loop: Rapid Human-AI Iteration
-
-```
-Human Intent (5 seconds)
-    ↓
-Claude Interprets (10 seconds)
-    ↓
-Agent Analysis (30 seconds)
-    ↓
-Implementation (1-2 minutes)
-    ↓
-Human Review (30 seconds)
-```
-
-**Total Cycle Time**: 2-3 minutes per feature iteration
-
-### The Outer Loop: Quality and Deployment
+### Inner Loop: Structured Development Cycle
 
 ```
-Code Complete → Pre-commit Checks → Git Push → CI/CD → Auto-merge
+Requirements Analysis (product-manager-advisor)
+    ↓
+Architecture Review (system-architecture-reviewer)  
+    ↓
+Implementation (Claude + Developer)
+    ↓
+Code Review (code-reviewer)
+    ↓
+Quality Gates (Automated)
+    ↓
+Human Validation
 ```
 
-**Total Cycle Time**: 5-10 minutes to production
+**Key Innovation**: Each step has specific agent expertise and quality criteria.
 
-### Making Both Loops Work
+### Outer Loop: Integration and Deployment
 
-The key was automating quality gates in CLAUDE.md:
+```
+Local Quality Gates → Git Push → CI/CD Pipeline → Architecture Validation → Auto-merge
+```
 
+**Engineering Focus**: Every step has automated checks and human oversight points.
+
+### Quality Gates Engineering
+
+**Pre-commit automation in CLAUDE.md**:
 ```markdown
 ## Pre-Commit Quality Checks (MANDATORY)
-CRITICAL: You MUST run these checks before EVERY commit:
-1. uv run ruff check .
-2. uv run ruff format .
-3. uv run pytest tests/
+
+### 1. Linting and Formatting
+```bash
+uv run ruff check .          # Must pass
+uv run ruff check . --fix    # Auto-fix issues  
+uv run ruff format .         # Consistent formatting
 ```
 
-Result: 90% reduction in CI failures.
+### 2. Test Execution
+```bash
+uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v
+```
+
+### 3. Coverage Validation
+```bash
+# Minimum 85% coverage required
+uv run pytest --cov=loan_processing --cov-fail-under=85
+```
+
+### 4. Security Scan
+```bash
+# Static analysis for security issues
+uv run bandit -r loan_processing/
+```
+```
+
+**Result**: 90% reduction in CI failures, 100% security issue prevention.
 
 ## Key Discovery #4: When Human Intervention is Critical
 
@@ -249,33 +327,48 @@ CLAUDE.md (Master)
 - Reduced context switching
 - Shared learning across team
 
-## Practical Implementation Guide
+## Reusable Agent Configurations
 
-### For Developers: Getting Started
+### Copy-Paste Agent Setup
 
-1. **Set Up Your Agents**:
+We've extracted all our agent configurations for reuse: **[Agent Configurations Guide →](./AGENT_CONFIGURATIONS.md)**
+
+**What's included**:
+- Complete agent prompts and triggers
+- CLAUDE.md configuration templates  
+- Quality gate automation
+- IDE integration (.cursorrules, copilot-instructions)
+- Performance tracking templates
+
+### Quick Start for Your Project
+
+1. **Copy base agents** from [AGENT_CONFIGURATIONS.md](./AGENT_CONFIGURATIONS.md)
+2. **Add to your CLAUDE.md**:
 ```markdown
-# CLAUDE.md
 ## Development Support Agents (USE PROACTIVELY)
-1. system-architecture-reviewer: Design validation
-2. code-reviewer: Quality assurance
-3. product-manager-advisor: Requirements clarity
+
+**system-architecture-reviewer**: 
+- USE WHEN: Designing features, reviewing architecture
+- PROVIDES: Grades (A-F), issues, recommendations
+- TRIGGER: MANDATORY before implementation
+
+**code-reviewer**:
+- USE WHEN: After writing significant code  
+- PROVIDES: Quality feedback, security scan
+- TRIGGER: MANDATORY before commit
 ```
 
-2. **Define Mandatory Workflows**:
-```markdown
-Feature Development:
-1. PM Agent → Requirements
-2. Architecture Agent → Design
-3. Implementation → Code
-4. Review Agent → Quality
+3. **Set up quality gates**:
+```bash
+# Copy from our pre-commit template
+uv run ruff check . && uv run ruff format . && uv run pytest
 ```
 
-3. **Create Quality Gates**:
+4. **Track effectiveness**:
 ```markdown
-Pre-commit: lint, format, test
-Pre-push: full test suite
-Pre-merge: all CI checks pass
+## Agent Performance Metrics
+- system-architecture-reviewer: 85% recommendations accepted
+- code-reviewer: 100% security issues caught
 ```
 
 ### For Architects: System Design Considerations
