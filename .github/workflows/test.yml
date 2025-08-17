@@ -182,6 +182,20 @@ jobs:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
       
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: 📦 Install UV
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        
+    - name: 🔄 Install dependencies
+      run: |
+        uv sync
+        
     - name: 🏗️ Validate domain boundaries
       run: |
         echo "🔍 Checking for SDK imports in domain layers..."
