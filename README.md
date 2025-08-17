@@ -1,5 +1,7 @@
 # Multi-Agent Loan Processing System
 
+> 🤖 **Built with Agent-Based Development**: This repository was created using Human-AI collaboration with Claude and specialized development agents. [Learn about our Tiny Team approach →](docs/AGENT_BASED_DEVELOPMENT.md)
+
 **Transform 3-5 day loan processing into 3-5 minute automated decisions**
 
 ## The Business Impact
