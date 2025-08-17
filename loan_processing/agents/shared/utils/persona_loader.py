@@ -4,6 +4,7 @@ Reads markdown instruction files from `agent-persona/`. Falls back to a
 minimal default if the file is missing. Intentionally no caching to allow
 hot-reload during development edits.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

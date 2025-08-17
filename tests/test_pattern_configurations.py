@@ -60,7 +60,7 @@ class TestSequentialPatternConfiguration:
     @pytest.fixture
     def sequential_config(self):
         """Load sequential pattern configuration."""
-        pattern_file = Path("loan_processing/orchestration/patterns/sequential.yaml")
+        pattern_file = Path("loan_processing/agents/shared/config/sequential.yaml")
         with open(pattern_file) as f:
             return yaml.safe_load(f)
 
@@ -91,23 +91,19 @@ class TestSequentialPatternConfiguration:
             assert "success_conditions" in agent
 
             # All agents should be required
-            assert agent["required"] == True
+            assert agent["required"] is True
 
             # Verify dependency chain (except first agent)
             if i > 0:
                 assert "depends_on" in agent
-                assert expected_order[i-1] in agent["depends_on"]
+                assert expected_order[i - 1] in agent["depends_on"]
 
     def test_sequential_handoff_rules(self, sequential_config):
         """Test sequential handoff rules."""
         handoff_rules = sequential_config["handoff_rules"]
         assert len(handoff_rules) == 3  # intake->credit, credit->income, income->risk
 
-        expected_handoffs = [
-            ("intake", "credit"),
-            ("credit", "income"),
-            ("income", "risk")
-        ]
+        expected_handoffs = [("intake", "credit"), ("credit", "income"), ("income", "risk")]
 
         for i, rule in enumerate(handoff_rules):
             expected_from, expected_to = expected_handoffs[i]
@@ -155,7 +151,7 @@ class TestParallelPatternConfiguration:
     @pytest.fixture
     def parallel_config(self):
         """Load parallel pattern configuration."""
-        pattern_file = Path("loan_processing/orchestration/patterns/parallel.yaml")
+        pattern_file = Path("loan_processing/agents/shared/config/parallel.yaml")
         with open(pattern_file) as f:
             return yaml.safe_load(f)
 
@@ -277,7 +273,7 @@ class TestPatternConsistency:
 
     def test_timeout_values_reasonable(self, all_configs):
         """Test that timeout values are reasonable."""
-        min_timeout = 30   # 30 seconds minimum
+        min_timeout = 30  # 30 seconds minimum
         max_timeout = 600  # 10 minutes maximum
 
         for pattern_name, config in all_configs.items():
@@ -293,8 +289,9 @@ class TestPatternConsistency:
             for agent in all_agents:
                 if "timeout_seconds" in agent:
                     timeout = agent["timeout_seconds"]
-                    assert min_timeout <= timeout <= max_timeout, \
+                    assert min_timeout <= timeout <= max_timeout, (
                         f"Unreasonable timeout {timeout}s for {agent['type']} in {pattern_name}"
+                    )
 
     def test_decision_matrix_consistency(self, all_configs):
         """Test that decision matrices are consistent across patterns."""
@@ -305,8 +302,9 @@ class TestPatternConsistency:
 
             # All patterns should have all decision types
             actual_types = set(decision_matrix.keys())
-            assert required_decision_types.issubset(actual_types), \
+            assert required_decision_types.issubset(actual_types), (
                 f"Missing decision types in {pattern_name}: {required_decision_types - actual_types}"
+            )
 
 
 class TestPatternValidation:

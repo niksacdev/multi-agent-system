@@ -22,12 +22,7 @@ class ParallelPatternExecutor(PatternExecutor):
         super().__init__(agent_registry)
         self.handoff_service = HandoffValidationService()
 
-    async def execute(
-        self,
-        pattern_config: dict[str, Any],
-        context: OrchestrationContext,
-        model: str | None
-    ) -> None:
+    async def execute(self, pattern_config: dict[str, Any], context: OrchestrationContext, model: str | None) -> None:
         """Execute parallel orchestration pattern."""
 
         context.add_audit_entry("Starting parallel orchestration execution")
@@ -45,16 +40,12 @@ class ParallelPatternExecutor(PatternExecutor):
         context.add_audit_entry("Parallel orchestration execution completed")
 
     async def _execute_initial_agents(
-        self,
-        pattern_config: dict[str, Any],
-        context: OrchestrationContext,
-        model: str | None
+        self, pattern_config: dict[str, Any], context: OrchestrationContext, model: str | None
     ) -> None:
         """Execute initial stage agents (usually intake)."""
 
         initial_agents = [
-            agent for agent in pattern_config.get("agents", [])
-            if agent.get("execution_stage") == "initial"
+            agent for agent in pattern_config.get("agents", []) if agent.get("execution_stage") == "initial"
         ]
 
         context.add_audit_entry(f"Executing {len(initial_agents)} initial agents")
@@ -66,10 +57,7 @@ class ParallelPatternExecutor(PatternExecutor):
             context.add_audit_entry(f"Completed initial agent: {agent_type}")
 
     async def _execute_parallel_branches(
-        self,
-        branches: list[dict[str, Any]],
-        context: OrchestrationContext,
-        model: str | None
+        self, branches: list[dict[str, Any]], context: OrchestrationContext, model: str | None
     ) -> None:
         """Execute parallel branches concurrently."""
 
@@ -92,11 +80,7 @@ class ParallelPatternExecutor(PatternExecutor):
             context.add_audit_entry("All parallel branches completed")
 
     async def _execute_branch_agent(
-        self,
-        agent_config: dict[str, Any],
-        context: OrchestrationContext,
-        model: str | None,
-        branch_name: str
+        self, agent_config: dict[str, Any], context: OrchestrationContext, model: str | None, branch_name: str
     ) -> None:
         """Execute a single agent within a parallel branch."""
 
@@ -121,10 +105,7 @@ class ParallelPatternExecutor(PatternExecutor):
             await self._handle_branch_failure(agent_type, branch_name, e, context)
 
     async def _execute_synthesis_agents(
-        self,
-        pattern_config: dict[str, Any],
-        context: OrchestrationContext,
-        model: str | None
+        self, pattern_config: dict[str, Any], context: OrchestrationContext, model: str | None
     ) -> None:
         """Execute synthesis agents that combine parallel results."""
 
@@ -150,11 +131,7 @@ class ParallelPatternExecutor(PatternExecutor):
                 context.add_audit_entry(f"Completed synthesis agent: {agent_type}")
 
     async def _handle_branch_failure(
-        self,
-        agent_type: str,
-        branch_name: str,
-        error: Exception,
-        context: OrchestrationContext
+        self, agent_type: str, branch_name: str, error: Exception, context: OrchestrationContext
     ) -> None:
         """Handle failure of a branch agent according to configuration."""
 

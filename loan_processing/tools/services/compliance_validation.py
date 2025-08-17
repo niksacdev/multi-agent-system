@@ -31,10 +31,7 @@ class ComplianceValidationService(ABC):
     """
 
     @abstractmethod
-    async def check_fraud_patterns(
-        self,
-        application_data: str
-    ) -> dict[str, Any]:
+    async def check_fraud_patterns(self, application_data: str) -> dict[str, Any]:
         """
         Analyze application data for known fraud indicators and suspicious patterns.
 
@@ -50,10 +47,7 @@ class ComplianceValidationService(ABC):
         ...
 
     @abstractmethod
-    async def validate_identity_consistency(
-        self,
-        identity_data: str
-    ) -> dict[str, Any]:
+    async def validate_identity_consistency(self, identity_data: str) -> dict[str, Any]:
         """
         Check identity data consistency across multiple sources.
 
@@ -69,11 +63,7 @@ class ComplianceValidationService(ABC):
         ...
 
     @abstractmethod
-    async def check_regulatory_compliance(
-        self,
-        loan_data: str,
-        regulation_type: str = "all"
-    ) -> dict[str, Any]:
+    async def check_regulatory_compliance(self, loan_data: str, regulation_type: str = "all") -> dict[str, Any]:
         """
         Validate loan data against regulatory requirements.
 
@@ -90,11 +80,7 @@ class ComplianceValidationService(ABC):
         ...
 
     @abstractmethod
-    async def validate_documentation_completeness(
-        self,
-        required_docs: str,
-        provided_docs: str
-    ) -> dict[str, Any]:
+    async def validate_documentation_completeness(self, required_docs: str, provided_docs: str) -> dict[str, Any]:
         """
         Check if all required documentation has been provided and is complete.
 
@@ -111,11 +97,7 @@ class ComplianceValidationService(ABC):
         ...
 
     @abstractmethod
-    async def check_sanctions_and_watchlists(
-        self,
-        name: str,
-        address: str
-    ) -> dict[str, Any]:
+    async def check_sanctions_and_watchlists(self, name: str, address: str) -> dict[str, Any]:
         """
         Check applicant against sanctions lists and watchlists.
 
@@ -132,11 +114,7 @@ class ComplianceValidationService(ABC):
         ...
 
     @abstractmethod
-    async def validate_lending_policy_compliance(
-        self,
-        loan_details: str,
-        policy_rules: str
-    ) -> dict[str, Any]:
+    async def validate_lending_policy_compliance(self, loan_details: str, policy_rules: str) -> dict[str, Any]:
         """
         Check loan details against internal lending policy rules.
 

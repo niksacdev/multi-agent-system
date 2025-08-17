@@ -21,12 +21,7 @@ class SequentialPatternExecutor(PatternExecutor):
         super().__init__(agent_registry)
         self.handoff_service = HandoffValidationService()
 
-    async def execute(
-        self,
-        pattern_config: dict[str, Any],
-        context: OrchestrationContext,
-        model: str | None
-    ) -> None:
+    async def execute(self, pattern_config: dict[str, Any], context: OrchestrationContext, model: str | None) -> None:
         """Execute sequential orchestration pattern."""
 
         agents = pattern_config.get("agents", [])
@@ -39,10 +34,8 @@ class SequentialPatternExecutor(PatternExecutor):
 
             # Check if handoff conditions are met (skip for first agent)
             if i > 0:
-                previous_agent_type = agents[i-1]["type"]
-                if not self.handoff_service.check_handoff_conditions(
-                    handoff_rules, previous_agent_type, context
-                ):
+                previous_agent_type = agents[i - 1]["type"]
+                if not self.handoff_service.check_handoff_conditions(handoff_rules, previous_agent_type, context):
                     context.add_audit_entry(f"Handoff conditions not met for {agent_type}, stopping workflow")
                     break
 
@@ -79,11 +72,7 @@ class SequentialPatternExecutor(PatternExecutor):
 
         return errors
 
-    def _validate_handoff_rules(
-        self,
-        handoff_rules: list[dict[str, Any]],
-        pattern_config: dict[str, Any]
-    ) -> list[str]:
+    def _validate_handoff_rules(self, handoff_rules: list[dict[str, Any]], pattern_config: dict[str, Any]) -> list[str]:
         """Validate handoff rules for sequential pattern."""
         errors = []
         agent_types = {agent["type"] for agent in pattern_config.get("agents", [])}
@@ -132,11 +121,10 @@ class SequentialPatternExecutor(PatternExecutor):
                     errors.append(f"First agent '{agent_type}' should not have dependencies")
             else:
                 # Subsequent agents should depend on previous agent
-                previous_agent = agents[i-1]["type"]
+                previous_agent = agents[i - 1]["type"]
                 if depends_on and previous_agent not in depends_on:
                     errors.append(
-                        f"Agent '{agent_type}' should depend on previous agent '{previous_agent}' "
-                        f"in sequential pattern"
+                        f"Agent '{agent_type}' should depend on previous agent '{previous_agent}' in sequential pattern"
                     )
 
         return errors

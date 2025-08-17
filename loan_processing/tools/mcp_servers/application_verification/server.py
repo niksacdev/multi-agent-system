@@ -59,10 +59,10 @@ async def verify_asset_information(asset_type: str, asset_details_json: str) -> 
 
 if __name__ == "__main__":
     import sys
+
     if len(sys.argv) > 1 and sys.argv[1] == "sse":
         print("Starting Application Verification MCP Server (SSE) at http://localhost:8010/sse")
         mcp.run(transport="sse")
     else:
         print("Starting Application Verification MCP Server (stdio)")
         mcp.run()
-

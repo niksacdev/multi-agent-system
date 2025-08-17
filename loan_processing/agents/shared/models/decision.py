@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 
 class LoanDecisionStatus(str, Enum):
     """Final loan decision status."""
+
     APPROVED = "approved"
     DENIED = "denied"
     CONDITIONAL = "conditional"
@@ -31,111 +32,53 @@ class LoanDecision(BaseModel):
     and contains all necessary information for downstream systems.
     """
 
-    application_id: str = Field(
-        description="Reference to loan application",
-        pattern=r"^LN\d{10}$"
-    )
+    application_id: str = Field(description="Reference to loan application", pattern=r"^LN\d{10}$")
 
     # Decision details
-    decision: LoanDecisionStatus = Field(
-        description="Final loan decision"
-    )
+    decision: LoanDecisionStatus = Field(description="Final loan decision")
 
-    decision_reason: str = Field(
-        description="Primary reason for the decision"
-    )
+    decision_reason: str = Field(description="Primary reason for the decision")
 
-    confidence_score: float = Field(
-        description="Confidence in the decision",
-        ge=0.0,
-        le=1.0
-    )
+    confidence_score: float = Field(description="Confidence in the decision", ge=0.0, le=1.0)
 
     # Approved loan terms (if applicable)
     approved_amount: Decimal | None = Field(
-        None,
-        description="Approved loan amount (may differ from requested)",
-        ge=0,
-        max_digits=10,
-        decimal_places=2
+        None, description="Approved loan amount (may differ from requested)", ge=0, max_digits=10, decimal_places=2
     )
 
-    approved_rate: float | None = Field(
-        None,
-        description="Approved interest rate",
-        ge=0.0,
-        le=1.0
-    )
+    approved_rate: float | None = Field(None, description="Approved interest rate", ge=0.0, le=1.0)
 
-    approved_term_months: int | None = Field(
-        None,
-        description="Approved loan term in months",
-        gt=0,
-        le=360
-    )
+    approved_term_months: int | None = Field(None, description="Approved loan term in months", gt=0, le=360)
 
     # Conditions and requirements
-    conditions: list[str] = Field(
-        default_factory=list,
-        description="Conditions that must be met for approval"
-    )
+    conditions: list[str] = Field(default_factory=list, description="Conditions that must be met for approval")
 
-    required_documents: list[str] = Field(
-        default_factory=list,
-        description="Additional documents required"
-    )
+    required_documents: list[str] = Field(default_factory=list, description="Additional documents required")
 
     # Decision metadata
-    decision_date: datetime = Field(
-        default_factory=datetime.utcnow,
-        description="Decision timestamp"
-    )
+    decision_date: datetime = Field(default_factory=datetime.utcnow, description="Decision timestamp")
 
-    decision_maker: str = Field(
-        description="Agent or system that made the final decision"
-    )
+    decision_maker: str = Field(description="Agent or system that made the final decision")
 
-    review_required: bool = Field(
-        default=False,
-        description="Whether human review is required"
-    )
+    review_required: bool = Field(default=False, description="Whether human review is required")
 
     review_priority: str | None = Field(
-        None,
-        description="Priority level for manual review (low, medium, high, urgent)"
+        None, description="Priority level for manual review (low, medium, high, urgent)"
     )
 
     # Audit trail
-    reasoning: str = Field(
-        description="Detailed reasoning for the decision"
-    )
+    reasoning: str = Field(description="Detailed reasoning for the decision")
 
-    risk_factors: list[str] = Field(
-        default_factory=list,
-        description="Key risk factors considered"
-    )
+    risk_factors: list[str] = Field(default_factory=list, description="Key risk factors considered")
 
-    mitigating_factors: list[str] = Field(
-        default_factory=list,
-        description="Factors that mitigate risk"
-    )
+    mitigating_factors: list[str] = Field(default_factory=list, description="Factors that mitigate risk")
 
     # Processing information
-    processing_duration_seconds: float | None = Field(
-        None,
-        description="Total processing time",
-        ge=0.0
-    )
+    processing_duration_seconds: float | None = Field(None, description="Total processing time", ge=0.0)
 
-    agents_consulted: list[str] = Field(
-        default_factory=list,
-        description="Agents involved in the decision process"
-    )
+    agents_consulted: list[str] = Field(default_factory=list, description="Agents involved in the decision process")
 
-    orchestration_pattern: str | None = Field(
-        None,
-        description="Orchestration pattern used for processing"
-    )
+    orchestration_pattern: str | None = Field(None, description="Orchestration pattern used for processing")
 
     @property
     def is_approved(self) -> bool:
@@ -148,7 +91,7 @@ class LoanDecision(BaseModel):
         return self.decision in [
             LoanDecisionStatus.CONDITIONAL,
             LoanDecisionStatus.MANUAL_REVIEW,
-            LoanDecisionStatus.PENDING
+            LoanDecisionStatus.PENDING,
         ]
 
     def add_condition(self, condition: str) -> None:
@@ -170,37 +113,19 @@ class DecisionAuditLog(BaseModel):
     decision transparency.
     """
 
-    application_id: str = Field(
-        description="Reference to loan application",
-        pattern=r"^LN\d{10}$"
-    )
+    application_id: str = Field(description="Reference to loan application", pattern=r"^LN\d{10}$")
 
-    event_type: str = Field(
-        description="Type of audit event (assessment, decision, review)"
-    )
+    event_type: str = Field(description="Type of audit event (assessment, decision, review)")
 
-    event_timestamp: datetime = Field(
-        default_factory=datetime.utcnow,
-        description="Event timestamp"
-    )
+    event_timestamp: datetime = Field(default_factory=datetime.utcnow, description="Event timestamp")
 
-    event_description: str = Field(
-        description="Description of the event"
-    )
+    event_description: str = Field(description="Description of the event")
 
-    actor: str = Field(
-        description="Agent or user responsible for the event"
-    )
+    actor: str = Field(description="Agent or user responsible for the event")
 
-    data_changed: dict = Field(
-        default_factory=dict,
-        description="Data that was changed during the event"
-    )
+    data_changed: dict = Field(default_factory=dict, description="Data that was changed during the event")
 
-    compliance_notes: str | None = Field(
-        None,
-        description="Compliance-related notes"
-    )
+    compliance_notes: str | None = Field(None, description="Compliance-related notes")
 
 
 __all__ = [

@@ -52,9 +52,7 @@ class TestMCPServerPerformance:
         # Test credit report retrieval performance
         start_time = time.time()
         result = await app_verification_service.retrieve_credit_report(
-            applicant_id="perf-test-001",
-            full_name="Performance Test User",
-            address="123 Speed St, Fast City, ST 12345"
+            applicant_id="perf-test-001", full_name="Performance Test User", address="123 Speed St, Fast City, ST 12345"
         )
         credit_time = time.time() - start_time
 
@@ -64,9 +62,7 @@ class TestMCPServerPerformance:
         # Test employment verification performance
         start_time = time.time()
         result = await app_verification_service.verify_employment(
-            applicant_id="perf-test-001",
-            employer_name="Speed Corp",
-            position="Fast Worker"
+            applicant_id="perf-test-001", employer_name="Speed Corp", position="Fast Worker"
         )
         employment_time = time.time() - start_time
 
@@ -82,8 +78,7 @@ class TestMCPServerPerformance:
         # Test DTI calculation performance
         start_time = time.time()
         result = await financial_service.calculate_debt_to_income_ratio(
-            monthly_income=5000.0,
-            monthly_debt_payments=1500.0
+            monthly_income=5000.0, monthly_debt_payments=1500.0
         )
         dti_time = time.time() - start_time
 
@@ -93,11 +88,7 @@ class TestMCPServerPerformance:
         # Test loan affordability calculation performance
         start_time = time.time()
         result = await financial_service.calculate_loan_affordability(
-            monthly_income=6000.0,
-            existing_debt=1000.0,
-            loan_amount=200000.0,
-            interest_rate=0.05,
-            loan_term_months=360
+            monthly_income=6000.0, existing_debt=1000.0, loan_amount=200000.0, interest_rate=0.05, loan_term_months=360
         )
         affordability_time = time.time() - start_time
 
@@ -105,16 +96,13 @@ class TestMCPServerPerformance:
         assert affordability_time < 0.1  # Should complete in under 100ms
 
     @pytest.mark.asyncio
-    async def test_document_processing_response_time(
-        self, document_service: MCPDocumentProcessingService
-    ) -> None:
+    async def test_document_processing_response_time(self, document_service: MCPDocumentProcessingService) -> None:
         """Test that document processing calls complete within acceptable time."""
 
         # Test text extraction performance
         start_time = time.time()
         result = await document_service.extract_text_from_document(
-            document_path="/path/to/perf_test.pdf",
-            document_type="pdf"
+            document_path="/path/to/perf_test.pdf", document_type="pdf"
         )
         extraction_time = time.time() - start_time
 
@@ -131,7 +119,7 @@ class TestMCPServerPerformance:
             return await app_verification_service.retrieve_credit_report(
                 applicant_id=f"concurrent-{applicant_id}",
                 full_name=f"User {applicant_id}",
-                address=f"{applicant_id} Test St"
+                address=f"{applicant_id} Test St",
             )
 
         # Run 10 concurrent credit report calls
@@ -153,15 +141,12 @@ class TestMCPServerPerformance:
         assert avg_time < 0.2  # Average under 200ms per call
 
     @pytest.mark.asyncio
-    async def test_concurrent_financial_calculations(
-        self, financial_service: FinancialCalculationsServiceImpl
-    ) -> None:
+    async def test_concurrent_financial_calculations(self, financial_service: FinancialCalculationsServiceImpl) -> None:
         """Test performance with concurrent financial calculations."""
 
         async def make_calculation(index: int) -> dict:
             return await financial_service.calculate_debt_to_income_ratio(
-                monthly_income=5000.0 + (index * 100),
-                monthly_debt_payments=1500.0 + (index * 50)
+                monthly_income=5000.0 + (index * 100), monthly_debt_payments=1500.0 + (index * 50)
             )
 
         # Run 20 concurrent DTI calculations
@@ -184,9 +169,7 @@ class TestMCPServerPerformance:
         assert avg_time < 0.05  # Average under 50ms per calculation
 
     @pytest.mark.asyncio
-    async def test_complex_calculation_performance(
-        self, financial_service: FinancialCalculationsServiceImpl
-    ) -> None:
+    async def test_complex_calculation_performance(self, financial_service: FinancialCalculationsServiceImpl) -> None:
         """Test performance of complex financial calculations."""
 
         # Test income stability analysis with large dataset
@@ -201,8 +184,7 @@ class TestMCPServerPerformance:
 
         start_time = time.time()
         result = await financial_service.analyze_income_stability(
-            income_history=income_history,
-            employment_history=employment_history
+            income_history=income_history, employment_history=employment_history
         )
         calculation_time = time.time() - start_time
 
@@ -211,9 +193,7 @@ class TestMCPServerPerformance:
         assert calculation_time < 0.2  # Should complete in under 200ms even with large dataset
 
     @pytest.mark.asyncio
-    async def test_high_precision_calculations(
-        self, financial_service: FinancialCalculationsServiceImpl
-    ) -> None:
+    async def test_high_precision_calculations(self, financial_service: FinancialCalculationsServiceImpl) -> None:
         """Test performance with high precision financial calculations."""
 
         # Test calculation with very precise numbers
@@ -221,7 +201,7 @@ class TestMCPServerPerformance:
         result = await financial_service.calculate_monthly_payment(
             loan_amount=123456.789,
             interest_rate=0.04567,  # High precision interest rate
-            loan_term_months=360
+            loan_term_months=360,
         )
         calculation_time = time.time() - start_time
 
@@ -231,8 +211,9 @@ class TestMCPServerPerformance:
 
     @pytest.mark.asyncio
     async def test_memory_usage_stability(
-        self, app_verification_service: ApplicationVerificationServiceImpl,
-        financial_service: FinancialCalculationsServiceImpl
+        self,
+        app_verification_service: ApplicationVerificationServiceImpl,
+        financial_service: FinancialCalculationsServiceImpl,
     ) -> None:
         """Test that memory usage remains stable under repeated calls."""
         import gc
@@ -245,14 +226,11 @@ class TestMCPServerPerformance:
         for i in range(100):
             # Mix of different service calls
             await app_verification_service.retrieve_credit_report(
-                applicant_id=f"memory-test-{i}",
-                full_name=f"User {i}",
-                address=f"{i} Memory Lane"
+                applicant_id=f"memory-test-{i}", full_name=f"User {i}", address=f"{i} Memory Lane"
             )
 
             await financial_service.calculate_debt_to_income_ratio(
-                monthly_income=5000.0,
-                monthly_debt_payments=1500.0 + i
+                monthly_income=5000.0, monthly_debt_payments=1500.0 + i
             )
 
             # Periodic garbage collection
@@ -268,16 +246,14 @@ class TestMCPServerPerformance:
         assert memory_growth < 1000  # Less than 1000 new objects retained
 
     @pytest.mark.asyncio
-    async def test_error_handling_performance(
-        self, financial_service: FinancialCalculationsServiceImpl
-    ) -> None:
+    async def test_error_handling_performance(self, financial_service: FinancialCalculationsServiceImpl) -> None:
         """Test that error handling doesn't significantly impact performance."""
 
         # Test performance with invalid inputs (should fail fast)
         start_time = time.time()
         result = await financial_service.calculate_debt_to_income_ratio(
             monthly_income=0.0,  # Invalid input
-            monthly_debt_payments=1500.0
+            monthly_debt_payments=1500.0,
         )
         error_time = time.time() - start_time
 
@@ -294,32 +270,25 @@ class TestMCPServerPerformance:
         async def process_application(app_id: str) -> dict:
             # Simulate processing multiple data points for one application
             credit_task = app_verification_service.retrieve_credit_report(
-                applicant_id=app_id,
-                full_name=f"Applicant {app_id}",
-                address=f"{app_id} Batch St"
+                applicant_id=app_id, full_name=f"Applicant {app_id}", address=f"{app_id} Batch St"
             )
 
             employment_task = app_verification_service.verify_employment(
-                applicant_id=app_id,
-                employer_name=f"Company {app_id}",
-                position="Worker"
+                applicant_id=app_id, employer_name=f"Company {app_id}", position="Worker"
             )
 
             bank_task = app_verification_service.get_bank_account_data(
-                account_number=f"12345{app_id}",
-                routing_number="987654321"
+                account_number=f"12345{app_id}", routing_number="987654321"
             )
 
             # Wait for all tasks for this application
-            credit, employment, bank = await asyncio.gather(
-                credit_task, employment_task, bank_task
-            )
+            credit, employment, bank = await asyncio.gather(credit_task, employment_task, bank_task)
 
             return {
                 "applicant_id": app_id,
                 "credit_score": credit["credit_score"],
                 "employment_verified": employment["employment_status"] == "verified",
-                "bank_balance": bank["current_balance"]
+                "bank_balance": bank["current_balance"],
             }
 
         # Process 5 applications concurrently
@@ -354,17 +323,14 @@ class TestMCPServerStressTests:
         return FinancialCalculationsServiceImpl()
 
     @pytest.mark.asyncio
-    async def test_high_volume_calculations(
-        self, financial_service: FinancialCalculationsServiceImpl
-    ) -> None:
+    async def test_high_volume_calculations(self, financial_service: FinancialCalculationsServiceImpl) -> None:
         """Test server performance under high volume of calculations."""
 
         async def calculation_batch() -> list[dict]:
             tasks = []
             for i in range(50):  # 50 calculations per batch
                 task = financial_service.calculate_debt_to_income_ratio(
-                    monthly_income=5000.0 + (i * 10),
-                    monthly_debt_payments=1500.0 + (i * 5)
+                    monthly_income=5000.0 + (i * 10), monthly_debt_payments=1500.0 + (i * 5)
                 )
                 tasks.append(task)
             return await asyncio.gather(*tasks)
@@ -387,24 +353,20 @@ class TestMCPServerStressTests:
         assert avg_time < 0.01  # Under 10ms per calculation on average
 
     @pytest.mark.asyncio
-    async def test_sustained_load_performance(
-        self, financial_service: FinancialCalculationsServiceImpl
-    ) -> None:
+    async def test_sustained_load_performance(self, financial_service: FinancialCalculationsServiceImpl) -> None:
         """Test performance under sustained load over time."""
 
         results = []
         durations = []
 
         # Run calculations continuously for multiple iterations
-        for iteration in range(10):
+        for _iteration in range(10):
             start_time = time.time()
 
             # Burst of calculations
             tasks = [
                 financial_service.calculate_monthly_payment(
-                    loan_amount=100000.0 + (i * 1000),
-                    interest_rate=0.05 + (i * 0.001),
-                    loan_term_months=360
+                    loan_amount=100000.0 + (i * 1000), interest_rate=0.05 + (i * 0.001), loan_term_months=360
                 )
                 for i in range(20)
             ]

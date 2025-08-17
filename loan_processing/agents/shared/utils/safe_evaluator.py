@@ -17,14 +17,14 @@ class SafeConditionEvaluator:
 
     # Allowed operators mapping
     OPERATORS = {
-        '>': operator.gt,
-        '<': operator.lt,
-        '>=': operator.ge,
-        '<=': operator.le,
-        '==': operator.eq,
-        '!=': operator.ne,
-        'in': lambda a, b: a in b,
-        'not in': lambda a, b: a not in b,
+        ">": operator.gt,
+        "<": operator.lt,
+        ">=": operator.ge,
+        "<=": operator.le,
+        "==": operator.eq,
+        "!=": operator.ne,
+        "in": lambda a, b: a in b,
+        "not in": lambda a, b: a not in b,
     }
 
     @classmethod
@@ -54,11 +54,11 @@ class SafeConditionEvaluator:
         condition = condition.strip()
 
         # Handle compound conditions (and/or)
-        if ' and ' in condition:
-            parts = condition.split(' and ')
+        if " and " in condition:
+            parts = condition.split(" and ")
             return all(cls._evaluate_simple_condition(part.strip(), context) for part in parts)
-        elif ' or ' in condition:
-            parts = condition.split(' or ')
+        elif " or " in condition:
+            parts = condition.split(" or ")
             return any(cls._evaluate_simple_condition(part.strip(), context) for part in parts)
         else:
             return cls._evaluate_simple_condition(condition, context)
@@ -73,7 +73,7 @@ class SafeConditionEvaluator:
 
         # Pattern to match: field_name operator value
         # Supports operators: >, <, >=, <=, ==, !=, in, not in
-        pattern = r'^(\w+)\s*(>=|<=|==|!=|>|<|in|not\s+in)\s*(.+)$'
+        pattern = r"^(\w+)\s*(>=|<=|==|!=|>|<|in|not\s+in)\s*(.+)$"
         match = re.match(pattern, condition)
 
         if not match:
@@ -109,26 +109,27 @@ class SafeConditionEvaluator:
         value_str = value_str.strip()
 
         # Handle quoted strings
-        if (value_str.startswith('"') and value_str.endswith('"')) or \
-           (value_str.startswith("'") and value_str.endswith("'")):
+        if (value_str.startswith('"') and value_str.endswith('"')) or (
+            value_str.startswith("'") and value_str.endswith("'")
+        ):
             return value_str[1:-1]  # Remove quotes
 
         # Handle lists
-        if value_str.startswith('[') and value_str.endswith(']'):
+        if value_str.startswith("[") and value_str.endswith("]"):
             # Simple list parsing - split by comma and parse each item
             items_str = value_str[1:-1]  # Remove brackets
             if not items_str.strip():
                 return []
 
             items = []
-            for item in items_str.split(','):
+            for item in items_str.split(","):
                 items.append(cls._parse_value(item.strip()))
             return items
 
         # Handle numbers
         try:
             # Try integer first
-            if '.' not in value_str:
+            if "." not in value_str:
                 return int(value_str)
             else:
                 return float(value_str)
@@ -136,13 +137,13 @@ class SafeConditionEvaluator:
             pass
 
         # Handle boolean
-        if value_str.lower() == 'true':
+        if value_str.lower() == "true":
             return True
-        elif value_str.lower() == 'false':
+        elif value_str.lower() == "false":
             return False
 
         # Handle None
-        if value_str.lower() == 'none':
+        if value_str.lower() == "none":
             return None
 
         # Default to string

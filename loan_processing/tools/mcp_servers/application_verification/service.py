@@ -20,12 +20,7 @@ class ApplicationVerificationServiceImpl(ApplicationVerificationService):
     randomization to simulate real-world variability for demos.
     """
 
-    async def retrieve_credit_report(
-        self,
-        applicant_id: str,
-        full_name: str,
-        address: str
-    ) -> dict[str, Any]:
+    async def retrieve_credit_report(self, applicant_id: str, full_name: str, address: str) -> dict[str, Any]:
         score = random.randint(620, 780)
         utilization = round(random.uniform(0.15, 0.45), 2)
         payment_history = round(random.uniform(0.85, 0.99), 2)
@@ -45,15 +40,10 @@ class ApplicationVerificationServiceImpl(ApplicationVerificationService):
             "trade_lines": random.randint(3, 12),
             "risk_level": "low" if score >= 740 else "medium" if score >= 680 else "high",
             "recommendation": "approve" if score >= 700 and utilization <= 0.3 else "review",
-            "type": "credit_report"
+            "type": "credit_report",
         }
 
-    async def verify_employment(
-        self,
-        applicant_id: str,
-        employer_name: str,
-        position: str
-    ) -> dict[str, Any]:
+    async def verify_employment(self, applicant_id: str, employer_name: str, position: str) -> dict[str, Any]:
         income = random.randint(50000, 120000)
         tenure_months = random.randint(6, 60)
         employment_type = random.choice(["full-time", "part-time", "contract"])
@@ -70,14 +60,10 @@ class ApplicationVerificationServiceImpl(ApplicationVerificationService):
             "hr_contact": f"hr@{employer_name.lower().replace(' ', '')}.com",
             "income_stability": "stable" if tenure_months >= 24 else "developing",
             "recommendation": "verify" if income >= 50000 and employment_type == "full-time" else "review",
-            "type": "employment_verification"
+            "type": "employment_verification",
         }
 
-    async def get_bank_account_data(
-        self,
-        account_number: str,
-        routing_number: str
-    ) -> dict[str, Any]:
+    async def get_bank_account_data(self, account_number: str, routing_number: str) -> dict[str, Any]:
         balance = round(random.uniform(500, 25000), 2)
 
         return {
@@ -89,17 +75,13 @@ class ApplicationVerificationServiceImpl(ApplicationVerificationService):
             "recent_transactions": [
                 {"date": "2025-07-28", "amount": -125.34, "description": "Utility Bill"},
                 {"date": "2025-07-22", "amount": -58.12, "description": "Groceries"},
-                {"date": "2025-07-15", "amount": 3250.00, "description": "Payroll"}
+                {"date": "2025-07-15", "amount": 3250.00, "description": "Payroll"},
             ],
             "overdrafts_last_90_days": random.randint(0, 1),
-            "type": "bank_account_data"
+            "type": "bank_account_data",
         }
 
-    async def get_tax_transcript_data(
-        self,
-        applicant_id: str,
-        tax_year: int
-    ) -> dict[str, Any]:
+    async def get_tax_transcript_data(self, applicant_id: str, tax_year: int) -> dict[str, Any]:
         agi = round(random.uniform(55000, 150000), 2)
 
         return {
@@ -111,14 +93,10 @@ class ApplicationVerificationServiceImpl(ApplicationVerificationService):
             "withholding": round(agi * random.uniform(0.15, 0.25), 2),
             "refund_or_amount_owed": round(random.uniform(-2500, 2500), 2),
             "filing_status": random.choice(["single", "married_joint", "head_of_household"]),
-            "type": "tax_transcript"
+            "type": "tax_transcript",
         }
 
-    async def verify_asset_information(
-        self,
-        asset_type: str,
-        asset_details: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def verify_asset_information(self, asset_type: str, asset_details: dict[str, Any]) -> dict[str, Any]:
         value = round(random.uniform(10000, 500000), 2)
 
         return {
@@ -129,5 +107,5 @@ class ApplicationVerificationServiceImpl(ApplicationVerificationService):
             "liquidity_score": round(random.uniform(0.3, 0.9), 2),
             "lien_check": False,
             "verification_confidence": round(random.uniform(0.75, 0.95), 2),
-            "type": "asset_verification"
+            "type": "asset_verification",
         }

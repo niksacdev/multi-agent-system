@@ -60,11 +60,7 @@ class OutputFormatGenerator:
         return "\n".join(field_descriptions)
 
     @classmethod
-    def add_structured_output_instructions(
-        cls,
-        base_instructions: str,
-        output_format: dict[str, Any]
-    ) -> str:
+    def add_structured_output_instructions(cls, base_instructions: str, output_format: dict[str, Any]) -> str:
         """Add structured output requirements to agent instructions."""
 
         if not output_format:

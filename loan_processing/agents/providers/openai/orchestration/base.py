@@ -29,12 +29,7 @@ class PatternExecutor(ABC):
         self.agent_execution_service = AgentExecutionService(self.agent_registry)
 
     @abstractmethod
-    async def execute(
-        self,
-        pattern_config: dict[str, Any],
-        context: OrchestrationContext,
-        model: str | None
-    ) -> None:
+    async def execute(self, pattern_config: dict[str, Any], context: OrchestrationContext, model: str | None) -> None:
         """
         Execute the orchestration pattern with given configuration and context.
 
@@ -67,7 +62,7 @@ class PatternExecutor(ABC):
         class_name = self.__class__.__name__
         # Convert "SequentialPatternExecutor" -> "sequential"
         if class_name.endswith("PatternExecutor"):
-            return class_name[:-len("PatternExecutor")].lower()
+            return class_name[: -len("PatternExecutor")].lower()
         return class_name.lower()
 
     def _validate_base_config(self, pattern_config: dict[str, Any]) -> list[str]:
@@ -115,11 +110,7 @@ class AgentExecutionService:
         self.agent_registry = agent_registry
 
     async def execute_agent(
-        self,
-        agent_type: str,
-        agent_config: dict[str, Any],
-        context: OrchestrationContext,
-        model: str | None
+        self, agent_type: str, agent_config: dict[str, Any], context: OrchestrationContext, model: str | None
     ) -> None:
         """Execute a single agent and update context with results."""
 
@@ -135,10 +126,7 @@ class AgentExecutionService:
 
             # Execute agent with timeout
             timeout = agent_config.get("timeout_seconds", 300)
-            result = await asyncio.wait_for(
-                Runner.run(agent, input=agent_input),
-                timeout=timeout
-            )
+            result = await asyncio.wait_for(Runner.run(agent, input=agent_input), timeout=timeout)
 
             # Parse and store result
             parsed_result = self._parse_agent_result(result)
@@ -164,7 +152,7 @@ class AgentExecutionService:
         context_parts = [
             f"Application Data:\n{context.application.model_dump_json(indent=2)}",
             f"Session ID: {context.session_id}",
-            f"Processing Pattern: {context.pattern_name}"
+            f"Processing Pattern: {context.pattern_name}",
         ]
 
         # Add previous agent results
@@ -195,7 +183,8 @@ class AgentExecutionService:
         try:
             # Look for JSON pattern in the result
             import re
-            json_match = re.search(r'\{.*\}', result_str, re.DOTALL)
+
+            json_match = re.search(r"\{.*\}", result_str, re.DOTALL)
             if json_match:
                 return json.loads(json_match.group())
         except json.JSONDecodeError:
@@ -205,7 +194,7 @@ class AgentExecutionService:
         return {
             "raw_output": result_str,
             "parsed_successfully": False,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     def _validate_success_conditions(self, conditions: list[str], result: dict[str, Any]) -> bool:
@@ -222,6 +211,7 @@ class AgentExecutionService:
         # Safe condition evaluation without eval()
         try:
             from loan_processing.agents.shared.utils import evaluate_condition
+
             return evaluate_condition(condition, result)
         except Exception:
             return False
@@ -235,10 +225,7 @@ class HandoffValidationService:
         pass
 
     def check_handoff_conditions(
-        self,
-        handoff_rules: dict[str, Any],
-        from_agent: str,
-        context: OrchestrationContext
+        self, handoff_rules: dict[str, Any], from_agent: str, context: OrchestrationContext
     ) -> bool:
         """Check if handoff conditions are satisfied."""
 
@@ -266,13 +253,10 @@ class HandoffValidationService:
         # Safe condition evaluation without eval()
         try:
             from loan_processing.agents.shared.utils import evaluate_condition
+
             return evaluate_condition(condition, result)
         except Exception:
             return False
 
 
-__all__ = [
-    "PatternExecutor",
-    "AgentExecutionService",
-    "HandoffValidationService"
-]
+__all__ = ["PatternExecutor", "AgentExecutionService", "HandoffValidationService"]

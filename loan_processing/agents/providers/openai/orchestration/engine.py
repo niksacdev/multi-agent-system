@@ -91,7 +91,7 @@ class OrchestrationEngine:
         pattern_name: str,
         application: LoanApplication,
         model: str | None = None,
-        context_overrides: dict[str, Any] | None = None
+        context_overrides: dict[str, Any] | None = None,
     ) -> LoanDecision:
         """
         Execute a specific orchestration pattern.
@@ -116,7 +116,7 @@ class OrchestrationEngine:
             session_id=f"{pattern_name}_{application.application_id}_{int(time.time())}",
             processing_start_time=start_time,
             pattern_name=pattern_name,
-            metadata=context_overrides or {}
+            metadata=context_overrides or {},
         )
 
         context.add_audit_entry(f"Started {pattern_name} orchestration for application {application.application_id}")
@@ -159,11 +159,7 @@ class OrchestrationEngine:
 
         return self.pattern_executors[pattern_type]
 
-    def _generate_loan_decision(
-        self,
-        pattern_config: dict,
-        context: OrchestrationContext
-    ) -> LoanDecision:
+    def _generate_loan_decision(self, pattern_config: dict, context: OrchestrationContext) -> LoanDecision:
         """Generate final loan decision from orchestration results."""
 
         # Apply decision matrix
@@ -182,9 +178,7 @@ class OrchestrationEngine:
             decision_reason=reasoning[:500],
             confidence_score=risk_result.get("confidence_score", 0.75),
             approved_amount=(
-                risk_result.get("approved_amount")
-                if decision_status == LoanDecisionStatus.APPROVED
-                else None
+                risk_result.get("approved_amount") if decision_status == LoanDecisionStatus.APPROVED else None
             ),
             approved_rate=risk_result.get("recommended_rate"),
             approved_term_months=risk_result.get("recommended_terms"),
@@ -196,9 +190,7 @@ class OrchestrationEngine:
         )
 
     def _apply_decision_matrix(
-        self,
-        decision_matrix: dict,
-        context: OrchestrationContext
+        self, decision_matrix: dict, context: OrchestrationContext
     ) -> tuple[LoanDecisionStatus, str]:
         """Apply decision matrix to determine final decision."""
 
@@ -213,7 +205,6 @@ class OrchestrationEngine:
         for decision_type, config in decision_matrix.items():
             conditions = config.get("conditions", [])
             if all(self._evaluate_condition(cond, all_results) for cond in conditions):
-
                 # Map decision type to status
                 status_map = {
                     "auto_approve": LoanDecisionStatus.APPROVED,
@@ -236,6 +227,7 @@ class OrchestrationEngine:
         # Safe condition evaluation without eval()
         try:
             from loan_processing.agents.shared.utils import evaluate_condition
+
             return evaluate_condition(condition, result)
         except Exception:
             return False
@@ -281,7 +273,7 @@ class OrchestrationEngine:
             f"Session ID: {context.session_id}",
             f"Total Processing Time: {sum(context.agent_durations.values()):.2f}s",
             "",
-            "Agent Processing Summary:"
+            "Agent Processing Summary:",
         ]
 
         for agent_type, duration in context.agent_durations.items():

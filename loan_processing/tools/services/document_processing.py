@@ -30,11 +30,7 @@ class DocumentProcessingService(ABC):
     """
 
     @abstractmethod
-    async def extract_text_from_document(
-        self,
-        document_path: str,
-        document_type: str = "auto"
-    ) -> dict[str, Any]:
+    async def extract_text_from_document(self, document_path: str, document_type: str = "auto") -> dict[str, Any]:
         """
         Extract text from uploaded documents using OCR.
 
@@ -51,10 +47,7 @@ class DocumentProcessingService(ABC):
         ...
 
     @abstractmethod
-    async def classify_document_type(
-        self,
-        document_content: str
-    ) -> dict[str, Any]:
+    async def classify_document_type(self, document_content: str) -> dict[str, Any]:
         """
         Classify document type based on content analysis.
 
@@ -70,11 +63,7 @@ class DocumentProcessingService(ABC):
         ...
 
     @abstractmethod
-    async def validate_document_format(
-        self,
-        document_path: str,
-        expected_format: str
-    ) -> dict[str, Any]:
+    async def validate_document_format(self, document_path: str, expected_format: str) -> dict[str, Any]:
         """
         Validate document format and authenticity.
 
@@ -91,11 +80,7 @@ class DocumentProcessingService(ABC):
         ...
 
     @abstractmethod
-    async def extract_structured_data(
-        self,
-        document_path: str,
-        data_schema: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def extract_structured_data(self, document_path: str, data_schema: dict[str, Any]) -> dict[str, Any]:
         """
         Extract structured data from documents based on schema.
 
@@ -112,11 +97,7 @@ class DocumentProcessingService(ABC):
         ...
 
     @abstractmethod
-    async def convert_document_format(
-        self,
-        input_path: str,
-        output_format: str
-    ) -> dict[str, Any]:
+    async def convert_document_format(self, input_path: str, output_format: str) -> dict[str, Any]:
         """
         Convert document to different format.
 

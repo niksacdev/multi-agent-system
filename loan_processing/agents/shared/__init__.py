@@ -11,9 +11,4 @@ from loan_processing.agents.shared.models.application import LoanApplication
 from loan_processing.agents.shared.models.assessment import RiskAssessment
 from loan_processing.agents.shared.models.decision import LoanDecision, LoanDecisionStatus
 
-__all__ = [
-    "LoanApplication",
-    "LoanDecision",
-    "LoanDecisionStatus",
-    "RiskAssessment"
-]
+__all__ = ["LoanApplication", "LoanDecision", "LoanDecisionStatus", "RiskAssessment"]

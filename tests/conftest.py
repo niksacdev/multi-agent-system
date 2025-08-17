@@ -56,45 +56,38 @@ def mock_mcp_client() -> AsyncMock:
             "confidence": 0.95,
             "language": "en",
             "page_count": 1,
-            "type": "text_extraction"
+            "type": "text_extraction",
         },
         "classify_document_type": {
             "document_type": "loan_application",
             "confidence": 0.88,
             "identified_forms": ["application"],
-            "type": "classification"
+            "type": "classification",
         },
         "validate_document_format": {
             "is_valid": True,
             "format_matches": True,
             "file_integrity": True,
             "detected_format": "pdf",
-            "type": "validation"
+            "type": "validation",
         },
         "extract_structured_data": {
-            "extracted_data": {
-                "applicant_name": "John Doe",
-                "annual_income": 75000,
-                "employer": "Tech Corp"
-            },
+            "extracted_data": {"applicant_name": "John Doe", "annual_income": 75000, "employer": "Tech Corp"},
             "confidence": 0.92,
-            "type": "structured_extraction"
+            "type": "structured_extraction",
         },
         "convert_document_format": {
             "output_path": "/path/to/converted_document.jpg",
             "conversion_successful": True,
             "original_format": "pdf",
             "target_format": "jpg",
-            "type": "conversion"
-        }
+            "type": "conversion",
+        },
     }
 
     def mock_call_tool(tool_name: str, params: dict[str, Any]) -> str:
         """Mock implementation of call_tool method."""
-        response = default_responses.get(
-            tool_name,
-            {"error": f"Unknown tool: {tool_name}", "type": "error"}
-        )
+        response = default_responses.get(tool_name, {"error": f"Unknown tool: {tool_name}", "type": "error"})
         return json.dumps(response)
 
     client.call_tool.side_effect = mock_call_tool
@@ -117,25 +110,16 @@ def sample_applicant_data() -> dict[str, Any]:
             "full_name": "John Doe",
             "address": "123 Main St, Anytown, ST 12345",
             "phone": "555-0123",
-            "email": "john.doe@email.com"
+            "email": "john.doe@email.com",
         },
         "employment": {
             "employer_name": "Tech Corporation",
             "position": "Software Engineer",
             "annual_income": 85000,
-            "tenure_months": 24
+            "tenure_months": 24,
         },
-        "financial": {
-            "monthly_income": 7083.33,
-            "monthly_debt_payments": 1200.0,
-            "liquid_assets": 25000.0
-        },
-        "loan_request": {
-            "amount": 300000.0,
-            "purpose": "home_purchase",
-            "term_months": 360,
-            "interest_rate": 0.045
-        }
+        "financial": {"monthly_income": 7083.33, "monthly_debt_payments": 1200.0, "liquid_assets": 25000.0},
+        "loan_request": {"amount": 300000.0, "purpose": "home_purchase", "term_months": 360, "interest_rate": 0.045},
     }
 
 
@@ -156,7 +140,7 @@ def sample_credit_report() -> dict[str, Any]:
         "trade_lines": 8,
         "risk_level": "low",
         "recommendation": "approve",
-        "type": "credit_report"
+        "type": "credit_report",
     }
 
 
@@ -175,7 +159,7 @@ def sample_employment_verification() -> dict[str, Any]:
         "hr_contact": "hr@techcorp.com",
         "income_stability": "stable",
         "recommendation": "verify",
-        "type": "employment_verification"
+        "type": "employment_verification",
     }
 
 
@@ -191,10 +175,10 @@ def sample_bank_data() -> dict[str, Any]:
         "recent_transactions": [
             {"date": "2023-08-10", "amount": -125.34, "description": "Utility Bill"},
             {"date": "2023-08-05", "amount": -58.12, "description": "Groceries"},
-            {"date": "2023-08-01", "amount": 3250.00, "description": "Payroll"}
+            {"date": "2023-08-01", "amount": 3250.00, "description": "Payroll"},
         ],
         "overdrafts_last_90_days": 0,
-        "type": "bank_account_data"
+        "type": "bank_account_data",
     }
 
 
@@ -209,7 +193,7 @@ def sample_dti_calculation() -> dict[str, Any]:
         "risk_level": "low",
         "max_additional_debt": 2445.83,
         "calculation_timestamp": "2023-08-11T10:30:00Z",
-        "type": "dti_calculation"
+        "type": "dti_calculation",
     }
 
 
@@ -226,7 +210,7 @@ def sample_loan_affordability() -> dict[str, Any]:
         "total_interest": 247221.60,
         "payment_to_income_ratio": 21.46,
         "calculation_timestamp": "2023-08-11T10:30:00Z",
-        "type": "affordability_assessment"
+        "type": "affordability_assessment",
     }
 
 
@@ -237,11 +221,7 @@ def validation_helpers():
 
     class ValidationHelpers:
         @staticmethod
-        def assert_response_structure(
-            response: dict[str, Any],
-            required_fields: list[str],
-            response_type: str
-        ) -> None:
+        def assert_response_structure(response: dict[str, Any], required_fields: list[str], response_type: str) -> None:
             """Assert that response has required structure."""
             for field in required_fields:
                 assert field in response, f"Missing required field: {field}"
@@ -275,23 +255,27 @@ def validation_helpers():
 
 
 # Parametrized test data
-@pytest.fixture(params=[
-    {"income": 5000, "debt": 1000, "expected_status": "excellent"},
-    {"income": 5000, "debt": 2000, "expected_status": "good"},
-    {"income": 5000, "debt": 2500, "expected_status": "marginal"},
-    {"income": 3000, "debt": 2000, "expected_status": "poor"}
-])
+@pytest.fixture(
+    params=[
+        {"income": 5000, "debt": 1000, "expected_status": "excellent"},
+        {"income": 5000, "debt": 2000, "expected_status": "good"},
+        {"income": 5000, "debt": 2500, "expected_status": "marginal"},
+        {"income": 3000, "debt": 2000, "expected_status": "poor"},
+    ]
+)
 def dti_test_cases(request):
     """Parametrized DTI test cases."""
     return request.param
 
 
-@pytest.fixture(params=[
-    {"used": 1000, "available": 10000, "expected_impact": "excellent"},
-    {"used": 2500, "available": 10000, "expected_impact": "good"},
-    {"used": 4000, "available": 10000, "expected_impact": "fair"},
-    {"used": 7500, "available": 10000, "expected_impact": "poor"}
-])
+@pytest.fixture(
+    params=[
+        {"used": 1000, "available": 10000, "expected_impact": "excellent"},
+        {"used": 2500, "available": 10000, "expected_impact": "good"},
+        {"used": 4000, "available": 10000, "expected_impact": "fair"},
+        {"used": 7500, "available": 10000, "expected_impact": "poor"},
+    ]
+)
 def utilization_test_cases(request):
     """Parametrized credit utilization test cases."""
     return request.param
@@ -321,6 +305,7 @@ def async_test_helpers():
         async def measure_execution_time(callable_func, *args, **kwargs):
             """Measure execution time of an async function."""
             import time
+
             start_time = time.time()
             result = await callable_func(*args, **kwargs)
             execution_time = time.time() - start_time
@@ -346,18 +331,15 @@ def test_config():
         "max_execution_time": {
             "unit_test": 0.1,  # 100ms
             "integration_test": 2.0,  # 2 seconds
-            "performance_test": 10.0  # 10 seconds
+            "performance_test": 10.0,  # 10 seconds
         },
-        "coverage_thresholds": {
-            "line_coverage": 90,
-            "branch_coverage": 85
-        },
+        "coverage_thresholds": {"line_coverage": 90, "branch_coverage": 85},
         "test_data_ranges": {
             "credit_score": (300, 850),
             "dti_ratio": (0, 500),
             "utilization_ratio": (0, 100),
-            "approval_probability": (0, 1)
-        }
+            "approval_probability": (0, 1),
+        },
     }
 
 
@@ -369,9 +351,7 @@ def mock_data_factory():
     class MockDataFactory:
         @staticmethod
         def create_applicant(
-            credit_score: int = 720,
-            annual_income: int = 75000,
-            monthly_debt: float = 1200.0
+            credit_score: int = 720, annual_income: int = 75000, monthly_debt: float = 1200.0
         ) -> dict[str, Any]:
             """Create mock applicant data with specified characteristics."""
             return {
@@ -380,14 +360,12 @@ def mock_data_factory():
                 "annual_income": annual_income,
                 "monthly_income": annual_income / 12,
                 "monthly_debt": monthly_debt,
-                "dti_ratio": (monthly_debt / (annual_income / 12)) * 100
+                "dti_ratio": (monthly_debt / (annual_income / 12)) * 100,
             }
 
         @staticmethod
         def create_loan_scenario(
-            loan_amount: float = 250000.0,
-            interest_rate: float = 0.045,
-            term_months: int = 360
+            loan_amount: float = 250000.0, interest_rate: float = 0.045, term_months: int = 360
         ) -> dict[str, Any]:
             """Create mock loan scenario data."""
             return {
@@ -395,7 +373,7 @@ def mock_data_factory():
                 "interest_rate": interest_rate,
                 "term_months": term_months,
                 "loan_type": "conventional",
-                "purpose": "home_purchase"
+                "purpose": "home_purchase",
             }
 
     return MockDataFactory()
