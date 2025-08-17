@@ -90,7 +90,7 @@ class TestAgentRegistryConfiguration:
 
         config = ConfigurationLoader.load_config()
 
-        for agent_type, agent_config in config["agents"].items():
+        for _agent_type, agent_config in config["agents"].items():
             # Required fields
             assert "name" in agent_config
             assert "persona_file" in agent_config
@@ -467,11 +467,11 @@ class TestAgentRegistryIntegration:
 
             for server in intake_agent.mcp_servers:
                 if hasattr(server, "params") and "localhost:8010" in server.params.get("url", ""):
-                    intake_app_server = server
+                    pass  # Server found - intake uses application verification
 
             for server in credit_agent.mcp_servers:
                 if hasattr(server, "params") and "localhost:8010" in server.params.get("url", ""):
-                    credit_app_server = server
+                    pass  # Server found - credit uses application verification
 
             # Note: Server sharing verification depends on implementation details
             # This test verifies that the factory pattern is working correctly

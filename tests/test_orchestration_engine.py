@@ -329,7 +329,7 @@ class TestOrchestrationEngine:
 
         assert parsed["status"] == "completed"
         assert parsed["score"] == 0.85
-        assert parsed.get("parsed_successfully") != False
+        assert parsed.get("parsed_successfully")
 
     def test_parse_agent_result_fallback(self):
         """Test parsing non-JSON agent results."""
@@ -340,7 +340,7 @@ class TestOrchestrationEngine:
         parsed = engine._parse_agent_result(text_result)
 
         assert parsed["raw_output"] == "This is not JSON"
-        assert parsed["parsed_successfully"] == False
+        assert not parsed["parsed_successfully"]
         assert "timestamp" in parsed
 
     def test_check_handoff_conditions_success(self, sample_application):
@@ -359,7 +359,7 @@ class TestOrchestrationEngine:
         handoff_rules = {"intake": {"conditions": ["validation_status == 'PASSED'", "confidence_score >= 0.8"]}}
 
         result = engine._check_handoff_conditions(handoff_rules, "intake", context)
-        assert result == True
+        assert result is True
 
     def test_check_handoff_conditions_failure(self, sample_application):
         """Test failed handoff condition checking."""
@@ -377,7 +377,7 @@ class TestOrchestrationEngine:
         handoff_rules = {"intake": {"conditions": ["validation_status == 'PASSED'"]}}
 
         result = engine._check_handoff_conditions(handoff_rules, "intake", context)
-        assert result == False
+        assert result is False
 
     def test_apply_decision_matrix(self, sample_application):
         """Test applying decision matrix logic."""

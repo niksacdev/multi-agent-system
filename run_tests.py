@@ -103,7 +103,7 @@ def main() -> int:
 
     # Check if pytest is available
     try:
-        import pytest
+        import pytest  # noqa: F401
     except ImportError:
         print("pytest is not installed. Please install it with: uv add --dev pytest pytest-cov")
         return 1

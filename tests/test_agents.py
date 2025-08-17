@@ -133,7 +133,7 @@ class TestAgentBehavior:
     def test_mcp_server_configuration(self):
         """Test MCP server configuration."""
         from loan_processing.agents.providers.openai.agentregistry import AgentRegistry
-        
+
         agent = AgentRegistry.create_agent("intake")
 
         # Verify MCP servers are configured
