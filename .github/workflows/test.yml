@@ -245,15 +245,15 @@ jobs:
           
           # Run a quick validation
           uv run python -c "
-          import sys
-          sys.path.append('.')
-          try:
-              from tests.test_agent_registry import TestAgentRegistryCreation
-              print('✅ Core test class imports successfully')
-          except ImportError as e:
-              print(f'❌ Test import failed: {e}')
-              sys.exit(1)
-          "
+import sys
+sys.path.append('.')
+try:
+    from tests.test_agent_registry import TestAgentRegistryCreation
+    print('✅ Core test class imports successfully')
+except ImportError as e:
+    print(f'❌ Test import failed: {e}')
+    sys.exit(1)
+"
         else
           echo "❌ Core test file missing: tests/test_agent_registry.py"
           exit 1
