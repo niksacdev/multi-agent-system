@@ -12,6 +12,7 @@ import yaml
 from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationEngine
 
 
+@pytest.mark.legacy
 class TestPatternFileStructure:
     """Test the structure and validity of pattern configuration files."""
 
@@ -54,6 +55,7 @@ class TestPatternFileStructure:
                 assert config[field], f"Empty required field '{field}' in {pattern_file}"
 
 
+@pytest.mark.legacy
 class TestSequentialPatternConfiguration:
     """Test the sequential pattern configuration."""
 
@@ -145,6 +147,7 @@ class TestSequentialPatternConfiguration:
         assert "success_rate_by_agent" in metrics
 
 
+@pytest.mark.legacy
 class TestParallelPatternConfiguration:
     """Test the parallel pattern configuration."""
 
@@ -233,6 +236,7 @@ class TestParallelPatternConfiguration:
         assert "cache_keys" in caching
 
 
+@pytest.mark.legacy
 class TestPatternConsistency:
     """Test consistency between different patterns."""
 
@@ -240,7 +244,7 @@ class TestPatternConsistency:
     def all_configs(self):
         """Load all pattern configurations."""
         configs = {}
-        patterns_dir = Path("loan_processing/orchestration/patterns")
+        patterns_dir = Path("loan_processing/agents/shared/config")
 
         for pattern_file in patterns_dir.glob("*.yaml"):
             with open(pattern_file) as f:
@@ -307,6 +311,7 @@ class TestPatternConsistency:
             )
 
 
+@pytest.mark.legacy
 class TestPatternValidation:
     """Test pattern validation logic."""
 

@@ -113,10 +113,10 @@ class TestOrchestrationEngine:
     # These would be added in a separate test file for integration testing
 
 
-@pytest.mark.asyncio
 class TestAgentBehavior:
     """Test agent behavior patterns (unit tests)."""
 
+    @pytest.mark.asyncio
     async def test_agent_persona_loading(self):
         """Test that agents load personas correctly."""
         from loan_processing.agents.shared.utils.persona_loader import load_persona

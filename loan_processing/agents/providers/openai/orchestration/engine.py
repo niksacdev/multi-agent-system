@@ -59,7 +59,7 @@ class OrchestrationEngine:
 
     def __init__(self, patterns_dir: Path | None = None):
         """Initialize the orchestration engine."""
-        self.patterns_dir = patterns_dir or Path(__file__).parent.parent.parent / "shared" / "config"
+        self.patterns_dir = patterns_dir or Path(__file__).parent.parent.parent.parent / "shared" / "config"
         self.agent_registry = AgentRegistry()
         self._pattern_cache: dict[str, dict] = {}
 
