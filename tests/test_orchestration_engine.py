@@ -52,7 +52,7 @@ def sample_application():
 @pytest.fixture
 def mock_runner():
     """Mock the OpenAI Agents SDK Runner."""
-    with patch("loan_processing.agents.providers.openai.orchestration.base.Runner") as mock:
+    with patch("agents.Runner") as mock:
         # Mock successful agent responses
         mock_responses = {
             "intake": {
@@ -196,7 +196,7 @@ class TestMCPServerFactory:
 
     def test_invalid_server_type(self):
         """Test handling of invalid server types."""
-        with pytest.raises(ValueError, match="Unknown server type"):
+        with pytest.raises(ValueError, match="Unknown MCP server type"):
             MCPServerFactory.get_server("invalid_server")
 
 
@@ -251,7 +251,7 @@ class TestOrchestrationContext:
         assert "Intake agent completed in 2.50s" in context.audit_trail[0]
 
 
-@pytest.mark.asyncio
+@pytest.mark.legacy
 class TestOrchestrationEngine:
     """Test the OrchestrationEngine functionality."""
 
@@ -263,6 +263,7 @@ class TestOrchestrationEngine:
         assert engine.agent_registry is not None
         assert isinstance(engine._pattern_cache, dict)
 
+    @pytest.mark.asyncio
     async def test_execute_sequential_pattern(self, sample_application, mock_runner):
         """Test executing sequential orchestration pattern."""
         engine = OrchestrationEngine()
@@ -277,6 +278,7 @@ class TestOrchestrationEngine:
         assert decision.decision_maker == "sequential_orchestrator"
         assert decision.processing_duration_seconds > 0
 
+    @pytest.mark.asyncio
     async def test_execute_parallel_pattern(self, sample_application, mock_runner):
         """Test executing parallel orchestration pattern."""
         engine = OrchestrationEngine()
@@ -287,6 +289,7 @@ class TestOrchestrationEngine:
         assert decision.orchestration_pattern == "parallel"
         assert decision.decision_maker == "parallel_orchestrator"
 
+    @pytest.mark.asyncio
     async def test_invalid_pattern(self, sample_application):
         """Test handling of invalid pattern names."""
         engine = OrchestrationEngine()
@@ -296,6 +299,7 @@ class TestOrchestrationEngine:
 
 
 @pytest.mark.integration
+@pytest.mark.legacy
 class TestOrchestrationIntegration:
     """Integration tests for the full orchestration system."""
 
@@ -314,7 +318,7 @@ class TestOrchestrationIntegration:
         assert decision.application_id == sample_application.application_id
         assert decision.decision in [
             LoanDecisionStatus.APPROVED,
-            LoanDecisionStatus.CONDITIONAL_APPROVAL,
+            LoanDecisionStatus.CONDITIONAL,
             LoanDecisionStatus.MANUAL_REVIEW,
             LoanDecisionStatus.DENIED,
         ]
@@ -332,8 +336,8 @@ class TestOrchestrationIntegration:
         """Test error handling in pattern execution."""
         engine = OrchestrationEngine()
 
-        with patch.object(engine, "_execute_sequential_pattern") as mock_execute:
-            mock_execute.side_effect = Exception("Test error")
+        with patch.object(engine, "_get_executor") as mock_get_executor:
+            mock_get_executor.side_effect = Exception("Test error")
 
             decision = await engine.execute_pattern(pattern_name="sequential", application=sample_application)
 

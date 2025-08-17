@@ -11,6 +11,11 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 env:
   PYTHON_VERSION: "3.10"
 

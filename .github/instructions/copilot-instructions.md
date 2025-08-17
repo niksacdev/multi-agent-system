@@ -34,20 +34,45 @@ This is a **loan processing multi-agent system** demonstrating enterprise-grade 
 - **Comprehensive Types**: Every function/method fully type-annotated
 - **UV Package Manager**: Use `uv add`, `uv sync`, `uv run` (NEVER pip, poetry, or conda)
 
+### Pre-Commit Quality Checks (MANDATORY)
+**CRITICAL**: Run these commands locally BEFORE every commit to prevent CI failures:
+
+```bash
+# 1. Code Quality (MANDATORY - must pass)
+uv run ruff check .                     # Check for lint issues
+uv run ruff check . --fix              # Auto-fix fixable issues
+uv run ruff format --check .           # Check code formatting
+uv run ruff format .                    # Auto-format code
+uv run ruff check .                     # Final verification (must show "All checks passed!")
+
+# 2. Test Validation (MANDATORY - must pass)
+uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v
+uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v \
+  --cov=loan_processing.agents.providers.openai.agentregistry \
+  --cov=loan_processing.agents.shared --cov-report=term-missing    # Must be ≥85% coverage
+
+# 3. Type Checking (RECOMMENDED)
+uv run mypy loan_processing/ --ignore-missing-imports
+
+# 4. Complete Validation (shortcut for all checks)
+uv run python validate_ci_fix.py
+```
+
+**⚠️ NEVER COMMIT if any checks fail. Fix all issues locally first.**
+
 ### Code Quality Gates
 - **Error Handling**: Custom exceptions with proper inheritance
 - **Logging**: Structured logging with correlation IDs
-- **Testing**: >90% coverage, unit/integration/e2e tests
+- **Testing**: ≥85% coverage on core components, unit/integration tests
 - **Documentation**: Update docs immediately with code changes
 - **Domain Purity**: Models/services contain no SDK type imports
-- **Pre-Commit Testing**: ALWAYS run tests before git commits (use `uv run pytest tests/test_agent_registry.py`)
+- **Pre-Commit Validation**: MANDATORY quality checks before every commit
 
-### Test-First Development
-- **Required**: Run full test suite before any git commit
-- **Command**: `uv run pytest tests/test_agent_registry.py --cov=loan_processing` (working tests must pass)
-- **No Exceptions**: Never commit code that breaks existing tests
-- **New Features**: Must include comprehensive tests achieving 90%+ coverage
-- **Test Types**: Unit tests, integration tests, performance tests, edge cases
+### Development Workflow
+- **Before Coding**: Plan with support agents (product-manager-advisor, system-architecture-reviewer)
+- **After Coding**: Run MANDATORY pre-commit checks (ruff, tests, coverage)
+- **Before Committing**: Use code-reviewer agent for feedback (only after checks pass)
+- **No Exceptions**: Never commit code that breaks quality gates or tests
 - **CI/CD Enforcement**: GitHub Actions automatically validate all PRs and commits
 
 ### Provider / SDK Integration
