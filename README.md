@@ -1,7 +1,5 @@
 # Multi-Agent Loan Processing System
 
-[![CI/CD Pipeline](https://github.com/niksacdev/multi-agent-system/actions/workflows/test.yml/badge.svg)](https://github.com/niksacdev/multi-agent-system/actions/workflows/test.yml)
-[![Code Quality](https://github.com/niksacdev/multi-agent-system/actions/workflows/expert-review.yml/badge.svg)](https://github.com/niksacdev/multi-agent-system/actions/workflows/expert-review.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents_SDK-green.svg)](https://github.com/openai/agents-api)
