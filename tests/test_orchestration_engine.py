@@ -52,7 +52,7 @@ def sample_application():
 @pytest.fixture
 def mock_runner():
     """Mock the OpenAI Agents SDK Runner."""
-    with patch("loan_processing.orchestration.engine.Runner") as mock:
+    with patch("loan_processing.agents.providers.openai.orchestration.engine.Runner") as mock:
         # Mock successful agent responses
         mock_responses = {
             "intake": {

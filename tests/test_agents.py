@@ -103,7 +103,7 @@ class TestOrchestrationEngine:
 
     async def test_orchestration_engine_import(self):
         """Test that orchestration engine can be imported."""
-        from loan_processing.orchestration.engine import OrchestrationEngine
+        from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationEngine
 
         engine = OrchestrationEngine()
         assert engine is not None
@@ -119,7 +119,7 @@ class TestAgentBehavior:
 
     async def test_agent_persona_loading(self):
         """Test that agents load personas correctly."""
-        from loan_processing.providers.persona_loader import load_persona
+        from loan_processing.agents.shared.utils.persona_loader import load_persona
 
         # Test that persona files can be loaded
         intake_persona = load_persona("intake")
@@ -132,7 +132,9 @@ class TestAgentBehavior:
 
     def test_mcp_server_configuration(self):
         """Test MCP server configuration."""
-        agent = intake_agent()
+        from loan_processing.agents.providers.openai.agentregistry import AgentRegistry
+        
+        agent = AgentRegistry.create_agent("intake")
 
         # Verify MCP servers are configured
         assert len(agent.mcp_servers) > 0
