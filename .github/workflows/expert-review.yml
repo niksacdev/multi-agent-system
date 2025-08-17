@@ -1,10 +1,5 @@
 name: 🔬 Expert Engineer Review Automation
 
-permissions:
-  contents: read
-  issues: write
-  pull-requests: write
-
 on:
   pull_request:
     types: [opened, synchronize, reopened]
