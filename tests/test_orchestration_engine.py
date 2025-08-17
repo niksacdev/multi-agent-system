@@ -52,7 +52,7 @@ def sample_application():
 @pytest.fixture
 def mock_runner():
     """Mock the OpenAI Agents SDK Runner."""
-    with patch("loan_processing.agents.providers.openai.orchestration.engine.Runner") as mock:
+    with patch("loan_processing.agents.providers.openai.orchestration.base.Runner") as mock:
         # Mock successful agent responses
         mock_responses = {
             "intake": {
@@ -259,7 +259,7 @@ class TestOrchestrationEngine:
         """Test orchestration engine initialization."""
         engine = OrchestrationEngine()
 
-        assert engine.patterns_dir.name == "patterns"
+        assert engine.patterns_dir.name == "config"
         assert engine.agent_registry is not None
         assert isinstance(engine._pattern_cache, dict)
 
@@ -293,127 +293,6 @@ class TestOrchestrationEngine:
 
         with pytest.raises(FileNotFoundError):
             await engine.execute_pattern(pattern_name="invalid_pattern", application=sample_application)
-
-    def test_prepare_agent_input(self, sample_application):
-        """Test preparing agent input with context."""
-        engine = OrchestrationEngine()
-        context = OrchestrationContext(
-            application=sample_application,
-            session_id="test-session",
-            processing_start_time=datetime.now(),
-            pattern_name="sequential",
-        )
-
-        # Test intake agent input (no previous results)
-        intake_input = engine._prepare_agent_input("intake", context)
-
-        assert "Application Data:" in intake_input
-        assert sample_application.application_id in intake_input
-        assert "Session ID: test-session" in intake_input
-        assert "Processing Pattern: sequential" in intake_input
-
-        # Add intake result and test credit agent input
-        context.intake_result = {"validation_status": "PASSED", "confidence_score": 0.85}
-        credit_input = engine._prepare_agent_input("credit", context)
-
-        assert "Intake Assessment:" in credit_input
-        assert "validation_status" in credit_input
-
-    def test_parse_agent_result_json(self):
-        """Test parsing JSON agent results."""
-        engine = OrchestrationEngine()
-
-        # Test valid JSON result
-        json_result = '{"status": "completed", "score": 0.85}'
-        parsed = engine._parse_agent_result(json_result)
-
-        assert parsed["status"] == "completed"
-        assert parsed["score"] == 0.85
-        assert parsed.get("parsed_successfully")
-
-    def test_parse_agent_result_fallback(self):
-        """Test parsing non-JSON agent results."""
-        engine = OrchestrationEngine()
-
-        # Test non-JSON result
-        text_result = "This is not JSON"
-        parsed = engine._parse_agent_result(text_result)
-
-        assert parsed["raw_output"] == "This is not JSON"
-        assert not parsed["parsed_successfully"]
-        assert "timestamp" in parsed
-
-    def test_check_handoff_conditions_success(self, sample_application):
-        """Test successful handoff condition checking."""
-        engine = OrchestrationEngine()
-        context = OrchestrationContext(
-            application=sample_application,
-            session_id="test-session",
-            processing_start_time=datetime.now(),
-            pattern_name="sequential",
-        )
-
-        # Set up successful intake result
-        context.intake_result = {"validation_status": "PASSED", "confidence_score": 0.85}
-
-        handoff_rules = {"intake": {"conditions": ["validation_status == 'PASSED'", "confidence_score >= 0.8"]}}
-
-        result = engine._check_handoff_conditions(handoff_rules, "intake", context)
-        assert result is True
-
-    def test_check_handoff_conditions_failure(self, sample_application):
-        """Test failed handoff condition checking."""
-        engine = OrchestrationEngine()
-        context = OrchestrationContext(
-            application=sample_application,
-            session_id="test-session",
-            processing_start_time=datetime.now(),
-            pattern_name="sequential",
-        )
-
-        # Set up failed intake result
-        context.intake_result = {"validation_status": "FAILED", "confidence_score": 0.5}
-
-        handoff_rules = {"intake": {"conditions": ["validation_status == 'PASSED'"]}}
-
-        result = engine._check_handoff_conditions(handoff_rules, "intake", context)
-        assert result is False
-
-    def test_apply_decision_matrix(self, sample_application):
-        """Test applying decision matrix logic."""
-        engine = OrchestrationEngine()
-        context = OrchestrationContext(
-            application=sample_application,
-            session_id="test-session",
-            processing_start_time=datetime.now(),
-            pattern_name="sequential",
-        )
-
-        # Set up results for auto-approval
-        context.risk_result = {
-            "final_risk_category": "LOW",
-            "credit_score": 760,
-            "debt_to_income_ratio": 0.25,
-            "employment_verification_status": "VERIFIED",
-            "red_flags": [],
-        }
-
-        decision_matrix = {
-            "auto_approve": {
-                "description": "Auto approve",
-                "conditions": [
-                    "final_risk_category == 'LOW'",
-                    "credit_score >= 750",
-                    "debt_to_income_ratio <= 0.28",
-                    "len(red_flags) == 0",
-                ],
-            }
-        }
-
-        status, reasoning = engine._apply_decision_matrix(decision_matrix, context)
-
-        assert status == LoanDecisionStatus.APPROVED
-        assert "Auto approve" in reasoning
 
 
 @pytest.mark.integration

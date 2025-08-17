@@ -60,7 +60,7 @@ class TestSequentialPatternConfiguration:
     @pytest.fixture
     def sequential_config(self):
         """Load sequential pattern configuration."""
-        pattern_file = Path("loan_processing/orchestration/patterns/sequential.yaml")
+        pattern_file = Path("loan_processing/agents/shared/config/sequential.yaml")
         with open(pattern_file) as f:
             return yaml.safe_load(f)
 
@@ -151,7 +151,7 @@ class TestParallelPatternConfiguration:
     @pytest.fixture
     def parallel_config(self):
         """Load parallel pattern configuration."""
-        pattern_file = Path("loan_processing/orchestration/patterns/parallel.yaml")
+        pattern_file = Path("loan_processing/agents/shared/config/parallel.yaml")
         with open(pattern_file) as f:
             return yaml.safe_load(f)
 
