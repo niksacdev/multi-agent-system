@@ -53,15 +53,20 @@ def main() -> int:
         return 1
 
     # Step 2: Run core stable tests
-    success, output = run_command([
-        "uv", "run", "pytest",
-        "tests/test_agent_registry.py",
-        "tests/test_safe_evaluator.py",
-        "-v",
-        "--cov=loan_processing.agents.providers.openai.agentregistry",
-        "--cov=loan_processing.agents.shared",
-        "--cov-report=term-missing"
-    ], "Running core stable tests")
+    success, output = run_command(
+        [
+            "uv",
+            "run",
+            "pytest",
+            "tests/test_agent_registry.py",
+            "tests/test_safe_evaluator.py",
+            "-v",
+            "--cov=loan_processing.agents.providers.openai.agentregistry",
+            "--cov=loan_processing.agents.shared",
+            "--cov-report=term-missing",
+        ],
+        "Running core stable tests",
+    )
 
     if not success:
         print("❌ Core tests failed")
@@ -70,7 +75,8 @@ def main() -> int:
 
     # Step 3: Check coverage
     import re
-    coverage_match = re.search(r'TOTAL.*?(\d+)%', output)
+
+    coverage_match = re.search(r"TOTAL.*?(\d+)%", output)
     if coverage_match:
         coverage = int(coverage_match.group(1))
         print(f"\n📊 Coverage: {coverage}%")
@@ -83,24 +89,20 @@ def main() -> int:
         print("⚠️ Could not determine coverage percentage")
 
     # Step 4: Count test types
-    success, output = run_command([
-        "uv", "run", "pytest",
-        "tests/test_agent_registry.py",
-        "tests/test_safe_evaluator.py",
-        "--collect-only", "-q"
-    ], "Counting core tests")
+    success, output = run_command(
+        ["uv", "run", "pytest", "tests/test_agent_registry.py", "tests/test_safe_evaluator.py", "--collect-only", "-q"],
+        "Counting core tests",
+    )
 
     if success:
         core_tests = output.count("::test_")
         print(f"📈 Core test count: {core_tests}")
 
     # Step 5: Count legacy tests (should be skipped)
-    success, output = run_command([
-        "uv", "run", "pytest",
-        "tests/",
-        "-m", "legacy",
-        "--collect-only", "-q"
-    ], "Counting legacy tests (should be skipped)")
+    success, output = run_command(
+        ["uv", "run", "pytest", "tests/", "-m", "legacy", "--collect-only", "-q"],
+        "Counting legacy tests (should be skipped)",
+    )
 
     if success:
         legacy_tests = output.count("::test_")
