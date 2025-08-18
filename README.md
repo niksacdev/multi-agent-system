@@ -1,6 +1,6 @@
 # Multi-Agent Loan Processing System
 
-> 🤖 **Moving Beyond Vibe Coding**: This repository demonstrates structured Human-AI collaboration using Claude and specialized development agents to create maintainable code. [Learn about our approach →](docs/AGENT_BASED_DEVELOPMENT.md)
+> 🤖 **Moving Beyond Vibe Coding**: This repository demonstrates structured Human-AI collaboration using Claude and specialized development agents to create maintainable code. [Learn about our approach →](docs/agent-based-development.md)
 
 **Transform 3-5 day loan processing into 3-5 minute automated decisions**
 
