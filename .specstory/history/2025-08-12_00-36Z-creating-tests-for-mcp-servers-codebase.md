@@ -451,3 +451,27 @@ You're absolutely right! Let me check what files we have and clean up any unused
 
 ---
 
+_**User**_
+
+#activePullRequest 
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**User**_
+
+can you look at docs/developer-agents folder, I want to use those agents in our development workflow you I can do pair programming and you can orchestrate those agents. similar to how Claude Sub Agents work, do you have that capabilities
+
+---
+
+_**Assistant**_
+
+Let me explore the `docs/developer-agents` folder to understand what agents are available for our development workflow. Let me search for any developer agent files in the docs folder: Let me search for any reference to "developer-agents" or similar patterns in the repository: Great! I can see that there are support agents defined in the `CLAUDE.md` file. Let me examine this file to understand the available developer agents: Let me read the `CLAUDE.md` file to see the developer agents section: Perfect! I can see that there's a comprehensive developer agent system defined in the project. Let me examine the `CLAUDE.md` file more closely to understand the available support 
+
+---
+

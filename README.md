@@ -45,11 +45,12 @@ git clone https://github.com/niksacdev/multi-agent-system.git
 cd multi-agent-system
 uv sync
 
-# 2. Set your OpenAI API key
-export OPENAI_API_KEY="your-key-here"
+# 2. Configure your API provider
+cp console_app/.env.example console_app/.env
+# Edit console_app/.env with your OpenAI or Azure OpenAI credentials
 
-# 3. Run the demo
-uv run python demo_sequential_processing.py
+# 3. Run the console application
+uv run python run_console_app.py
 ```
 
 **That's it!** You'll see a complete loan processing workflow in action.
@@ -77,6 +78,33 @@ Five specialized agents collaborate to process loan applications:
 
 Each agent uses the Jobs-to-be-Done framework to ensure customer-centric outcomes.  
 [→ Learn about the architecture](docs/architecture/agent-strategy.md)
+
+## Architecture: Decoupled by Design
+
+This system uses a **clean separation** between backend services and client applications:
+
+```
+multi-agent-system/
+├── loan_processing/        # 🏗️ Pure backend module
+│   ├── agents/            # Agent orchestration engine
+│   ├── tools/             # MCP servers & business services
+│   └── ...                # No client apps here!
+├── console_app/           # 🖥️ Standalone console client
+│   ├── config/            # App-specific configuration
+│   ├── src/main.py        # Decoupled application logic
+│   └── .env               # Environment-based settings
+└── web_app/               # 🌐 Future web client (planned)
+```
+
+### 🎯 **Benefits of This Architecture**
+
+- **🔧 Future-Ready**: When `loan_processing` becomes an API service, apps are already decoupled
+- **⚙️ Flexible Configuration**: Each app manages its own OpenAI/Azure OpenAI settings  
+- **🚀 Independent Deployment**: Backend and apps can be deployed separately
+- **🧪 Clean Testing**: Pure backend logic separated from UI concerns
+- **📦 Modular Development**: Teams can work on backend vs. frontend independently
+
+The console app demonstrates **configuration-driven** pattern discovery - no more hardcoded filesystem traversal!
 
 ## Documentation
 

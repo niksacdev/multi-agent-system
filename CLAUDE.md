@@ -292,10 +292,12 @@ uv run pytest tests/test_agent_registry.py -v
 - Agent coordination and context passing
 - Error handling and edge cases
 
-### 3. Demo Scripts
-- `demo_sequential_processing.py` - Sequential agent workflow
+### 3. Console Application
+- `console_app/src/main.py` - Standalone console application (decoupled from backend)
+- `console_app/config/` - App-specific configuration system
+- `run_console_app.py` - Easy launcher script from project root
 - Include sample data that exercises different decision paths
-- Document expected outcomes
+- Document expected outcomes and user interactions
 
 ## Performance Considerations
 
@@ -435,7 +437,9 @@ except AgentTimeoutError:
 - Agent Configuration: `loan_processing/agents/shared/config/agents.yaml`
 - Orchestrators: `loan_processing/agents/providers/openai/orchestration/*.py`
 - MCP Servers: `loan_processing/tools/mcp_servers/*/server.py`
-- Demo Scripts: `demo_*.py`
+- Console Application: `console_app/src/main.py`
+- Console Configuration: `console_app/config/app_config.yaml`
+- App Launcher: `run_console_app.py`
 
 ### Common Commands
 ```bash
@@ -449,8 +453,8 @@ uv run python -m loan_processing.tools.mcp_servers.application_verification.serv
 uv run python -m loan_processing.tools.mcp_servers.document_processing.server
 uv run python -m loan_processing.tools.mcp_servers.financial_calculations.server
 
-# Run demo
-uv run python demo_sequential_processing.py
+# Run console application
+uv run python run_console_app.py
 
 # Run tests
 uv run pytest tests/test_agent_registry.py -v                           # Agent registry tests

@@ -1,0 +1,98 @@
+# Backend Infrastructure Configuration
+# This file contains all infrastructure configuration that should NOT be exposed to client applications
+
+# MCP Server Configuration (Backend-Managed)
+mcp_servers:
+  application_verification:
+    url: "http://${MCP_APP_VERIFICATION_HOST:-localhost}:${MCP_APP_VERIFICATION_PORT:-8010}/sse"
+    timeout_seconds: 30
+    retry_attempts: 3
+    health_check_path: "/health"
+    required: true
+    description: "Validates loan applications and checks for fraud"
+    
+  document_processing:
+    url: "http://${MCP_DOC_PROCESSING_HOST:-localhost}:${MCP_DOC_PROCESSING_PORT:-8011}/sse"
+    timeout_seconds: 45
+    retry_attempts: 3
+    health_check_path: "/health"
+    required: true
+    description: "Processes and analyzes loan documents"
+    
+  financial_calculations:
+    url: "http://${MCP_FINANCIAL_HOST:-localhost}:${MCP_FINANCIAL_PORT:-8012}/sse"
+    timeout_seconds: 30
+    retry_attempts: 3
+    health_check_path: "/health"  
+    required: true
+    description: "Performs financial calculations and risk assessments"
+
+# Infrastructure Management
+infrastructure:
+  # Startup behavior
+  startup_timeout_seconds: 60
+  fail_fast_on_missing_services: true  # In development, fail immediately if services unavailable
+  
+  # Health monitoring
+  health_check_interval_seconds: 30
+  health_check_timeout_seconds: 5
+  max_consecutive_failures: 3
+  
+  # Service discovery
+  service_discovery_enabled: false  # Future feature for dynamic service discovery
+  service_registry_url: ""          # Future: service registry endpoint
+  
+  # Circuit breaker configuration
+  circuit_breaker_enabled: true
+  circuit_breaker_failure_threshold: 5
+  circuit_breaker_recovery_timeout_seconds: 30
+  
+  # Retry policy
+  default_retry_attempts: 3
+  default_retry_backoff_seconds: [1, 2, 4]  # Exponential backoff
+  
+  # Logging and monitoring
+  log_infrastructure_events: true
+  metrics_collection_enabled: false  # Future: metrics collection
+  
+# Environment-specific overrides
+environments:
+  development:
+    mcp_servers:
+      # In development, use longer timeouts for debugging
+      application_verification:
+        timeout_seconds: 60
+      document_processing:
+        timeout_seconds: 90
+      financial_calculations:
+        timeout_seconds: 60
+    infrastructure:
+      fail_fast_on_missing_services: true
+      
+  staging:
+    infrastructure:
+      fail_fast_on_missing_services: false
+      health_check_interval_seconds: 15
+      
+  production:
+    infrastructure:
+      fail_fast_on_missing_services: false
+      health_check_interval_seconds: 10
+      circuit_breaker_enabled: true
+      metrics_collection_enabled: true
+
+# Security configuration (backend-only)
+security:
+  mcp_server_authentication_enabled: false  # Future: MCP server auth
+  internal_api_key: "${INTERNAL_API_KEY:-}"  # Future: internal service auth
+  allowed_origins: []                        # Future: CORS configuration
+  
+# Future API service configuration
+api:
+  enabled: false
+  host: "${BACKEND_API_HOST:-localhost}"
+  port: "${BACKEND_API_PORT:-8000}"
+  workers: "${BACKEND_API_WORKERS:-4}"
+  
+# Note: This configuration is NEVER exposed to client applications.
+# Clients connect to the backend, which manages all infrastructure internally.
