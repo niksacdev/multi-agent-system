@@ -10,6 +10,8 @@
 [![Code Style](https://img.shields.io/badge/code_style-ruff-black.svg)](https://github.com/charliermarsh/ruff)
 [![Type Checking](https://img.shields.io/badge/type_checking-mypy-blue.svg)](https://mypy.readthedocs.io/)
 
+> 🤖 **Moving Beyond Vibe Coding**: This repository demonstrates structured Human-AI collaboration using Claude and specialized development agents to create maintainable code. [Learn about our approach →](docs/agent-based-development.md)
+
 **Transform 3-5 day loan processing into 3-5 minute automated decisions**
 
 ## The Business Impact
