@@ -19,8 +19,8 @@ def load_persona(persona_key: str) -> str:
     Args:
         persona_key: e.g. "credit", "income", "risk", "intake".
     """
-    # Path to agents/shared/agent-persona directory
-    personas_dir = Path(__file__).parent.parent / "agent-persona"
+    # Path to agents/agent-persona directory
+    personas_dir = Path(__file__).parent.parent / "agents" / "agent-persona"
     path = personas_dir / f"{persona_key}-agent-persona.md"
     try:
         return path.read_text(encoding="utf-8")

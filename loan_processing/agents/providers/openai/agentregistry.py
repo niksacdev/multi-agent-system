@@ -13,7 +13,8 @@ from typing import Any
 from agents import Agent
 from agents.mcp.server import MCPServerSse
 
-from loan_processing.agents.shared.utils import ConfigurationLoader, OutputFormatGenerator, load_persona
+from loan_processing.config.settings import AIModelConfig, AIModelProviderType
+from loan_processing.utils import ConfigurationLoader, OutputFormatGenerator, load_persona
 
 
 class MCPServerFactory:
@@ -38,17 +39,21 @@ class MCPServerFactory:
 class AgentRegistry:
     """Central registry for agent types and configurations."""
 
-    @classmethod
-    def create_agent(cls, agent_type: str, model: str | None = None) -> Agent:
+    def __init__(self, ai_model_config: AIModelConfig | None = None):
+        """Initialize the agent registry with AI model service configuration."""
+        self.ai_model_config = ai_model_config
+
+    def create_configured_agent(self, agent_type: str, model: str | None = None) -> Agent:
         """
         Create a configuration-driven agent instance.
 
         Agents are created based on external configuration files,
         making it easy to add new agent types without code changes.
+        Agents remain autonomous in their tool selection.
 
         Args:
             agent_type: Type of agent to create (defined in agents.yaml)
-            model: OpenAI model to use (e.g., "gpt-4")
+            model: AI model to use (optional, uses AI config default if not provided)
 
         Returns:
             Configured Agent instance without hardcoded workflow dependencies
@@ -59,7 +64,7 @@ class AgentRegistry:
         # Load agent configuration
         agent_config = ConfigurationLoader.get_agent_config(agent_type)
 
-        # Create MCP server instances for this agent
+        # Create MCP server instances for this agent (agents choose tools autonomously)
         mcp_servers = [MCPServerFactory.get_server(server_type) for server_type in agent_config["mcp_servers"]]
 
         # Load persona instructions (without handoff configurations)
@@ -70,13 +75,37 @@ class AgentRegistry:
             persona_instructions, agent_config.get("output_format", {})
         )
 
+        # Determine model to use (preserves agent autonomy while using AI model config)
+        effective_model = model
+        if not effective_model and self.ai_model_config:
+            if self.ai_model_config.provider_type == AIModelProviderType.AZURE_OPENAI:
+                # For Azure OpenAI, use deployment name
+                effective_model = self.ai_model_config.azure_endpoint  # This should be the deployment name
+            else:
+                # For OpenAI, use configured model
+                effective_model = self.ai_model_config.model
+
         return Agent(
             name=agent_config["name"],
             instructions=enhanced_instructions,
-            model=model,
+            model=effective_model,
             mcp_servers=mcp_servers,
-            # No handoffs - orchestrator manages workflow
+            # No handoffs - orchestrator manages workflow, agents choose tools
         )
+
+    @classmethod
+    def create_agent(cls, agent_type: str, model: str | None = None) -> Agent:
+        """
+        Backward compatibility method for creating agents without AI config.
+
+        Note: This will use environment variables for AI configuration.
+        Prefer using an AgentRegistry instance with explicit AI config.
+        """
+        from loan_processing.config.settings import get_system_config
+
+        system_config = get_system_config()
+        registry = cls(system_config.ai_model)
+        return registry.create_configured_agent(agent_type, model)
 
     @classmethod
     def get_agent_info(cls, agent_type: str) -> dict[str, Any]:

@@ -1,3 +1,0 @@
-"""
-Console application configuration management.
-"""

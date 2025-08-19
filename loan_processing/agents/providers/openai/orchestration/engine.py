@@ -1,9 +1,9 @@
 """
-Dynamic Orchestration Engine for Multi-Agent Loan Processing.
+Processing Engine for Multi-Agent Loan Processing.
 
-This module provides configuration-driven orchestration that can execute
+This module provides configuration-driven processing that can execute
 different workflow patterns (sequential, parallel, collaborative) without
-requiring changes to agent code.
+requiring changes to agent code. Agents remain autonomous in tool selection.
 """
 
 from __future__ import annotations
@@ -17,8 +17,9 @@ from typing import Any
 import yaml
 
 from loan_processing.agents.providers.openai.agentregistry import AgentRegistry
-from loan_processing.agents.shared.models.application import LoanApplication
-from loan_processing.agents.shared.models.decision import LoanDecision, LoanDecisionStatus
+from loan_processing.config.settings import SystemConfig, get_system_config
+from loan_processing.models.application import LoanApplication
+from loan_processing.models.decision import LoanDecision, LoanDecisionStatus
 
 
 @dataclass
@@ -54,18 +55,31 @@ class OrchestrationContext:
         self.add_audit_entry(f"{agent_type.title()} agent completed in {duration:.2f}s")
 
 
-class OrchestrationEngine:
-    """Dynamic orchestration engine supporting multiple workflow patterns."""
+class ProcessingEngine:
+    """Processing engine supporting multiple workflow patterns with agent autonomy."""
 
-    def __init__(self, patterns_dir: Path | None = None):
-        """Initialize the orchestration engine."""
-        self.patterns_dir = patterns_dir or Path(__file__).parent.parent.parent.parent / "shared" / "config"
-        self.agent_registry = AgentRegistry()
+    def __init__(self, system_config: SystemConfig, patterns_dir: Path | None = None):
+        """Initialize the processing engine with system configuration."""
+        self.system_config = system_config
+        self.patterns_dir = patterns_dir or Path(__file__).parent.parent.parent.parent / "config"
+        self.agent_registry = AgentRegistry(system_config.ai_model)
         self._pattern_cache: dict[str, dict] = {}
 
         # Initialize pattern executors
         self.pattern_executors: dict[str, Any] = {}
         self._register_default_executors()
+
+    @classmethod
+    def create_configured(cls, patterns_dir: Path | None = None) -> ProcessingEngine:
+        """Create a processing engine with system configuration from environment."""
+        system_config = get_system_config()
+
+        # Validate configuration
+        errors = system_config.validate()
+        if errors:
+            raise ValueError(f"System configuration errors: {'; '.join(errors)}")
+
+        return cls(system_config, patterns_dir)
 
     def _register_default_executors(self):
         """Register default pattern executors."""
@@ -226,7 +240,7 @@ class OrchestrationEngine:
 
         # Safe condition evaluation without eval()
         try:
-            from loan_processing.agents.shared.utils import evaluate_condition
+            from loan_processing.utils import evaluate_condition
 
             return evaluate_condition(condition, result)
         except Exception:
@@ -323,4 +337,7 @@ Errors:
         return pattern_config
 
 
-__all__ = ["OrchestrationEngine", "OrchestrationContext"]
+# Backward compatibility alias
+OrchestrationEngine = ProcessingEngine
+
+__all__ = ["ProcessingEngine", "OrchestrationEngine", "OrchestrationContext"]

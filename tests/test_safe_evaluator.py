@@ -7,7 +7,7 @@ with a safe expression evaluator.
 
 import pytest
 
-from loan_processing.agents.shared.utils.safe_evaluator import SafeConditionEvaluator, evaluate_condition
+from loan_processing.utils.safe_evaluator import SafeConditionEvaluator, evaluate_condition
 
 
 class TestSafeConditionEvaluator:

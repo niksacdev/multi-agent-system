@@ -17,6 +17,10 @@ We use a lightweight ADR template inspired by Michael Nygard's format:
 | ADR | Title | Status | Date |
 |-----|-------|--------|------|
 | [001](adr-001-agent-communication.md) | Agent Communication Pattern | Proposed | 2025-08-04 |
+| [009](adr-009-development-tooling-language-selection.md) | Development Tooling Language Selection | Accepted | 2025-08-19 |
+| [010](adr-010-mcp-server-lifecycle-management.md) | MCP Server Lifecycle Management Strategy | Accepted | 2025-08-19 |
+| [011](adr-011-configuration-provider-separation.md) | Configuration Provider Separation | Accepted | 2025-08-19 |
+| [012](adr-012-clean-architecture-implementation.md) | Clean Architecture Implementation | Accepted | 2025-08-19 |
 
 ## Creating New ADRs
 

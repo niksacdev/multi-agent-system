@@ -2,7 +2,7 @@
 Console Application for Multi-Agent Loan Processing System
 
 This is a standalone client application that consumes the loan_processing backend module.
-It provides an interactive command-line interface for testing and demonstrating 
+It provides an interactive command-line interface for testing and demonstrating
 the loan processing workflow.
 """
 

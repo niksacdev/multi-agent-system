@@ -70,7 +70,7 @@ class TestAgentRegistryConfiguration:
 
     def test_config_loader_caching(self):
         """Test ConfigurationLoader caching functionality."""
-        from loan_processing.agents.shared.utils import ConfigurationLoader
+        from loan_processing.utils import ConfigurationLoader
 
         # Test that multiple loads return the same cached result
         config1 = ConfigurationLoader.load_config()
@@ -86,7 +86,7 @@ class TestAgentRegistryConfiguration:
 
     def test_agent_configs_structure(self):
         """Test that all agent configs have required structure."""
-        from loan_processing.agents.shared.utils import ConfigurationLoader
+        from loan_processing.utils import ConfigurationLoader
 
         config = ConfigurationLoader.load_config()
 
@@ -112,7 +112,7 @@ class TestAgentRegistryConfiguration:
 
     def test_mcp_server_references_valid(self):
         """Test that all MCP server references are valid."""
-        from loan_processing.agents.shared.utils import ConfigurationLoader
+        from loan_processing.utils import ConfigurationLoader
 
         config = ConfigurationLoader.load_config()
 
@@ -133,7 +133,7 @@ class TestAgentRegistryConfiguration:
 class TestAgentRegistryCreation:
     """Test agent creation functionality."""
 
-    @patch("loan_processing.agents.shared.utils.persona_loader.load_persona")
+    @patch("loan_processing.utils.persona_loader.load_persona")
     def test_create_intake_agent(self, mock_load_persona):
         """Test creating intake agent with all configurations."""
         mock_load_persona.return_value = "Mock intake persona instructions"
@@ -157,7 +157,7 @@ class TestAgentRegistryCreation:
         assert "confidence_score" in agent.instructions
         assert "JSON format" in agent.instructions
 
-    @patch("loan_processing.agents.shared.utils.persona_loader.load_persona")
+    @patch("loan_processing.utils.persona_loader.load_persona")
     def test_create_credit_agent(self, mock_load_persona):
         """Test creating credit agent with all configurations."""
         mock_load_persona.return_value = "Mock credit persona instructions"
@@ -170,7 +170,7 @@ class TestAgentRegistryCreation:
         assert "debt_to_income_ratio" in agent.instructions
         assert "risk_category" in agent.instructions
 
-    @patch("loan_processing.agents.shared.utils.persona_loader.load_persona")
+    @patch("loan_processing.utils.persona_loader.load_persona")
     def test_create_income_agent(self, mock_load_persona):
         """Test creating income agent with all configurations."""
         mock_load_persona.return_value = "Mock income persona instructions"
@@ -183,7 +183,7 @@ class TestAgentRegistryCreation:
         assert "employment_verification_status" in agent.instructions
         assert "income_trend" in agent.instructions
 
-    @patch("loan_processing.agents.shared.utils.persona_loader.load_persona")
+    @patch("loan_processing.utils.persona_loader.load_persona")
     def test_create_risk_agent(self, mock_load_persona):
         """Test creating risk agent with all configurations."""
         mock_load_persona.return_value = "Mock risk persona instructions"
@@ -211,14 +211,14 @@ class TestAgentRegistryStructuredOutput:
 
     def test_structured_output_formats(self):
         """Test that structured output formats are properly defined."""
-        from loan_processing.agents.shared.utils import ConfigurationLoader
+        from loan_processing.utils import ConfigurationLoader
 
         config = ConfigurationLoader.load_config()
 
         # Test that _add_structured_output_instructions adds proper formats
         base_instructions = "Base persona instructions"
 
-        from loan_processing.agents.shared.utils import OutputFormatGenerator
+        from loan_processing.utils import OutputFormatGenerator
 
         # Test each agent type
         for agent_type in ["intake", "credit", "income", "risk"]:
@@ -236,12 +236,12 @@ class TestAgentRegistryStructuredOutput:
 
     def test_intake_output_format(self):
         """Test intake agent output format specifications."""
-        from loan_processing.agents.shared.utils import ConfigurationLoader
+        from loan_processing.utils import ConfigurationLoader
 
         config = ConfigurationLoader.load_config()
 
         agent_config = config["agents"]["intake"]
-        from loan_processing.agents.shared.utils import OutputFormatGenerator
+        from loan_processing.utils import OutputFormatGenerator
 
         enhanced = OutputFormatGenerator.add_structured_output_instructions("", agent_config.get("output_format", {}))
 
@@ -260,12 +260,12 @@ class TestAgentRegistryStructuredOutput:
 
     def test_credit_output_format(self):
         """Test credit agent output format specifications."""
-        from loan_processing.agents.shared.utils import ConfigurationLoader
+        from loan_processing.utils import ConfigurationLoader
 
         config = ConfigurationLoader.load_config()
 
         agent_config = config["agents"]["credit"]
-        from loan_processing.agents.shared.utils import OutputFormatGenerator
+        from loan_processing.utils import OutputFormatGenerator
 
         enhanced = OutputFormatGenerator.add_structured_output_instructions("", agent_config.get("output_format", {}))
 
@@ -285,12 +285,12 @@ class TestAgentRegistryStructuredOutput:
 
     def test_income_output_format(self):
         """Test income agent output format specifications."""
-        from loan_processing.agents.shared.utils import ConfigurationLoader
+        from loan_processing.utils import ConfigurationLoader
 
         config = ConfigurationLoader.load_config()
 
         agent_config = config["agents"]["income"]
-        from loan_processing.agents.shared.utils import OutputFormatGenerator
+        from loan_processing.utils import OutputFormatGenerator
 
         enhanced = OutputFormatGenerator.add_structured_output_instructions("", agent_config.get("output_format", {}))
 
@@ -310,12 +310,12 @@ class TestAgentRegistryStructuredOutput:
 
     def test_risk_output_format(self):
         """Test risk agent output format specifications."""
-        from loan_processing.agents.shared.utils import ConfigurationLoader
+        from loan_processing.utils import ConfigurationLoader
 
         config = ConfigurationLoader.load_config()
 
         agent_config = config["agents"]["risk"]
-        from loan_processing.agents.shared.utils import OutputFormatGenerator
+        from loan_processing.utils import OutputFormatGenerator
 
         enhanced = OutputFormatGenerator.add_structured_output_instructions("", agent_config.get("output_format", {}))
 
@@ -338,13 +338,13 @@ class TestAgentRegistryStructuredOutput:
 
     def test_security_instructions_included(self):
         """Test that security instructions are included."""
-        from loan_processing.agents.shared.utils import ConfigurationLoader
+        from loan_processing.utils import ConfigurationLoader
 
         config = ConfigurationLoader.load_config()
 
         for agent_type in ["intake", "credit", "income", "risk"]:
             agent_config = config["agents"][agent_type]
-            from loan_processing.agents.shared.utils import OutputFormatGenerator
+            from loan_processing.utils import OutputFormatGenerator
 
             enhanced = OutputFormatGenerator.add_structured_output_instructions(
                 "", agent_config.get("output_format", {})
@@ -422,7 +422,7 @@ class TestAgentRegistryUtilityMethods:
 class TestAgentRegistryIntegration:
     """Integration tests for agent registry functionality."""
 
-    @patch("loan_processing.agents.shared.utils.persona_loader.load_persona")
+    @patch("loan_processing.utils.persona_loader.load_persona")
     def test_create_all_agent_types(self, mock_load_persona):
         """Test creating all agent types successfully."""
         mock_load_persona.return_value = "Mock persona"
@@ -450,7 +450,7 @@ class TestAgentRegistryIntegration:
         # Clear cache to start fresh
         MCPServerFactory._server_cache.clear()
 
-        with patch("loan_processing.agents.shared.utils.persona_loader.load_persona") as mock_load:
+        with patch("loan_processing.utils.persona_loader.load_persona") as mock_load:
             mock_load.return_value = "Mock persona"
 
             # Create multiple agents that share servers

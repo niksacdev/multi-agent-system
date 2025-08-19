@@ -46,14 +46,44 @@ cd multi-agent-system
 uv sync
 
 # 2. Configure your API provider
-cp console_app/.env.example console_app/.env
-# Edit console_app/.env with your OpenAI or Azure OpenAI credentials
+cp .env.example .env
+# Edit .env with your OpenAI or Azure OpenAI credentials
 
-# 3. Run the console application
-uv run python run_console_app.py
+# 3. Start everything with one command!
+./start.sh          # Unix/Linux/macOS
+# OR
+start.bat           # Windows
 ```
 
-**That's it!** You'll see a complete loan processing workflow in action.
+**That's it!** The script automatically starts MCP servers, waits for them to be ready, then launches the console application. Press Ctrl+C to stop everything cleanly.
+
+### 🔧 Alternative: Manual Setup
+
+If you prefer more control, you can start components separately:
+
+```bash
+# Option 1: Start MCP servers first, then console app
+python start_mcp_servers.py
+uv run python run_console_app.py
+
+# Option 2: Check server status
+python start_mcp_servers.py --status
+
+# Option 3: Stop servers manually  
+python start_mcp_servers.py --stop
+```
+
+**Manual startup** (if you prefer separate terminals):
+```bash
+# Terminal 1: Application verification service
+uv run python -m loan_processing.tools.mcp_servers.application_verification.server
+
+# Terminal 2: Document processing service  
+uv run python -m loan_processing.tools.mcp_servers.document_processing.server
+
+# Terminal 3: Financial calculations service
+uv run python -m loan_processing.tools.mcp_servers.financial_calculations.server
+```
 
 ## How It Works
 

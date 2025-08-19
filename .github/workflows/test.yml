@@ -36,7 +36,7 @@ jobs:
     - name: 🧪 Run core stable tests
       run: |
         echo "Running core stable tests (agent registry + utils)..."
-        uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v --cov=loan_processing.agents.providers.openai.agentregistry --cov=loan_processing.agents.shared --cov-report=term-missing
+        uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v --cov=loan_processing.agents.providers.openai.agentregistry --cov=loan_processing.utils --cov-report=term-missing
         
     - name: 🧪 Validate test suite completeness 
       run: |
@@ -45,47 +45,38 @@ jobs:
         echo "Legacy test count (skipped): $(uv run pytest tests/ -m "legacy" --collect-only -q | grep -c "::test_" || echo 0)"
         echo "Integration test count (skipped): $(uv run pytest tests/ -m "integration" --collect-only -q | grep -c "::test_" || echo 0)"
         
-    - name: 📊 Check test coverage on core components
+    - name: 📊 Check test coverage on core components  
       run: |
         echo "Checking coverage on core components..."
-        uv run python -c "
-        import sys
-        import re
-        import subprocess
         
-        # Run coverage on core components
-        result = subprocess.run([
-            'uv', 'run', 'pytest', 
-            'tests/test_agent_registry.py', 'tests/test_safe_evaluator.py',
-            '--cov=loan_processing.agents.providers.openai.agentregistry', 
-            '--cov=loan_processing.agents.shared',
-            '--cov-report=term-missing'
-        ], capture_output=True, text=True)
+        # Run tests with coverage
+        uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py \
+          --cov=loan_processing.agents.providers.openai.agentregistry \
+          --cov=loan_processing.utils \
+          --cov-report=term-missing > coverage_output.txt 2>&1
         
-        # Extract coverage percentage
-        output = result.stdout
-        print('Coverage Output:')
-        print(output)
-        
-        coverage_match = re.search(r'TOTAL.*?(\d+)%', output)
-        
-        if coverage_match:
-            coverage = int(coverage_match.group(1))
-            print(f'Coverage: {coverage}%')
-            if coverage < 85:
-                print(f'❌ Coverage {coverage}% is below required 85%')
-                sys.exit(1)
-            else:
-                print(f'✅ Coverage {coverage}% meets requirement (≥85%)')
-        else:
-            print('⚠️ Could not determine exact coverage percentage')
-            # Check if tests passed anyway
-            if result.returncode == 0:
-                print('✅ Tests passed, proceeding...')
-            else:
-                print('❌ Tests failed')
-                sys.exit(1)
-        "
+        # Check if tests passed
+        if [ $? -eq 0 ]; then
+          echo "✅ Tests passed"
+          cat coverage_output.txt
+          
+          # Extract coverage percentage  
+          coverage=$(grep "TOTAL" coverage_output.txt | awk '{print $4}' | tr -d '%')
+          
+          if [ -n "$coverage" ] && [ "$coverage" -ge 85 ]; then
+            echo "✅ Coverage ${coverage}% meets requirement (≥85%)"
+          elif [ -n "$coverage" ]; then
+            echo "❌ Coverage ${coverage}% is below required 85%"
+            exit 1
+          else
+            echo "⚠️ Could not determine exact coverage percentage"
+            echo "✅ Tests passed, proceeding..."
+          fi
+        else
+          echo "❌ Tests failed"
+          cat coverage_output.txt
+          exit 1
+        fi
         
     - name: 🎯 Test Results Summary
       if: always()
@@ -201,7 +192,7 @@ jobs:
         echo "🔍 Checking for SDK imports in domain layers..."
         
         # Check that shared models and tools don't import SDK-specific code
-        sdk_imports=$(grep -r "from openai\|import openai\|from anthropic\|import anthropic" loan_processing/agents/shared/ loan_processing/tools/services/ || true)
+        sdk_imports=$(grep -r "from openai\|import openai\|from anthropic\|import anthropic" loan_processing/models/ loan_processing/utils/ loan_processing/tools/services/ || true)
         
         if [ -n "$sdk_imports" ]; then
           echo "❌ Found SDK imports in domain layers:"
@@ -219,10 +210,13 @@ jobs:
         echo "🔍 Checking project structure..."
         
         required_dirs=(
-          "loan_processing/agents/shared/models" 
+          "loan_processing/models" 
+          "loan_processing/utils"
           "loan_processing/agents/providers/openai"
           "loan_processing/tools/services" 
-          "loan_processing/tools/mcp_servers" 
+          "loan_processing/tools/mcp_servers"
+          "loan_processing/config"
+          "console_app/src"
           "tests"
         )
         
@@ -239,22 +233,28 @@ jobs:
       run: |
         echo "🔍 Checking test organization..."
         
-        # Verify main test file exists and is working
-        if [ -f "tests/test_agent_registry.py" ]; then
-          echo "✅ Core test file found: tests/test_agent_registry.py"
-          
-          # Run a quick validation
-          uv run python -c "
+        # Verify core test files exist and are working
+        core_tests=("tests/test_agent_registry.py" "tests/test_safe_evaluator.py")
+        
+        for test_file in "${core_tests[@]}"; do
+          if [ -f "$test_file" ]; then
+            echo "✅ Core test file found: $test_file"
+          else
+            echo "❌ Core test file missing: $test_file"
+            exit 1
+          fi
+        done
+        
+        # Run a quick validation
+        echo "🔍 Validating test imports..."
+        uv run python -c "
 import sys
 sys.path.append('.')
 try:
     from tests.test_agent_registry import TestAgentRegistryCreation
-    print('✅ Core test class imports successfully')
+    from tests.test_safe_evaluator import TestSafeConditionEvaluator
+    print('✅ Core test classes import successfully')
 except ImportError as e:
-    print(f'❌ Test import failed: {e}')
+    print(f'❌ Test import validation failed: {e}')
     sys.exit(1)
-"
-        else
-          echo "❌ Core test file missing: tests/test_agent_registry.py"
-          exit 1
-        fi
+        "

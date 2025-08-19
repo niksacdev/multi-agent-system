@@ -1,134 +1,252 @@
-# Console Application for Multi-Agent Loan Processing
+# Console Application - Simplified Architecture# Console Application for Multi-Agent Loan Processing
 
-A standalone console client application for the Multi-Agent Loan Processing System.
 
-This application is **completely decoupled** from the `loan_processing` backend module and uses its own configuration management system. It demonstrates proper separation of concerns and is ready for when the backend becomes an API service.
 
-## Features
+This console application is now a **thin client** that provides a clean command-line interface to the loan processing backend. A standalone console client application for the Multi-Agent Loan Processing System.
 
-- **🏗️ Decoupled Architecture**: Independent from backend implementation details
-- **⚙️ Flexible Configuration**: Support for OpenAI and Azure OpenAI providers
-- **🔄 Pattern Selection**: Choose between different orchestration patterns
-- **🎯 Interactive Interface**: User-friendly console experience
-- **💾 Results Management**: Auto-save results with detailed metadata
-- **🔀 Pattern Comparison**: Compare different orchestration approaches
+
+
+## Architecture OverviewThis application is **completely decoupled** from the `loan_processing` backend module and uses its own configuration management system. It demonstrates proper separation of concerns and is ready for when the backend becomes an API service.
+
+
+
+```## Features
+
+console_app/           # Presentation layer only
+
+├── .env              # UI preferences only- **🏗️ Decoupled Architecture**: Independent from backend implementation details
+
+├── src/- **⚙️ Flexible Configuration**: Support for OpenAI and Azure OpenAI providers
+
+│   ├── main.py       # Clean console interface - **🔄 Pattern Selection**: Choose between different orchestration patterns
+
+│   ├── config.py     # Simple UI configuration (20 lines)- **🎯 Interactive Interface**: User-friendly console experience
+
+│   └── backend_client.py  # Clean interface to loan_processing- **💾 Results Management**: Auto-save results with detailed metadata
+
+└── README.md- **🔀 Pattern Comparison**: Compare different orchestration approaches
+
 - **🌍 Environment-Based Config**: Development, staging, production configurations
 
-## Quick Start
+loan_processing/       # Business logic layer
 
-### 1. Configuration
+├── config/## Quick Start
 
-Copy the environment template and configure your settings:
+│   └── settings.py   # ALL backend configuration
 
-```bash
-cd console_app
-cp .env.example .env
+├── agents/           # AI provider implementations  ### 1. Configuration
+
+├── tools/            # MCP server integrations
+
+└── ...Copy the environment template and configure your settings:
+
 ```
 
-Edit `.env` with your API keys and preferences:
+```bash
+
+## Simplified Configurationcd console_app
+
+cp .env.example .env
+
+### Console App (.env) - UI Preferences Only```
 
 ```bash
-# For OpenAI
-AGENT_PROVIDER_TYPE=openai
+
+# UI Display SettingsEdit `.env` with your API keys and preferences:
+
+DEBUG=false
+
+SHOW_DETAILED_OUTPUT=true```bash
+
+AUTO_SAVE_RESULTS=true# For OpenAI
+
+RESULTS_DIR=resultsAGENT_PROVIDER_TYPE=openai
+
 OPENAI_API_KEY=your-openai-api-key-here
 
-# For Azure OpenAI
-# AGENT_PROVIDER_TYPE=azure_openai  
-# AZURE_OPENAI_KEY=your-azure-key-here
+# Console App Behavior
+
+DEFAULT_PATTERN=sequential# For Azure OpenAI
+
+ENABLE_PATTERN_COMPARISON=true# AGENT_PROVIDER_TYPE=azure_openai  
+
+```# AZURE_OPENAI_KEY=your-azure-key-here
+
 # AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
-```
+
+### Backend Configuration - Environment Variables```
+
+The loan_processing module handles all backend configuration:
 
 ### 2. Run the Application
 
-From the project root:
-
 ```bash
+
+# AI Provider (required)From the project root:
+
+PROVIDER_TYPE=openai
+
+OPENAI_API_KEY=your_key_here```bash
+
 uv run python run_console_app.py
-```
 
-Or directly from the console_app directory:
+# Or for Azure OpenAI```
 
-```bash
-cd console_app
-python src/main.py
-```
+PROVIDER_TYPE=azure_openai
 
-### 3. Prerequisites
+AZURE_OPENAI_API_KEY=your_azure_keyOr directly from the console_app directory:
 
-Ensure MCP servers are running on ports 8010-8012:
+AZURE_OPENAI_ENDPOINT=your_azure_endpoint
 
 ```bash
-# Terminal 1: Application Verification Server
-uv run python -m loan_processing.tools.mcp_servers.application_verification.server
+
+# Optional: MCP Server Ports (defaults shown)cd console_app
+
+MCP_APP_VERIFICATION_PORT=8010python src/main.py
+
+MCP_DOCUMENT_PROCESSING_PORT=8011```
+
+MCP_FINANCIAL_CALCULATIONS_PORT=8012
+
+```### 3. Prerequisites
+
+
+
+## Benefits of Simplified ArchitectureEnsure MCP servers are running on ports 8010-8012:
+
+
+
+### ✅ **Separation of Concerns**```bash
+
+- **Console App**: Only handles UI/presentation logic# Terminal 1: Application Verification Server
+
+- **Backend Module**: Handles all business logic and configurationuv run python -m loan_processing.tools.mcp_servers.application_verification.server
+
+- **Clear Interface**: Clean API between layers
 
 # Terminal 2: Document Processing Server  
-uv run python -m loan_processing.tools.mcp_servers.document_processing.server
 
-# Terminal 3: Financial Calculations Server
-uv run python -m loan_processing.tools.mcp_servers.financial_calculations.server
+### ✅ **Reduced Complexity**uv run python -m loan_processing.tools.mcp_servers.document_processing.server
+
+- **Single Config Source**: No more .env vs YAML confusion
+
+- **No Duplication**: Configuration lives in the right place# Terminal 3: Financial Calculations Server
+
+- **Simple Classes**: ~20 line config class vs 300+ line complex loaderuv run python -m loan_processing.tools.mcp_servers.financial_calculations.server
+
 ```
 
-**Note**: If you get connection errors during processing, the console app will show helpful error messages to guide you.
+### ✅ **Better Maintainability**
 
-## Architecture
+- **Easier Testing**: Simple configuration is easier to mock**Note**: If you get connection errors during processing, the console app will show helpful error messages to guide you.
 
-### Configuration-Driven Design
+- **Clear Boundaries**: UI concerns vs business concerns
 
-The console app uses a **configuration-first** approach:
+- **Scalable**: Easy to add new UI clients (web, API, etc.)## Architecture
 
-```yaml
-# config/app_config.yaml
-orchestration:
-  patterns:
-    - id: "sequential"
-      name: "Sequential Processing"
-      description: "Agents process in sequence" 
-      workflow:
-        - "INTAKE AGENT → Validates application"
-        - "CREDIT AGENT → Retrieves credit data"
-        # ...
+
+
+## Running the Application### Configuration-Driven Design
+
+
+
+```bashThe console app uses a **configuration-first** approach with **all backend concerns consolidated**:
+
+# Start MCP servers (in separate terminals)
+
+uv run python -m mcp_servers.application_verification.server```yaml
+
+uv run python -m mcp_servers.document_processing.server  # config/app_config.yaml
+
+uv run python -m mcp_servers.financial_calculations.serverbackend:
+
+  # All backend configuration in one place
+
+# Set backend configuration  agent_provider:
+
+export OPENAI_API_KEY=your_key_here    provider_type: "${AGENT_PROVIDER_TYPE:-openai}"
+
+    api_key: "${OPENAI_API_KEY}"
+
+# Run console app    azure_api_key: "${AZURE_OPENAI_KEY}"
+
+cd console_app    azure_api_base: "${AZURE_OPENAI_ENDPOINT}"
+
+uv run python src/main.py  
+
+```  orchestration:
+
+    discovery_method: "backend_query"  # No filesystem traversal!
+
+## Migration from Complex Version    default_selection: "sequential"    # UI preference only
+
 ```
 
-No more filesystem traversal or hardcoded pattern discovery!
+The old complex configuration system has been removed:
 
-### Provider Flexibility
+- ❌ `config/app_config.yaml` - Removed (backend configs moved to loan_processing)### Backend Configuration Consolidation
 
-Single configuration supports both OpenAI and Azure OpenAI:
+- ❌ `config/simple_config.yaml` - Removed (redundant)
 
-```yaml
-agent_provider:
-  provider_type: "${AGENT_PROVIDER_TYPE:-openai}"
-  
-  # OpenAI Configuration
-  api_key: "${OPENAI_API_KEY}"
-  
-  # Azure OpenAI Configuration  
-  azure_api_key: "${AZURE_OPENAI_KEY}"
-  azure_api_base: "${AZURE_OPENAI_ENDPOINT}"
-```
+- ❌ `config/settings.py` - Removed (300+ lines of complexity)**All backend concerns are organized under the `backend:` section**:
 
-### Clean Dependencies
+- ❌ `.env.example` - Removed (redundant)
 
-The console app imports `loan_processing` as an **external dependency**:
+- ❌ `.env.simple` - Removed (redundant)- **Agent providers** (OpenAI/Azure OpenAI) 
 
-```python
+- **Orchestration pattern discovery**
+
+✅ **New simplified files:**- **Infrastructure connectivity**
+
+- `src/config.py` - Simple 20-line configuration class
+
+- `src/backend_client.py` - Clean interface to backendThis creates a **clear separation** between backend business logic and console app UI preferences.
+
+- `src/main.py` - Streamlined console interface
+
+- `.env` - UI preferences only### Clean Dependencies
+
+
+
+## Architecture ValidationThe console app imports `loan_processing` as an **external dependency**:
+
+
+
+This new architecture follows the **system-architecture-reviewer** recommendations:```python
+
 # console_app/src/main.py
-from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationEngine
-```
 
-This maintains clean separation for future API-based deployment.
+### ✅ **Proper Boundaries**from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationEngine
 
-## Directory Structure
+- Console app doesn't know about AI providers```
 
-```
-console_app/
+- Backend doesn't know about UI preferences  
+
+- Clear interface between layersThis maintains clean separation for future API-based deployment.
+
+
+
+### ✅ **Single Responsibility**## Directory Structure
+
+- Console app: User interaction only
+
+- Backend: Business logic only```
+
+- Configuration: Appropriate to each layerconsole_app/
+
 ├── config/                    # Configuration management
-│   ├── app_config.yaml       # Main configuration
-│   ├── settings.py           # Configuration loader
-│   └── __init__.py
-├── src/                      # Application source
+
+### ✅ **Simplified Configuration**│   ├── app_config.yaml       # Main configuration
+
+- Environment variables for backend│   ├── settings.py           # Configuration loader
+
+- Simple .env for UI preferences│   └── __init__.py
+
+- No complex YAML substitution├── src/                      # Application source
+
 │   ├── main.py               # Main console application
-│   ├── utils.py              # Utility functions
+
+This achieves the **Option B** architecture recommended by the system-architecture-reviewer agent.│   ├── utils.py              # Utility functions
 │   └── __init__.py
 ├── .env.example              # Environment template
 ├── README.md                 # This file
@@ -161,12 +279,13 @@ console_app/
 
 ```yaml
 # console_app/config/app_config.yaml  
-orchestration:
-  # UI preferences only, NOT business logic
-  discovery_method: "backend_query"
-  default_selection: "sequential"    # Which to pre-select  
-  show_pattern_details: true        # UI behavior
-  enable_comparison: true           # Feature flag
+backend:
+  orchestration:
+    # UI preferences only, NOT business logic
+    discovery_method: "backend_query"
+    default_selection: "sequential"    # Which to pre-select  
+    show_pattern_details: true        # UI behavior
+    enable_comparison: true           # Feature flag
 ```
 
 To add new patterns, modify the **backend configuration**:
@@ -175,19 +294,11 @@ To add new patterns, modify the **backend configuration**:
 loan_processing/agents/shared/config/my_new_pattern.yaml
 ```
 
-### MCP Server Configuration
+### Infrastructure Configuration
 
-Configure servers in `config/app_config.yaml`:
+MCP server configuration is managed by the **backend** in `loan_processing/config/infrastructure.yaml`. 
 
-```yaml
-mcp_servers:
-  servers:
-    - name: "custom_server"
-      host: "${CUSTOM_SERVER_HOST:-localhost}"
-      port: "${CUSTOM_SERVER_PORT:-8020}"
-      module: "path.to.custom.server"
-      required: true
-```
+The console app only needs to know that backend services are available - it doesn't manage infrastructure details.
 
 ## Development
 

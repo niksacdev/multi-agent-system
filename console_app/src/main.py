@@ -2,12 +2,14 @@
 """
 Console Application for Multi-Agent Loan Processing System
 
-This is a standalone client application that consumes the loan_processing backend module.
-It provides an interactive command-line interface for testing and demonstrating 
-the loan processing workflow through different orchestration patterns.
+This is a thin client application that provides an interactive command-line
+interface for the loan processing backend. It handles only presentation logic
+while the loan_processing module handles all business logic and configuration.
 
-This application is completely decoupled from the loan_processing backend and uses
-its own configuration management system.
+Architecture:
+- Console App: Presentation layer (UI preferences, user interaction)
+- Backend Client: Clean interface to loan_processing module
+- loan_processing: Business logic, AI provider config, orchestration
 """
 
 import asyncio
@@ -17,22 +19,16 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-# Add the project root to Python path for loan_processing imports
+from backend_client import get_backend_client
+
+# Import console app configuration (UI preferences only)
+from config import get_console_config
+
+# Import loan processing models (these are the public interface)
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-# Import configuration from our dedicated console app config system
-from config.settings import (
-    get_app_config,
-    get_available_patterns,
-    get_pattern_by_id,
-    get_config_loader
-)
-# Removed complex health checking - keep it simple
-
-# Import loan_processing backend as external dependency
-from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationEngine
-from loan_processing.agents.shared.models.application import (
+from loan_processing.models.application import (  # noqa: E402
     EmploymentStatus,
     LoanApplication,
     LoanPurpose,
@@ -43,60 +39,68 @@ class LoanProcessingConsole:
     """Console interface for the loan processing system."""
 
     def __init__(self):
-        self.config = None
-        self.orchestrator = None
+        self.config = get_console_config()
+        self.backend = get_backend_client()
         self.results_dir = None
 
     async def initialize(self):
-        """Initialize the console application with configuration."""
-        # Load configuration
-        self.config = get_app_config()
-        
-        # Validate configuration
-        issues = get_config_loader().validate_configuration()
-        if issues:
-            print("❌ Configuration Issues Found:")
-            for issue in issues:
-                print(f"  - {issue}")
-            raise ValueError("Configuration validation failed")
-        
-        # Initialize orchestrator - it will use environment variables for provider config
-        # The console app doesn't need to manage provider configuration details
-        self.orchestrator = OrchestrationEngine()
-        
+        """Initialize the console application."""
+        # Validate console app configuration
+        config_errors = self.config.validate()
+        if config_errors:
+            print("❌ Console App Configuration Issues:")
+            for error in config_errors:
+                print(f"  - {error}")
+            raise ValueError("Console app configuration validation failed")
+
+        # Initialize backend client (this handles all backend configuration)
+        await self.backend.initialize()
+
         # Setup results directory
-        self.results_dir = Path(self.config.results_directory)
+        self.results_dir = Path(self.config.results_dir)
         self.results_dir.mkdir(parents=True, exist_ok=True)
-        
-        print(f"✅ Console application initialized")
-        print(f"   Provider: {self.config.agent_provider.provider_type.value}")
-        print(f"   Environment: {self.config.environment}")
-        print(f"   Available patterns: {len(self.config.orchestration_patterns)}")
+
+        print("✅ Console application initialized")
+        print(f"   Results directory: {self.results_dir}")
+
+        # Check backend status
+        status = self.backend.get_backend_status()
+        if status["backend_initialized"]:
+            print("   Backend: Connected")
+        else:
+            print("   Backend: Not connected")
         print()
 
     def display_banner(self):
         """Display the application banner."""
+        if not self.config.show_banner:
+            return
+
         print("=" * 80)
-        print(f"{self.config.name.upper()}")
+        print("MULTI-AGENT LOAN PROCESSING SYSTEM")
         print("=" * 80)
         print("Transform 3-5 day loan processing into 3-5 minute automated decisions")
-        print(f"Version: {self.config.version}")
-        print(f"Environment: {self.config.environment}")
         print()
 
     def display_prerequisites(self):
-        """Display simple prerequisites message."""
+        """Display prerequisites message."""
+        if not self.config.show_prerequisites:
+            return
+
         print("📋 PREREQUISITES:")
         print("Please ensure MCP servers are running on ports 8010-8012")
         print()
-        print("Start them in separate terminals:")
+        print("🚀 Easy startup (recommended):")
+        print("  python start_mcp_servers.py")
+        print()
+        print("📖 Manual startup (separate terminals):")
         print("  uv run python -m loan_processing.tools.mcp_servers.application_verification.server")
-        print("  uv run python -m loan_processing.tools.mcp_servers.document_processing.server") 
+        print("  uv run python -m loan_processing.tools.mcp_servers.document_processing.server")
         print("  uv run python -m loan_processing.tools.mcp_servers.financial_calculations.server")
         print()
         print("Note: If you get connection errors during processing, check that these services are running.")
         print()
-        
+
     def create_sample_application(self) -> LoanApplication:
         """Create a sample loan application for demonstration."""
         return LoanApplication(
@@ -139,15 +143,10 @@ class LoanProcessingConsole:
         print(f"Employment: {application.employment_status.value}")
         print()
 
-    def get_available_patterns(self) -> list[str]:
-        """Get list of available orchestration patterns from backend."""
-        patterns = get_available_patterns()
-        return [pattern["id"] for pattern in patterns]
-
     def display_pattern_info(self, pattern_id: str):
-        """Display information about the selected pattern from backend."""
-        pattern = get_pattern_by_id(pattern_id)
-        
+        """Display information about the selected pattern."""
+        pattern = self.backend.get_pattern_by_id(pattern_id)
+
         if pattern:
             print(f"🔄 ORCHESTRATION PATTERN: {pattern['name'].upper()}")
             print("-" * 40)
@@ -157,57 +156,59 @@ class LoanProcessingConsole:
                 print("Workflow:")
                 for step in pattern["workflow"]:
                     print(f"  {step}")
-            else:
-                print("Workflow: Details managed by backend orchestration engine")
             print(f"Status: {'Available' if pattern.get('available', True) else 'Unavailable'}")
         else:
             print(f"🔄 ORCHESTRATION PATTERN: {pattern_id.upper()}")
             print("-" * 40)
             print(f"Description: {pattern_id} orchestration pattern")
             print("Workflow: Details managed by backend orchestration engine")
-        
+
         print()
-        print("✓ Patterns defined and controlled by backend business logic")
+        print("✓ Backend handles all AI provider configuration and orchestration logic")
         print("✓ Each agent autonomously selects MCP tools based on their needs")
-        print("✓ Orchestrator manages agent execution and context passing")
+        print("✓ All configuration managed through environment variables")
         print()
 
-    async def process_application(self, application: LoanApplication, pattern_id: str, model: str):
+    async def process_application(self, application: LoanApplication, pattern_id: str):
         """Process the loan application using the specified pattern."""
-        print(f"🚀 STARTING LOAN PROCESSING...")
+        print("🚀 STARTING LOAN PROCESSING...")
         print("-" * 40)
         print()
-        
+
         start_time = time.time()
-        
+
         try:
-            decision = await self.orchestrator.execute_pattern(
-                pattern_name=pattern_id,
-                application=application,
-                model=model
-            )
-            
+            # Backend client handles all the complexity
+            decision = await self.backend.process_application(application, pattern_id)
+
             processing_time = time.time() - start_time
-            
-            # Display results
+
+            # Display results based on user preferences
             if self.config.show_detailed_output:
                 self.display_results(decision, processing_time)
             else:
                 self.display_summary_results(decision, processing_time)
-            
-            # Save results
+
+            # Save results if configured
             if self.config.auto_save_results:
                 self.save_results(decision, application, pattern_id)
-            
+
             return decision
-            
+
         except Exception as e:
             print(f"❌ Error during processing: {e}")
             print()
             print("💡 Common solutions:")
-            print("   • Make sure MCP servers are running (see prerequisites above)")
-            print("   • Check your OpenAI API key is valid")
+            print("   • Start MCP servers: python start_mcp_servers.py")
+            print("   • Check your OPENAI_API_KEY environment variable")
             print("   • Verify network connectivity")
+            print("   • Check server status: python start_mcp_servers.py --status")
+
+            if self.config.debug:
+                import traceback
+
+                traceback.print_exc()
+
             raise
 
     def display_results(self, decision, processing_time: float):
@@ -222,12 +223,12 @@ class LoanProcessingConsole:
         print(f"Decision Maker: {decision.decision_maker}")
         print()
 
-        if hasattr(decision, 'approved_amount') and decision.approved_amount:
+        if hasattr(decision, "approved_amount") and decision.approved_amount:
             print("✅ APPROVED TERMS:")
             print(f"  Amount: ${decision.approved_amount:,.2f}")
-            if hasattr(decision, 'approved_rate'):
+            if hasattr(decision, "approved_rate"):
                 print(f"  Rate: {decision.approved_rate:.2f}%")
-            if hasattr(decision, 'approved_term_months'):
+            if hasattr(decision, "approved_term_months"):
                 print(f"  Term: {decision.approved_term_months} months")
             print()
 
@@ -236,7 +237,7 @@ class LoanProcessingConsole:
         print(decision.decision_reason)
         print()
 
-        if hasattr(decision, 'reasoning'):
+        if hasattr(decision, "reasoning"):
             print("📊 DETAILED ANALYSIS:")
             print("-" * 40)
             print(decision.reasoning)
@@ -244,97 +245,80 @@ class LoanProcessingConsole:
 
     def display_summary_results(self, decision, processing_time: float):
         """Display summary loan decision results."""
-        print(f"\n🎯 Decision: {decision.decision.value} | " +
-              f"Confidence: {decision.confidence_score:.1%} | " +
-              f"Time: {processing_time:.1f}s")
+        print(
+            f"\n🎯 Decision: {decision.decision.value} | "
+            + f"Confidence: {decision.confidence_score:.1%} | "
+            + f"Time: {processing_time:.1f}s"
+        )
 
     def save_results(self, decision, application: LoanApplication, pattern_id: str):
         """Save results to file."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"loan_decision_{application.application_id}_{pattern_id}_{timestamp}.json"
         output_file = self.results_dir / filename
-        
+
         result_data = {
             "application_summary": {
                 "application_id": application.application_id,
                 "applicant_name": application.applicant_name,
                 "loan_amount": application.loan_amount,
-                "pattern_used": pattern_id
+                "pattern_used": pattern_id,
             },
-            "decision": decision.model_dump() if hasattr(decision, 'model_dump') else str(decision),
-            "configuration": {
-                "provider_type": self.config.agent_provider.provider_type.value,
-                "environment": self.config.environment,
-                "version": self.config.version
-            }
+            "decision": decision.model_dump() if hasattr(decision, "model_dump") else str(decision),
+            "timestamp": timestamp,
+            "processing_metadata": {"console_app_version": "2.0.0-simplified", "backend_module": "loan_processing"},
         }
-        
+
         with open(output_file, "w") as f:
             json.dump(result_data, f, indent=2, default=str)
-        
+
         print(f"💾 Results saved to: {output_file}")
         print()
 
     async def run_interactive_mode(self):
-        """Run the console application in interactive mode."""
+        """Run the console application in simplified mode."""
         await self.initialize()
-        
+
         self.display_banner()
         self.display_prerequisites()
-        
+
         input("Press Enter to continue...")
         print()
-        
-        # Create or use sample application
-        print("📋 APPLICATION OPTIONS:")
-        print("1. Use sample application")
-        print("2. Create custom application (future feature)")
-        print()
-        
-        choice = input("Choose option [1]: ").strip() or "1"
-        
-        if choice == "1":
-            application = self.create_sample_application()
-        else:
-            print("Custom application creation coming soon! Using sample application.")
-            application = self.create_sample_application()
-        
+
+        # Use sample application (simplified - no choice needed)
+        print("📋 USING SAMPLE APPLICATION")
+        print("-" * 40)
+        application = self.create_sample_application()
         self.display_application_summary(application)
-        
-        # Select orchestration pattern from backend
+
+        # Select orchestration pattern
         print("🔄 AVAILABLE ORCHESTRATION PATTERNS:")
-        
-        patterns_data = get_available_patterns()
-        for i, pattern in enumerate(patterns_data, 1):
+
+        patterns = self.backend.get_available_patterns()
+        available_patterns = [p for p in patterns if p.get("available", True)]
+
+        for i, pattern in enumerate(available_patterns, 1):
             print(f"{i}. {pattern['name']} ({pattern['id']})")
             print(f"   {pattern['description']}")
-            print(f"   Status: {'✅ Available' if pattern.get('available', True) else '❌ Unavailable'}")
             print()
-        
-        pattern_choice = input(f"Choose pattern [1]: ").strip() or "1"
+
+        pattern_choice = input("Choose pattern [1]: ").strip() or "1"
         try:
             pattern_index = int(pattern_choice) - 1
-            selected_pattern = patterns_data[pattern_index]
-            pattern_id = selected_pattern['id']
+            selected_pattern = available_patterns[pattern_index]
+            pattern_id = selected_pattern["id"]
         except (ValueError, IndexError):
-            pattern_id = self.config.orchestration_ui.default_selection
+            pattern_id = self.config.default_pattern
             print(f"Invalid choice, using default: {pattern_id}")
-        
+
         print()
         self.display_pattern_info(pattern_id)
-        
-        # Model is configured through provider settings, no need for user selection
-        provider_config = self.config.agent_provider.get_effective_config()
-        model = provider_config.get("model", "gpt-4")  # Get from provider config
-        
-        print(f"🤖 Using model: {model} (configured via {self.config.agent_provider.provider_type.value})")
-        print()
-        
-        # Process application
-        await self.process_application(application, pattern_id, model)
-        
-        # Ask for pattern comparison
-        if self.config.orchestration_ui.enable_comparison:
+
+        # Process application (backend handles all configuration)
+        await self.process_application(application, pattern_id)
+
+        # Ask for pattern comparison if enabled
+        if self.config.enable_pattern_comparison:
             print("=" * 80)
             compare = input("Would you like to compare with a different pattern? (y/N): ").strip().lower()
             if compare in ["y", "yes"]:
@@ -346,30 +330,28 @@ class LoanProcessingConsole:
         print("🔀 PATTERN COMPARISON DEMONSTRATION")
         print("=" * 80)
         print()
-        
-        patterns_data = get_available_patterns()
+
+        patterns = self.backend.get_available_patterns()
+        available_patterns = [p for p in patterns if p.get("available", True)]
+
         print("Available patterns for comparison:")
-        for i, pattern in enumerate(patterns_data, 1):
+        for i, pattern in enumerate(available_patterns, 1):
             print(f"{i}. {pattern['name']} ({pattern['id']})")
         print()
-        
+
         pattern_choice = input("Choose pattern for comparison: ").strip()
         try:
             pattern_index = int(pattern_choice) - 1
-            selected_pattern = patterns_data[pattern_index]
-            pattern_id = selected_pattern['id']
+            selected_pattern = available_patterns[pattern_index]
+            pattern_id = selected_pattern["id"]
         except (ValueError, IndexError):
             print("Invalid choice, skipping comparison.")
             return
-        
+
         print(f"\n🔄 Processing with {selected_pattern['name']} pattern...")
         self.display_pattern_info(pattern_id)
-        
-        # Use the same model as configured
-        provider_config = self.config.agent_provider.get_effective_config()
-        model = provider_config.get("model", "gpt-4")
-        
-        await self.process_application(application, pattern_id, model)
+
+        await self.process_application(application, pattern_id)
 
 
 async def main():
@@ -378,21 +360,25 @@ async def main():
         console = LoanProcessingConsole()
         await console.run_interactive_mode()
         return 0
-        
+
     except KeyboardInterrupt:
         print("\n👋 Application interrupted by user")
         return 0
-        
+
     except Exception as e:
         print(f"❌ Application failed: {e}")
-        if "--debug" in sys.argv:
+        # Check for debug flag in env since this is the new simplified app
+        if os.getenv("DEBUG", "false").lower() == "true":
             import traceback
+
             traceback.print_exc()
         else:
-            print("Use --debug flag for detailed error information")
+            print("Set DEBUG=true environment variable for detailed error information")
         return 1
 
 
 if __name__ == "__main__":
+    import os
+
     exit_code = asyncio.run(main())
     sys.exit(exit_code)
