@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Disable OpenAI agents tracing to prevent telemetry errors
-import os
+import os  # noqa: E402
 
 os.environ.setdefault("OPENAI_AGENTS_TRACE", "false")
 os.environ.setdefault("OPENAI_TRACE", "false")
@@ -27,10 +27,10 @@ os.environ.setdefault("OPENAI_TRACE", "false")
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from agents import Agent
-from agents.mcp.server import MCPServerSse
+from agents import Agent  # noqa: E402
+from agents.mcp.server import MCPServerSse  # noqa: E402
 
-from loan_processing.config.settings import AIModelConfig, AIModelProviderType
+from loan_processing.config.settings import AIModelConfig, AIModelProviderType  # noqa: E402
 from loan_processing.utils import (  # noqa: E402
     ConfigurationLoader,
     OutputFormatGenerator,

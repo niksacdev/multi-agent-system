@@ -8,16 +8,12 @@ Usage:
     python scripts/create_github_issues.py            # Create issues in GitHub
 """
 
-import json
-import os
-import sys
-from typing import Dict, List
 
 # You'll need to install PyGithub: pip install PyGithub
 # from github import Github
 
 
-def get_completed_features() -> List[Dict]:
+def get_completed_features() -> list[dict]:
     """Get list of completed features that need documentation issues."""
     return [
         {
@@ -225,7 +221,7 @@ OTEL-based observability for monitoring agent communications and decisions.
     ]
 
 
-def get_future_features() -> List[Dict]:
+def get_future_features() -> list[dict]:
     """Get list of future features that need implementation issues."""
     return [
         {
@@ -504,7 +500,7 @@ def create_issues_markdown() -> str:
     """Create markdown file with all issues for manual creation."""
     completed = get_completed_features()
     future = get_future_features()
-    
+
     markdown = "# GitHub Issues for Multi-Agent Loan Processing System\n\n"
     markdown += "## Instructions\n"
     markdown += "1. Copy each issue below\n"
@@ -512,42 +508,42 @@ def create_issues_markdown() -> str:
     markdown += "3. Add the specified labels\n"
     markdown += "4. For completed features, close the issue after creation\n\n"
     markdown += "---\n\n"
-    
+
     markdown += "## Completed Features (Create and Close)\n\n"
     for i, issue in enumerate(completed, 1):
         markdown += f"### Issue {i}: {issue['title']}\n\n"
         markdown += f"**Labels:** {', '.join(issue['labels'])}\n\n"
-        markdown += issue['body'] + "\n\n"
+        markdown += issue["body"] + "\n\n"
         markdown += "---\n\n"
-    
+
     markdown += "## Future Features (Leave Open)\n\n"
     for i, issue in enumerate(future, len(completed) + 1):
         markdown += f"### Issue {i}: {issue['title']}\n\n"
         markdown += f"**Labels:** {', '.join(issue['labels'])}\n\n"
-        markdown += issue['body'] + "\n\n"
+        markdown += issue["body"] + "\n\n"
         markdown += "---\n\n"
-    
+
     return markdown
 
 
 def main():
     """Main function to create GitHub issues."""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="Create GitHub issues for experimental features")
     parser.add_argument("--dry-run", action="store_true", help="Preview issues without creating")
     parser.add_argument("--output", default="github_issues.md", help="Output markdown file")
     args = parser.parse_args()
-    
+
     # Generate markdown file
     markdown_content = create_issues_markdown()
-    
+
     with open(args.output, "w") as f:
         f.write(markdown_content)
-    
+
     print(f"✅ Generated {args.output} with all issues")
     print(f"📋 Total issues: {len(get_completed_features())} completed, {len(get_future_features())} future")
-    
+
     if args.dry_run:
         print("\n🔍 Dry run mode - no issues created in GitHub")
         print(f"📄 Review the issues in {args.output}")

@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Disable OpenAI agents tracing to prevent telemetry errors
-import os
+import os  # noqa: E402
 
 os.environ.setdefault("OPENAI_AGENTS_TRACE", "false")
 os.environ.setdefault("OPENAI_TRACE", "false")

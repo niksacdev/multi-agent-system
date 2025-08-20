@@ -25,10 +25,10 @@ load_dotenv()
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from loan_processing.agents.providers.openai.agentregistry import AgentRegistry
-from loan_processing.config.settings import SystemConfig, get_system_config
-from loan_processing.models.application import LoanApplication
-from loan_processing.models.decision import LoanDecision, LoanDecisionStatus
+from loan_processing.agents.providers.openai.agentregistry import AgentRegistry  # noqa: E402
+from loan_processing.config.settings import SystemConfig, get_system_config  # noqa: E402
+from loan_processing.models.application import LoanApplication  # noqa: E402
+from loan_processing.models.decision import LoanDecision, LoanDecisionStatus  # noqa: E402
 from loan_processing.utils import correlation_context, get_logger, log_execution  # noqa: E402
 
 # Initialize logging

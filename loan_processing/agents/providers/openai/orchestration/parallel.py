@@ -16,8 +16,8 @@ from typing import Any
 project_root = Path(__file__).parent.parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from loan_processing.agents.providers.openai.orchestration.base import HandoffValidationService, PatternExecutor
-from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationContext
+from loan_processing.agents.providers.openai.orchestration.base import HandoffValidationService, PatternExecutor  # noqa: E402
+from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationContext  # noqa: E402
 from loan_processing.utils import get_logger, log_execution  # noqa: E402
 
 # Initialize logging

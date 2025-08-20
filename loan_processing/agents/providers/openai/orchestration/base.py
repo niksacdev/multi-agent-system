@@ -16,8 +16,8 @@ from typing import Any
 
 from agents import Runner
 
-from loan_processing.agents.providers.openai.agentregistry import AgentRegistry
-from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationContext
+from loan_processing.agents.providers.openai.agentregistry import AgentRegistry  # noqa: E402
+from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationContext  # noqa: E402
 
 
 class PatternExecutor(ABC):
@@ -137,7 +137,7 @@ class AgentExecutionService:
                     error_msg = f"MCP server {i + 1} connection failed: {str(e)}"
                     context.add_audit_entry(error_msg)
                     # Don't continue - this will cause the agent to fail which is correct behavior
-                    raise RuntimeError(f"Cannot execute {agent_type} agent: {error_msg}")
+                    raise RuntimeError(f"Cannot execute {agent_type} agent: {error_msg}") from e
 
             # Prepare input with accumulated context
             agent_input = self._prepare_agent_input(agent_type, context)
@@ -152,8 +152,8 @@ class AgentExecutionService:
             try:
                 result = await asyncio.wait_for(Runner.run(agent, input=agent_input), timeout=timeout)
                 context.add_audit_entry(f"Received response from OpenAI for {agent_type} agent")
-            except asyncio.TimeoutError:
-                raise RuntimeError(f"{agent_type} agent timed out after {timeout} seconds")
+            except asyncio.TimeoutError as e:
+                raise RuntimeError(f"{agent_type} agent timed out after {timeout} seconds") from e
 
             # Parse and store result
             parsed_result = self._parse_agent_result(result)

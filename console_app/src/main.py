@@ -35,10 +35,10 @@ os.environ.setdefault("OPENAI_TRACE", "false")
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.backend_client import get_backend_client
+from src.backend_client import get_backend_client  # noqa: E402
 
 # Import console app configuration (UI preferences only)
-from src.config import get_console_config
+from src.config import get_console_config  # noqa: E402
 
 from loan_processing.utils import correlation_context, get_logger, log_execution  # noqa: E402
 
@@ -233,13 +233,19 @@ class LoanProcessingConsole:
             down_payment=scenario["down_payment"],
             additional_data={
                 # Property details that intake agent expects
-                "property_address": f"{random.randint(100, 999)} Main Street, San Francisco, CA 9411{random.randint(0, 9)}",
+                "property_address": (
+                    f"{random.randint(100, 999)} Main Street, "
+                    f"San Francisco, CA 9411{random.randint(0, 9)}"
+                ),
                 "property_value": scenario["property_value"],
                 "property_type": "SINGLE_FAMILY",
                 "intended_use": "PRIMARY_RESIDENCE",
                 "property_condition": "GOOD",
                 # Applicant details expected by intake agent
-                "current_address": f"{random.randint(100, 999)} Elm Street, San Francisco, CA 9411{random.randint(0, 9)}",
+                "current_address": (
+                    f"{random.randint(100, 999)} Elm Street, "
+                    f"San Francisco, CA 9411{random.randint(0, 9)}"
+                ),
                 "years_at_address": random.randint(1, 10),
                 # Monthly financial details
                 "monthly_income": float(scenario["annual_income"]) / 12,

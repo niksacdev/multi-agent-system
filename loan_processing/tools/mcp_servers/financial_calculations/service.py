@@ -21,7 +21,7 @@ load_dotenv()
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from loan_processing.tools.services.financial_calculations import FinancialCalculationsService
+from loan_processing.tools.services.financial_calculations import FinancialCalculationsService  # noqa: E402
 from loan_processing.utils import get_logger, log_execution  # noqa: E402
 
 # Initialize logging
