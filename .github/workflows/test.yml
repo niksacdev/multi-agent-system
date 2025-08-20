@@ -35,13 +35,13 @@ jobs:
         
     - name: 🧪 Run core stable tests
       run: |
-        echo "Running core stable tests (agent registry + utils)..."
-        uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v --cov=loan_processing.agents.providers.openai.agentregistry --cov=loan_processing.utils --cov-report=term-missing
+        echo "Running core stable tests (agent registry + safe evaluator + utils)..."
+        uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py tests/tools_tests/test_utils.py -v --cov=loan_processing.agents.providers.openai.agentregistry --cov=loan_processing.utils --cov-report=term-missing
         
     - name: 🧪 Validate test suite completeness 
       run: |
         echo "Validating that core functionality tests are comprehensive..."
-        echo "Core test count: $(uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py --collect-only -q | grep -c "::test_" || echo 0)"
+        echo "Core test count: $(uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py tests/tools_tests/test_utils.py --collect-only -q | grep -c "::test_" || echo 0)"
         echo "Legacy test count (skipped): $(uv run pytest tests/ -m "legacy" --collect-only -q | grep -c "::test_" || echo 0)"
         echo "Integration test count (skipped): $(uv run pytest tests/ -m "integration" --collect-only -q | grep -c "::test_" || echo 0)"
         
@@ -50,7 +50,7 @@ jobs:
         echo "Checking coverage on core components..."
         
         # Run tests with coverage
-        uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py \
+        uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py tests/tools_tests/test_utils.py \
           --cov=loan_processing.agents.providers.openai.agentregistry \
           --cov=loan_processing.utils \
           --cov-report=term-missing > coverage_output.txt 2>&1
@@ -234,7 +234,7 @@ jobs:
         echo "🔍 Checking test organization..."
         
         # Verify core test files exist and are working
-        core_tests=("tests/test_agent_registry.py" "tests/test_safe_evaluator.py")
+        core_tests=("tests/test_agent_registry.py" "tests/test_safe_evaluator.py" "tests/tools_tests/test_utils.py")
         
         for test_file in "${core_tests[@]}"; do
           if [ -f "$test_file" ]; then
@@ -253,6 +253,7 @@ sys.path.append('.')
 try:
     from tests.test_agent_registry import TestAgentRegistryCreation
     from tests.test_safe_evaluator import TestSafeConditionEvaluator
+    from tests.tools_tests.test_utils import TestOutputFormatGeneration
     print('✅ Core test classes import successfully')
 except ImportError as e:
     print(f'❌ Test import validation failed: {e}')
