@@ -17,8 +17,9 @@
 **Just want to code?** Skip the theory and jump straight to:
 
 - **[Quick Start (3 steps)](#quick-start-3-steps)** - Get running in under 2 minutes
-- **[Architecture Overview](#-agent-registry-configuration-driven-architecture)** - How the system works
-- **[Add Your Own Agent](#development-agent-integration)** - Extend the system
+- **[Architecture Overview](#how-it-works)** - How the system works
+- **[Agent Patterns](docs/agent-patterns.md)** - Domain expert agents and patterns
+- **[Agent Strategy](docs/agent-strategy.md)** - Add your own agent
 - **[Testing & Coverage](#testing)** - Test suite and validation
 - **[Business Case](#the-business-impact-ai-projected-estimates)** - Why this matters
 
