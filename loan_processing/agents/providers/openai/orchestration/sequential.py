@@ -36,7 +36,7 @@ class SequentialPatternExecutor(PatternExecutor):
     @log_execution(component="sequential_executor", operation="execute")
     async def execute(self, pattern_config: dict[str, Any], context: OrchestrationContext, model: str | None) -> None:
         """Execute sequential orchestration pattern."""
-
+        
         agents = pattern_config.get("agents", [])
         handoff_rules = {rule["from"]: rule for rule in pattern_config.get("handoff_rules", [])}
 
