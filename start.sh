@@ -48,15 +48,35 @@ echo "✅ AI agents are configured and ready"
 echo "✅ Loan processing system is operational"
 echo
 
-# Interactive prompt
-echo "🤖 Ready to process loan applications?"
-echo "   Press ENTER to start the console application, or Ctrl+C to exit"
-read -r
+# Scenario Selection
+echo "🎯 Choose Test Scenario:"
+echo "========================"
+echo "1) Random      - Randomly selected scenario"
+echo "2) Approval    - High-quality applicant (likely approved)"
+echo "3) Conditional - Borderline applicant (conditional approval)"
+echo "4) Manual      - High-risk applicant (manual review)"
+echo "5) Denial      - Low Income applicant (likely denied)"
+echo
+
+while true; do
+    read -p "Select scenario (1-5): " choice
+    case $choice in
+        1) scenario="random"; break;;
+        2) scenario="approval"; break;;
+        3) scenario="conditional"; break;;
+        4) scenario="manual_review"; break;;
+        5) scenario="denial"; break;;
+        *) echo "❌ Invalid choice. Please select 1-5.";;
+    esac
+done
 
 echo
+echo "✅ Selected scenario: $scenario"
+echo
+
 echo "🚀 Phase 2: Starting Console Application"
 echo "---------------------------------------"
 echo "💡 Tip: Use Ctrl+C anytime to stop the entire system"
 echo
 
-uv run python run_console_app.py
+uv run python run_console_app.py $scenario

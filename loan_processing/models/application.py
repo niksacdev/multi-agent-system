@@ -12,7 +12,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class EmploymentStatus(str, Enum):
@@ -54,9 +54,9 @@ class LoanApplication(BaseModel):
     # Applicant information
     applicant_name: str = Field(description="Full name of the applicant", min_length=2, max_length=100)
 
-    ssn: str = Field(
-        description="Social Security Number",
-        pattern=r"^\d{3}-\d{2}-\d{4}$",  # Format: XXX-XX-XXXX
+    applicant_id: str = Field(
+        description="Secure applicant identifier (UUID format)",
+        pattern=r"^[a-fA-F0-9\-]{36}$",  # UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
     )
 
     email: str = Field(description="Contact email address", pattern=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
@@ -113,8 +113,8 @@ class LoanApplication(BaseModel):
 
     model_config = ConfigDict(
         # Preserve enum objects for type safety while allowing explicit JSON serialization
-        json_encoders = {
-            datetime: lambda v: v.isoformat(), 
+        json_encoders={
+            datetime: lambda v: v.isoformat(),
             Decimal: lambda v: float(v),
             # Explicit enum serialization when JSON conversion is needed
             EmploymentStatus: lambda v: v.value,

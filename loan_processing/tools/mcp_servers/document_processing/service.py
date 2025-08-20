@@ -14,15 +14,15 @@ from typing import Any
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Add project root to path for utils imports
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from loan_processing.utils import get_logger, log_execution  # noqa: E402
-
 from loan_processing.tools.services.document_processing import DocumentProcessingService
+from loan_processing.utils import get_logger, log_execution  # noqa: E402
 
 # Initialize logging
 logger = get_logger(__name__)
@@ -48,46 +48,56 @@ class MCPDocumentProcessingService(DocumentProcessingService):
             mcp_client: Client connection to Document Processing MCP server
         """
         self.mcp_client = mcp_client
-        
-        logger.info("Document processing service initialized", 
-                   has_mcp_client=mcp_client is not None,
-                   component="document_service")
+
+        logger.info(
+            "Document processing service initialized",
+            has_mcp_client=mcp_client is not None,
+            component="document_service",
+        )
 
     @log_execution(component="document_service", operation="extract_text_from_document")
     async def extract_text_from_document(self, document_path: str, document_type: str = "auto") -> dict[str, Any]:
         """Extract text from document using Document Processing MCP server."""
-        logger.info("Extracting text from document", 
-                   document_path=document_path,
-                   document_type=document_type,
-                   component="document_service")
-        
+        logger.info(
+            "Extracting text from document",
+            document_path=document_path,
+            document_type=document_type,
+            component="document_service",
+        )
+
         try:
             result = await self.mcp_client.call_tool(
                 "extract_text_from_document", {"document_path": document_path, "document_type": document_type}
             )
-            
+
             parsed_result = json.loads(result) if isinstance(result, str) else result
-            
-            logger.info("Document text extraction completed", 
-                       document_path=document_path,
-                       success=True,
-                       component="document_service")
-            
+
+            logger.info(
+                "Document text extraction completed",
+                document_path=document_path,
+                success=True,
+                component="document_service",
+            )
+
             return parsed_result if isinstance(parsed_result, dict) else {}
-            
+
         except (json.JSONDecodeError, TypeError) as e:
-            logger.error("Failed to parse document extraction result", 
-                        document_path=document_path,
-                        error_message=str(e),
-                        error_type=type(e).__name__,
-                        component="document_service")
+            logger.error(
+                "Failed to parse document extraction result",
+                document_path=document_path,
+                error_message=str(e),
+                error_type=type(e).__name__,
+                component="document_service",
+            )
             return {}
         except Exception as e:
-            logger.error("Document text extraction failed", 
-                        document_path=document_path,
-                        error_message=str(e),
-                        error_type=type(e).__name__,
-                        component="document_service")
+            logger.error(
+                "Document text extraction failed",
+                document_path=document_path,
+                error_message=str(e),
+                error_type=type(e).__name__,
+                component="document_service",
+            )
             return {}
 
     async def classify_document_type(self, document_content: str) -> dict[str, Any]:

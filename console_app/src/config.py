@@ -11,6 +11,7 @@ from pathlib import Path
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
@@ -25,8 +26,7 @@ class ConsoleAppConfig:
     results_dir: str = "results"
 
     # Console App Behavior
-    default_pattern: str = "sequential"
-    enable_pattern_comparison: bool = True
+    default_pattern: str = "sequential"  # Only sequential is currently implemented
 
     # Display Preferences
     show_banner: bool = True
@@ -41,7 +41,6 @@ class ConsoleAppConfig:
             auto_save_results=os.getenv("AUTO_SAVE_RESULTS", "true").lower() == "true",
             results_dir=os.getenv("RESULTS_DIR", "results"),
             default_pattern=os.getenv("DEFAULT_PATTERN", "sequential"),
-            enable_pattern_comparison=os.getenv("ENABLE_PATTERN_COMPARISON", "true").lower() == "true",
             show_banner=os.getenv("SHOW_BANNER", "true").lower() == "true",
             show_prerequisites=os.getenv("SHOW_PREREQUISITES", "true").lower() == "true",
         )

@@ -117,26 +117,51 @@ class AgentExecutionService:
         start_time = time.time()
         context.add_audit_entry(f"Starting {agent_type} agent execution")
 
+        # Notify progress callback that agent is starting
+        context.notify_agent_start(agent_type)
+
         try:
             # Create agent instance
             agent = self.agent_registry.create_configured_agent(agent_type, model)
 
-            # Connect MCP servers before execution
-            for mcp_server in agent.mcp_servers:
-                if hasattr(mcp_server, 'connect') and not getattr(mcp_server, '_connected', False):
-                    await mcp_server.connect()
-                    mcp_server._connected = True
+            # Connect MCP servers before execution if not already connected
+            for i, mcp_server in enumerate(agent.mcp_servers):
+                try:
+                    if hasattr(mcp_server, "connect") and not getattr(mcp_server, "_connected", False):
+                        context.add_audit_entry(f"Connecting to MCP server {i + 1}...")
+                        await mcp_server.connect()
+                        mcp_server._connected = True
+                        context.add_audit_entry(f"MCP server {i + 1} connected successfully")
+                except Exception as e:
+                    # Log connection issues with more detail
+                    error_msg = f"MCP server {i + 1} connection failed: {str(e)}"
+                    context.add_audit_entry(error_msg)
+                    # Don't continue - this will cause the agent to fail which is correct behavior
+                    raise RuntimeError(f"Cannot execute {agent_type} agent: {error_msg}")
 
             # Prepare input with accumulated context
             agent_input = self._prepare_agent_input(agent_type, context)
 
-            # Execute agent with timeout
-            timeout = agent_config.get("timeout_seconds", 300)
-            result = await asyncio.wait_for(Runner.run(agent, input=agent_input), timeout=timeout)
+            # Execute agent with timeout and progress indication
+            timeout = agent_config.get("timeout_seconds", 120)  # 2 minutes default instead of 5
+            context.add_audit_entry(f"Sending request to OpenAI for {agent_type} agent...")
+
+            # Notify that agent is waiting for OpenAI response
+            context.notify_agent_thinking(agent_type)
+
+            try:
+                result = await asyncio.wait_for(Runner.run(agent, input=agent_input), timeout=timeout)
+                context.add_audit_entry(f"Received response from OpenAI for {agent_type} agent")
+            except asyncio.TimeoutError:
+                raise RuntimeError(f"{agent_type} agent timed out after {timeout} seconds")
 
             # Parse and store result
             parsed_result = self._parse_agent_result(result)
             duration = time.time() - start_time
+
+            # Debug: log what agent returned
+            context.add_audit_entry(f"DEBUG: {agent_type} agent returned: {parsed_result}")
+
             context.set_agent_result(agent_type, parsed_result, duration)
 
             # Validate success conditions
@@ -149,36 +174,132 @@ class AgentExecutionService:
             error_msg = f"{agent_type} agent failed after {duration:.2f}s: {str(e)}"
             context.add_audit_entry(error_msg)
             context.errors.append(error_msg)
+
+            # Notify progress callback of the error
+            context.notify_agent_error(agent_type, str(e), duration)
+
             raise
 
     def _prepare_agent_input(self, agent_type: str, context: OrchestrationContext) -> str:
-        """Prepare input for an agent based on accumulated context."""
+        """Prepare optimized input for an agent based on accumulated context."""
 
-        # Build context summary for the agent
+        # Build essential context summary for the agent
         context_parts = [
-            f"Application Data:\n{context.application.model_dump_json(indent=2)}",
+            f"Application Summary:\n{self._create_application_summary(context.application)}",
             f"Session ID: {context.session_id}",
-            f"Processing Pattern: {context.pattern_name}",
         ]
 
-        # Add previous agent results
+        # Add relevant previous agent results (summarized, not full)
         if context.intake_result and agent_type != "intake":
-            context_parts.append(f"Intake Assessment:\n{json.dumps(context.intake_result, indent=2)}")
+            intake_summary = self._summarize_agent_result("intake", context.intake_result)
+            context_parts.append(f"Intake Summary: {intake_summary}")
 
         if context.credit_result and agent_type not in ["intake", "credit"]:
-            context_parts.append(f"Credit Assessment:\n{json.dumps(context.credit_result, indent=2)}")
+            credit_summary = self._summarize_agent_result("credit", context.credit_result)
+            context_parts.append(f"Credit Summary: {credit_summary}")
 
         if context.income_result and agent_type not in ["intake", "credit", "income"]:
-            context_parts.append(f"Income Verification:\n{json.dumps(context.income_result, indent=2)}")
+            income_summary = self._summarize_agent_result("income", context.income_result)
+            context_parts.append(f"Income Summary: {income_summary}")
 
         # Add processing instructions
         context_parts.append(
-            "Focus on your core responsibilities as defined in your persona. "
-            "Provide structured JSON output as specified in your instructions. "
-            "Use the secure applicant_id from application additional_data for all MCP tool calls."
+            "Provide structured JSON output as specified. Use secure applicant_id (UUID) for all tool calls."
         )
 
         return "\n\n".join(context_parts)
+
+    def _create_application_summary(self, application) -> str:
+        """Create comprehensive application data for agents - include all available fields."""
+        from decimal import Decimal
+
+        # Start with all core application fields
+        summary = {
+            # Application identification
+            "application_id": application.application_id,
+            "applicant_name": application.applicant_name,
+            "applicant_id": getattr(application, "applicant_id", None),  # Secure UUID identifier
+            # Contact information
+            "email": getattr(application, "email", None),
+            "phone": getattr(application, "phone", None),
+            "date_of_birth": application.date_of_birth.isoformat()
+            if hasattr(application, "date_of_birth") and application.date_of_birth
+            else None,
+            # Loan details
+            "loan_amount": float(application.loan_amount)
+            if isinstance(application.loan_amount, Decimal)
+            else application.loan_amount,
+            "loan_purpose": application.loan_purpose.value
+            if hasattr(application.loan_purpose, "value")
+            else application.loan_purpose,
+            "loan_term_months": getattr(application, "loan_term_months", None),
+            # Financial information
+            "annual_income": float(application.annual_income)
+            if isinstance(application.annual_income, Decimal)
+            else application.annual_income,
+            "employment_status": application.employment_status.value
+            if hasattr(application.employment_status, "value")
+            else application.employment_status,
+            "employer_name": getattr(application, "employer_name", None),
+            "months_employed": getattr(application, "months_employed", None),
+            "monthly_expenses": float(application.monthly_expenses)
+            if getattr(application, "monthly_expenses", None) and isinstance(application.monthly_expenses, Decimal)
+            else getattr(application, "monthly_expenses", None),
+            "existing_debt": float(application.existing_debt)
+            if getattr(application, "existing_debt", None) and isinstance(application.existing_debt, Decimal)
+            else getattr(application, "existing_debt", None),
+            "assets": float(application.assets)
+            if getattr(application, "assets", None) and isinstance(application.assets, Decimal)
+            else getattr(application, "assets", None),
+            "down_payment": float(application.down_payment)
+            if getattr(application, "down_payment", None) and isinstance(application.down_payment, Decimal)
+            else getattr(application, "down_payment", None),
+        }
+
+        # Add all additional_data fields - these often contain required intake data
+        if hasattr(application, "additional_data") and application.additional_data:
+            for key, value in application.additional_data.items():
+                # Convert Decimal values to float for JSON serialization
+                if isinstance(value, Decimal):
+                    summary[key] = float(value)
+                else:
+                    summary[key] = value
+
+        # Remove None values to keep payload clean
+        summary = {k: v for k, v in summary.items() if v is not None}
+        return json.dumps(summary, indent=2)
+
+    def _summarize_agent_result(self, agent_type: str, result: dict[str, Any]) -> str:
+        """Create concise summaries of agent results to reduce token usage."""
+        if agent_type == "intake":
+            summary = {
+                "validation_status": result.get("validation_status"),
+                "routing_decision": result.get("routing_decision"),
+                "confidence_score": result.get("confidence_score"),
+                "data_quality_score": result.get("data_quality_score"),
+            }
+        elif agent_type == "credit":
+            summary = {
+                "credit_score": result.get("credit_score"),
+                "risk_category": result.get("risk_category"),
+                "debt_to_income_ratio": result.get("debt_to_income_ratio"),
+                "confidence_score": result.get("confidence_score"),
+                "recommendation": result.get("recommendation"),
+            }
+        elif agent_type == "income":
+            summary = {
+                "qualifying_monthly_income": result.get("qualifying_monthly_income"),
+                "employment_stability": result.get("employment_stability"),
+                "confidence_score": result.get("confidence_score"),
+                "recommendation": result.get("recommendation"),
+            }
+        else:
+            # Default: extract key fields
+            summary = {k: v for k, v in result.items() if k in ["confidence_score", "recommendation", "status"]}
+
+        # Remove None values and return compact JSON
+        summary = {k: v for k, v in summary.items() if v is not None}
+        return json.dumps(summary)
 
     def _parse_agent_result(self, result: Any) -> dict[str, Any]:
         """Parse agent result into structured data."""
