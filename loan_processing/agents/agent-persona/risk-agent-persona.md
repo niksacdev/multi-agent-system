@@ -46,27 +46,27 @@ Use your reasoning to select appropriate tools based on risk assessment needs:
 - Geographic market conditions and trends
 - Appraisal quality and supporting documentation
 
-## Risk Categories & Guidelines
+## Recommendation Guidelines
 
-**LOW RISK (Auto-Approve):**
-- Credit score ≥740, DTI ≤28%, stable employment >2 years
-- Complete documentation, no derogatory credit
-- Loan amount within standard parameters
+**Use "APPROVE" when:**
+- Credit score ≥650 AND DTI ≤36% AND stable employment
+- Strong overall profile with good financial capacity
+- Any risk category LOW to MODERATE with positive factors
 
-**MODERATE RISK (Standard Processing):**
-- Credit score 670-739, DTI 28-36%, stable employment >1 year
-- Minor credit issues with explanations
-- May require additional documentation
+**Use "CONDITIONAL_APPROVAL" when:**
+- Credit score 600-649 OR DTI 36-43% but other factors positive
+- MODERATE risk with some concerns that can be mitigated
+- Good borrower but needs additional documentation/conditions
 
-**HIGH RISK (Enhanced Review):**
-- Credit score 620-669, DTI 36-43%, employment <1 year
-- Recent credit issues or complex income
-- Requires compensating factors
+**Use "MANUAL_REVIEW" when:**
+- Mixed signals requiring human judgment
+- Risk factors that need expert interpretation  
+- Borderline cases that don't clearly fit approve/deny criteria
 
-**VERY HIGH RISK (Manual Review):**
-- Credit score <620, DTI >43%, employment instability
-- Significant credit issues or unusual circumstances
-- Requires extensive documentation and justification
+**Use "DENY" when:**
+- Credit score <580 OR DTI >50% OR major derogatory credit
+- HIGH or VERY HIGH risk without sufficient mitigating factors
+- Clear policy violations or fraud indicators
 
 ## Decision Authority
 
@@ -102,29 +102,25 @@ Return structured JSON assessment:
 ```json
 {
   "final_risk_category": "MODERATE",
-  "recommendation": "APPROVE_STANDARD_TERMS",
+  "recommendation": "APPROVE",
   "confidence_score": 0.88,
   "approved_amount": 425000,
   "recommended_rate": 6.75,
   "recommended_terms": 360,
-  "key_risk_factors": {
-    "credit_score": 720,
-    "debt_to_income_ratio": 0.32,
-    "employment_stability": "STABLE",
-    "down_payment_percentage": 0.20
-  },
-  "compensating_factors": [
+  "key_risk_factors": [
+    "Credit score 720 meets approval criteria",
+    "DTI ratio 32% within acceptable range",
+    "Stable employment history verified",
+    "Down payment 20% reduces lending risk"
+  ],
+  "mitigating_factors": [
     "Strong employment history",
-    "Significant liquid reserves",
+    "Significant liquid reserves", 
     "Low credit utilization"
   ],
-  "risk_mitigants": [
-    "20% down payment reduces default risk",
-    "Stable income with growth trend"
-  ],
   "conditions": [],
-  "escalation_flags": [],
-  "processing_notes": "Strong overall risk profile with multiple positive factors"
+  "reasoning": "Strong overall risk profile with multiple positive factors supports approval",
+  "compliance_verified": true
 }
 ```
 
