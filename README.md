@@ -11,6 +11,19 @@
 [![Type Checking](https://img.shields.io/badge/type_checking-mypy-blue.svg)](https://mypy.readthedocs.io/)
 
 ---
+
+## 🚀 Developer Quick Start
+
+**Just want to code?** Skip the theory and jump straight to:
+
+- **[Quick Start (3 steps)](#quick-start-3-steps)** - Get running in under 2 minutes
+- **[Architecture Overview](#-agent-registry-configuration-driven-architecture)** - How the system works
+- **[Add Your Own Agent](#development-agent-integration)** - Extend the system
+- **[Testing & Coverage](#testing)** - Test suite and validation
+- **[Business Case](#the-business-impact-ai-projected-estimates)** - Why this matters
+
+---
+
 > **Experimental multi-agent system** demonstrating AI agent orchestration patterns that are vendor SDK agnostic:
 
 ## 🔬 Core Hypotheses
