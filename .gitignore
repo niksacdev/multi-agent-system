@@ -209,6 +209,49 @@ __marimo__/
 # SpecStory (AI code documentation)
 .specstory/
 
-# Application results and logs
+# ============================================================================
+# Project-Specific Ignores
+# ============================================================================
+
+# Results and output files
 results/
 console_app/results/
+loan_processing/results/
+*.result.json
+*.decision.json
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# Local development
+.env.local
+.env.*.local
+local_notes.md
+scratch/
+
+# MCP Server data
+mcp_server_data/
+*.db
+*.sqlite
+
+# Generated documentation
+docs/_build/
+docs/generated/
+
+# Performance profiling
+*.prof
+*.pstats
+profile_output/
+
+# Test coverage reports (duplicates removed as they're already above)
+
+# IDE specific files
+.idea/
+.vscode/
+*.sublime-*
+.DS_Store
