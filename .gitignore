@@ -208,3 +208,7 @@ __marimo__/
 
 # SpecStory (AI code documentation)
 .specstory/
+
+# Application results and logs
+results/
+console_app/results/
