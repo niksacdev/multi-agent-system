@@ -14,6 +14,10 @@ import os
 from dataclasses import dataclass
 from enum import Enum
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 
 class AgentProviderType(Enum):
     """Agent SDK/framework provider types."""

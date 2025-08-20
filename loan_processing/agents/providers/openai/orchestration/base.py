@@ -121,6 +121,12 @@ class AgentExecutionService:
             # Create agent instance
             agent = self.agent_registry.create_configured_agent(agent_type, model)
 
+            # Connect MCP servers before execution
+            for mcp_server in agent.mcp_servers:
+                if hasattr(mcp_server, 'connect') and not getattr(mcp_server, '_connected', False):
+                    await mcp_server.connect()
+                    mcp_server._connected = True
+
             # Prepare input with accumulated context
             agent_input = self._prepare_agent_input(agent_type, context)
 

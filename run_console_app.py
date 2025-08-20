@@ -5,6 +5,10 @@ import os
 import sys
 from pathlib import Path
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 # Set up paths
 project_root = Path(__file__).parent
 console_app_dir = project_root / "console_app"

@@ -133,7 +133,7 @@ class TestAgentRegistryConfiguration:
 class TestAgentRegistryCreation:
     """Test agent creation functionality."""
 
-    @patch("loan_processing.utils.persona_loader.load_persona")
+    @patch("loan_processing.utils.PersonaLoader.load_persona")
     def test_create_intake_agent(self, mock_load_persona):
         """Test creating intake agent with all configurations."""
         mock_load_persona.return_value = "Mock intake persona instructions"
@@ -157,7 +157,7 @@ class TestAgentRegistryCreation:
         assert "confidence_score" in agent.instructions
         assert "JSON format" in agent.instructions
 
-    @patch("loan_processing.utils.persona_loader.load_persona")
+    @patch("loan_processing.utils.PersonaLoader.load_persona")
     def test_create_credit_agent(self, mock_load_persona):
         """Test creating credit agent with all configurations."""
         mock_load_persona.return_value = "Mock credit persona instructions"
@@ -170,7 +170,7 @@ class TestAgentRegistryCreation:
         assert "debt_to_income_ratio" in agent.instructions
         assert "risk_category" in agent.instructions
 
-    @patch("loan_processing.utils.persona_loader.load_persona")
+    @patch("loan_processing.utils.PersonaLoader.load_persona")
     def test_create_income_agent(self, mock_load_persona):
         """Test creating income agent with all configurations."""
         mock_load_persona.return_value = "Mock income persona instructions"
@@ -183,7 +183,7 @@ class TestAgentRegistryCreation:
         assert "employment_verification_status" in agent.instructions
         assert "income_trend" in agent.instructions
 
-    @patch("loan_processing.utils.persona_loader.load_persona")
+    @patch("loan_processing.utils.PersonaLoader.load_persona")
     def test_create_risk_agent(self, mock_load_persona):
         """Test creating risk agent with all configurations."""
         mock_load_persona.return_value = "Mock risk persona instructions"
@@ -422,7 +422,7 @@ class TestAgentRegistryUtilityMethods:
 class TestAgentRegistryIntegration:
     """Integration tests for agent registry functionality."""
 
-    @patch("loan_processing.utils.persona_loader.load_persona")
+    @patch("loan_processing.utils.PersonaLoader.load_persona")
     def test_create_all_agent_types(self, mock_load_persona):
         """Test creating all agent types successfully."""
         mock_load_persona.return_value = "Mock persona"
@@ -450,7 +450,7 @@ class TestAgentRegistryIntegration:
         # Clear cache to start fresh
         MCPServerFactory._server_cache.clear()
 
-        with patch("loan_processing.utils.persona_loader.load_persona") as mock_load:
+        with patch("loan_processing.utils.PersonaLoader.load_persona") as mock_load:
             mock_load.return_value = "Mock persona"
 
             # Create multiple agents that share servers

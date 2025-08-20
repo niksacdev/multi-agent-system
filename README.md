@@ -49,13 +49,18 @@ uv sync
 cp .env.example .env
 # Edit .env with your OpenAI or Azure OpenAI credentials
 
-# 3. Start everything with one command!
-./start.sh          # Unix/Linux/macOS
+# 3. Interactive startup - one command does it all!
+./start.sh          # Unix/Linux/macOS  
 # OR
 start.bat           # Windows
 ```
 
-**That's it!** The script automatically starts MCP servers, waits for them to be ready, then launches the console application. Press Ctrl+C to stop everything cleanly.
+**Experience the magic!** The interactive startup script:
+- ✅ Checks your environment automatically
+- 🚀 Starts all MCP data services with progress indicators  
+- 🎉 Waits for everything to be ready
+- 🤖 Prompts you when ready to process loans
+- 🧹 Cleans up everything when you exit
 
 ### 🔧 Alternative: Manual Setup
 

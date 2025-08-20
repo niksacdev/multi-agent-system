@@ -13,9 +13,15 @@ import sys
 from pathlib import Path
 from typing import Any
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 # Add project root to path for loan_processing imports
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
+
+from loan_processing.utils import get_logger, log_execution  # noqa: E402
 
 # Import backend modules
 from loan_processing.agents.providers.openai.orchestration.engine import (  # noqa: E402
@@ -23,6 +29,9 @@ from loan_processing.agents.providers.openai.orchestration.engine import (  # no
 )
 from loan_processing.models.application import LoanApplication  # noqa: E402
 from loan_processing.models.decision import LoanDecision  # noqa: E402
+
+# Initialize logging
+logger = get_logger(__name__)
 
 
 class LoanProcessingBackendClient:
@@ -37,12 +46,27 @@ class LoanProcessingBackendClient:
     def __init__(self):
         """Initialize backend client."""
         self._processing_engine = None
+        
+        logger.info("Backend client created", component="backend_client")
 
+    @log_execution(component="backend_client", operation="initialize")
     async def initialize(self) -> None:
         """Initialize the backend connection."""
-        # Backend handles all its own configuration from environment variables
-        # Console app doesn't need to manage this
-        self._processing_engine = ProcessingEngine.create_configured()
+        logger.info("Initializing backend connection", component="backend_client")
+        
+        try:
+            # Backend handles all its own configuration from environment variables
+            # Console app doesn't need to manage this
+            self._processing_engine = ProcessingEngine.create_configured()
+            
+            logger.info("Backend processing engine initialized successfully", component="backend_client")
+            
+        except Exception as e:
+            logger.error("Failed to initialize backend connection", 
+                        error_message=str(e),
+                        error_type=type(e).__name__,
+                        component="backend_client")
+            raise
 
     def get_available_patterns(self) -> list[dict[str, Any]]:
         """
@@ -106,6 +130,7 @@ class LoanProcessingBackendClient:
                 return pattern
         return None
 
+    @log_execution(component="backend_client", operation="process_application")
     async def process_application(self, application: LoanApplication, pattern_id: str) -> LoanDecision:
         """
         Process a loan application using the specified pattern.
@@ -121,22 +146,52 @@ class LoanProcessingBackendClient:
             ValueError: If pattern_id is invalid
             Exception: For processing errors
         """
+        logger.info("Processing loan application", 
+                   application_id=application.application_id,
+                   pattern_id=pattern_id,
+                   component="backend_client")
+        
         if not self._processing_engine:
+            logger.error("Backend client not initialized", component="backend_client")
             raise RuntimeError("Backend client not initialized. Call initialize() first.")
 
         # Validate pattern exists
         if not self.get_pattern_by_id(pattern_id):
+            logger.error("Unknown orchestration pattern", 
+                        pattern_id=pattern_id, component="backend_client")
             raise ValueError(f"Unknown pattern: {pattern_id}")
 
-        # Backend processing engine handles all the complexity
-        # Console app just needs to pass the application and pattern
-        decision = await self._processing_engine.execute_pattern(
-            pattern_name=pattern_id,
-            application=application,
-            model=None,  # Backend will use its configured model from SystemConfig
-        )
+        try:
+            logger.info("Executing orchestration pattern", 
+                       pattern_id=pattern_id,
+                       application_id=application.application_id,
+                       component="backend_client")
+            
+            # Backend processing engine handles all the complexity
+            # Console app just needs to pass the application and pattern
+            decision = await self._processing_engine.execute_pattern(
+                pattern_name=pattern_id,
+                application=application,
+                model=None,  # Backend will use its configured model from SystemConfig
+            )
 
-        return decision
+            logger.info("Application processing completed", 
+                       application_id=application.application_id,
+                       pattern_id=pattern_id,
+                       decision_status=decision.decision.value,
+                       confidence_score=decision.confidence_score,
+                       component="backend_client")
+
+            return decision
+            
+        except Exception as e:
+            logger.error("Application processing failed", 
+                        application_id=application.application_id,
+                        pattern_id=pattern_id,
+                        error_message=str(e),
+                        error_type=type(e).__name__,
+                        component="backend_client")
+            raise
 
     def get_backend_status(self) -> dict[str, Any]:
         """

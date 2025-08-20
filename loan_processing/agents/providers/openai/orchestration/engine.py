@@ -8,6 +8,7 @@ requiring changes to agent code. Agents remain autonomous in tool selection.
 
 from __future__ import annotations
 
+import sys
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -16,10 +17,23 @@ from typing import Any
 
 import yaml
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
+# Add project root to path for utils imports
+project_root = Path(__file__).parent.parent.parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+from loan_processing.utils import get_logger, log_execution, correlation_context  # noqa: E402
+
 from loan_processing.agents.providers.openai.agentregistry import AgentRegistry
 from loan_processing.config.settings import SystemConfig, get_system_config
 from loan_processing.models.application import LoanApplication
 from loan_processing.models.decision import LoanDecision, LoanDecisionStatus
+
+# Initialize logging
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -61,7 +75,7 @@ class ProcessingEngine:
     def __init__(self, system_config: SystemConfig, patterns_dir: Path | None = None):
         """Initialize the processing engine with system configuration."""
         self.system_config = system_config
-        self.patterns_dir = patterns_dir or Path(__file__).parent.parent.parent.parent / "config"
+        self.patterns_dir = patterns_dir or Path(__file__).parent.parent.parent.parent.parent / "config"
         self.agent_registry = AgentRegistry(system_config.ai_model)
         self._pattern_cache: dict[str, dict] = {}
 
@@ -100,6 +114,7 @@ class ProcessingEngine:
         pattern_type = executor.get_pattern_type()
         self.pattern_executors[pattern_type] = executor
 
+    @log_execution(component="orchestrator", operation="execute_pattern")  
     async def execute_pattern(
         self,
         pattern_name: str,
@@ -121,44 +136,67 @@ class ProcessingEngine:
         """
         start_time = datetime.now(timezone.utc)
 
-        # Load pattern configuration
-        pattern_config = self._load_pattern(pattern_name)
+        # Create correlation context for this processing session
+        async with correlation_context(f"{pattern_name}_{application.application_id}") as session_id:
+            logger.info("Starting orchestration pattern execution", 
+                       pattern_name=pattern_name, 
+                       application_id=application.application_id,
+                       session_id=session_id,
+                       component="orchestrator")
 
-        # Create processing context
-        context = OrchestrationContext(
-            application=application,
-            session_id=f"{pattern_name}_{application.application_id}_{int(time.time())}",
-            processing_start_time=start_time,
-            pattern_name=pattern_name,
-            metadata=context_overrides or {},
-        )
+            # Load pattern configuration
+            pattern_config = self._load_pattern(pattern_name)
 
-        context.add_audit_entry(f"Started {pattern_name} orchestration for application {application.application_id}")
+            # Create processing context
+            context = OrchestrationContext(
+                application=application,
+                session_id=session_id,
+                processing_start_time=start_time,
+                pattern_name=pattern_name,
+                metadata=context_overrides or {},
+            )
 
-        try:
-            # Get and validate executor
-            executor = self._get_executor(pattern_config)
+            context.add_audit_entry(f"Started {pattern_name} orchestration for application {application.application_id}")
 
-            # Validate configuration
-            config_errors = executor.validate_config(pattern_config)
-            if config_errors:
-                raise ValueError(f"Configuration errors: {'; '.join(config_errors)}")
+            try:
+                # Get and validate executor
+                executor = self._get_executor(pattern_config)
 
-            # Execute pattern using appropriate executor
-            await executor.execute(pattern_config, context, model)
+                # Validate configuration
+                config_errors = executor.validate_config(pattern_config)
+                if config_errors:
+                    raise ValueError(f"Configuration errors: {'; '.join(config_errors)}")
 
-            # Generate final decision
-            decision = self._generate_loan_decision(pattern_config, context)
+                logger.info("Pattern configuration validated", 
+                           pattern_type=pattern_config.get("pattern_type"),
+                           component="orchestrator")
 
-            context.add_audit_entry("Orchestration completed successfully")
-            return decision
+                # Execute pattern using appropriate executor
+                await executor.execute(pattern_config, context, model)
 
-        except Exception as e:
-            context.add_audit_entry(f"Orchestration failed: {str(e)}")
-            context.errors.append(str(e))
+                # Generate final decision
+                decision = self._generate_loan_decision(pattern_config, context)
 
-            # Generate fallback decision
-            return self._generate_error_decision(context, e)
+                logger.info("Orchestration completed successfully", 
+                           decision_status=decision.decision.value,
+                           confidence_score=decision.confidence_score,
+                           processing_time_seconds=(datetime.now(timezone.utc) - start_time).total_seconds(),
+                           component="orchestrator")
+
+                context.add_audit_entry("Orchestration completed successfully")
+                return decision
+
+            except Exception as e:
+                logger.error("Orchestration failed", 
+                           error_message=str(e),
+                           error_type=type(e).__name__,
+                           component="orchestrator")
+                
+                context.add_audit_entry(f"Orchestration failed: {str(e)}")
+                context.errors.append(str(e))
+
+                # Generate fallback decision
+                return self._generate_error_decision(context, e)
 
     def _get_executor(self, pattern_config: dict[str, Any]):
         """Get appropriate executor for pattern type."""
