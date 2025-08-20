@@ -245,12 +245,7 @@ class TestAgentRegistryStructuredOutput:
 
         enhanced = OutputFormatGenerator.add_structured_output_instructions("", agent_config.get("output_format", {}))
 
-        required_fields = [
-            "validation_status",
-            "routing_decision", 
-            "confidence_score",
-            "processing_notes"
-        ]
+        required_fields = ["validation_status", "routing_decision", "confidence_score", "processing_notes"]
 
         for field in required_fields:
             assert field in enhanced

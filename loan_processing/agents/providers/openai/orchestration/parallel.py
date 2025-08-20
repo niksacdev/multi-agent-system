@@ -37,7 +37,7 @@ class ParallelPatternExecutor(PatternExecutor):
     @log_execution(component="parallel_executor", operation="execute")
     async def execute(self, pattern_config: dict[str, Any], context: OrchestrationContext, model: str | None) -> None:
         """Execute parallel orchestration pattern."""
-        
+
         logger.info(
             "Starting parallel orchestration execution",
             application_id=context.application.application_id,
@@ -86,7 +86,7 @@ class ParallelPatternExecutor(PatternExecutor):
         self, branches: list[dict[str, Any]], context: OrchestrationContext, model: str | None
     ) -> None:
         """Execute parallel branches concurrently."""
-        
+
         logger.info("Starting parallel branches execution", branch_count=len(branches), component="parallel_executor")
 
         context.add_audit_entry(f"Starting {len(branches)} parallel branches")

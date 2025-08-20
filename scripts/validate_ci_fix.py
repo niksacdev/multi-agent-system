@@ -45,9 +45,10 @@ def main() -> int:
     if not (project_root / "loan_processing").exists():
         print("❌ Error: Cannot find project root directory")
         return 1
-    
+
     # Change to project root for all operations
     import os
+
     os.chdir(project_root)
 
     # Step 1: Install dependencies
