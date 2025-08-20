@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Set up paths
-project_root = Path(__file__).parent
+project_root = Path(__file__).parent.parent  # Go up one level from scripts/
 console_app_dir = project_root / "console_app"
 console_src_dir = console_app_dir / "src"
 

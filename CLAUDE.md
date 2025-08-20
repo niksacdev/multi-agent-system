@@ -161,7 +161,7 @@ uv run mypy loan_processing/ --ignore-missing-imports
 #### 4. Complete Pre-Commit Validation Script
 Use the validation script to check everything at once:
 ```bash
-uv run python validate_ci_fix.py
+uv run python scripts/validate_ci_fix.py
 ```
 
 **⚠️ NEVER COMMIT if any of these checks fail. Fix issues locally first.**
@@ -274,7 +274,7 @@ Working tests:
 uv run pytest tests/test_agent_registry.py tests/tools_tests/test_utils.py -v --cov=loan_processing --cov-report=term-missing
 
 # Quick validation
-uv run python validate_tests.py
+uv run python scripts/validate_ci_fix.py
 
 # Agent registry tests only 
 uv run pytest tests/test_agent_registry.py -v
@@ -439,7 +439,7 @@ except AgentTimeoutError:
 - MCP Servers: `loan_processing/tools/mcp_servers/*/server.py`
 - Console Application: `console_app/src/main.py`
 - Console Configuration: `console_app/config/app_config.yaml`
-- App Launcher: `run_console_app.py`
+- App Launcher: `scripts/run_console_app.py`
 
 ### Common Commands
 ```bash
@@ -454,7 +454,7 @@ uv run python -m loan_processing.tools.mcp_servers.document_processing.server
 uv run python -m loan_processing.tools.mcp_servers.financial_calculations.server
 
 # Run console application
-uv run python run_console_app.py
+uv run python scripts/run_console_app.py
 
 # Run tests
 uv run pytest tests/test_agent_registry.py -v                           # Agent registry tests
@@ -463,7 +463,7 @@ uv run pytest tests/test_agent_registry.py --cov=loan_processing       # With co
 
 # Test validation
 uv run python validate_tests.py    # Quick validation
-uv run python run_tests.py          # Full test suite (when all tests are updated)
+uv run python scripts/run_tests.py          # Full test suite (when all tests are updated)
 ```
 
 ### Environment Variables

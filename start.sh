@@ -32,7 +32,7 @@ trap cleanup SIGINT SIGTERM EXIT
 
 echo "🚀 Phase 1: Starting MCP Data Services"
 echo "--------------------------------------"
-python start_mcp_servers.py
+python scripts/start_mcp_servers.py
 
 # Check if servers started successfully
 if [ $? -ne 0 ]; then
@@ -79,4 +79,4 @@ echo "---------------------------------------"
 echo "💡 Tip: Use Ctrl+C anytime to stop the entire system"
 echo
 
-uv run python run_console_app.py $scenario
+uv run python scripts/run_console_app.py $scenario

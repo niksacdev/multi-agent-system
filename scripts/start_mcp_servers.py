@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Add project root to path for utils imports
-project_root = Path(__file__).parent
+project_root = Path(__file__).parent.parent  # Go up one level from scripts/
 sys.path.insert(0, str(project_root))
 
 from loan_processing.utils import correlation_context, get_logger  # noqa: E402
