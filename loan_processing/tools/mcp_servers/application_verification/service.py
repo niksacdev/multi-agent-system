@@ -8,10 +8,25 @@ The MCP server calls into this service and returns JSON strings to clients.
 from __future__ import annotations
 
 import random
+import sys
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
+# Add project root to path for utils imports
+project_root = Path(__file__).parent.parent.parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+from loan_processing.utils import get_logger, log_execution  # noqa: E402
+
 from loan_processing.tools.services.application_verification import ApplicationVerificationService
+
+# Initialize logging
+logger = get_logger(__name__)
 
 
 class ApplicationVerificationServiceImpl(ApplicationVerificationService):
@@ -20,11 +35,26 @@ class ApplicationVerificationServiceImpl(ApplicationVerificationService):
     randomization to simulate real-world variability for demos.
     """
 
+    @log_execution(component="verification_service", operation="retrieve_credit_report")
     async def retrieve_credit_report(self, applicant_id: str, full_name: str, address: str) -> dict[str, Any]:
+        logger.info("Retrieving credit report", 
+                   applicant_id=applicant_id,
+                   component="verification_service")
+        
         score = random.randint(620, 780)
         utilization = round(random.uniform(0.15, 0.45), 2)
         payment_history = round(random.uniform(0.85, 0.99), 2)
         inquiries = random.randint(0, 5)
+        
+        risk_level = "low" if score >= 740 else "medium" if score >= 680 else "high"
+        recommendation = "approve" if score >= 700 and utilization <= 0.3 else "review"
+        
+        logger.info("Credit report generated", 
+                   applicant_id=applicant_id,
+                   credit_score=score,
+                   risk_level=risk_level,
+                   recommendation=recommendation,
+                   component="verification_service")
 
         return {
             "applicant_id": applicant_id,
@@ -38,15 +68,29 @@ class ApplicationVerificationServiceImpl(ApplicationVerificationService):
             "delinquencies": random.randint(0, 2),
             "bankruptcies": 0,
             "trade_lines": random.randint(3, 12),
-            "risk_level": "low" if score >= 740 else "medium" if score >= 680 else "high",
-            "recommendation": "approve" if score >= 700 and utilization <= 0.3 else "review",
+            "risk_level": risk_level,
+            "recommendation": recommendation,
             "type": "credit_report",
         }
 
+    @log_execution(component="verification_service", operation="verify_employment")
     async def verify_employment(self, applicant_id: str, employer_name: str, position: str) -> dict[str, Any]:
+        logger.info("Verifying employment", 
+                   applicant_id=applicant_id,
+                   component="verification_service")
+        
         income = random.randint(50000, 120000)
         tenure_months = random.randint(6, 60)
         employment_type = random.choice(["full-time", "part-time", "contract"])
+        
+        verification_status = "verified" if tenure_months >= 12 else "conditional"
+        
+        logger.info("Employment verification completed", 
+                   applicant_id=applicant_id,
+                   income=income,
+                   tenure_months=tenure_months,
+                   verification_status=verification_status,
+                   component="verification_service")
 
         return {
             "applicant_id": applicant_id,

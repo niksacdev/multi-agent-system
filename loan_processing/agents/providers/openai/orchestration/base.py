@@ -119,7 +119,13 @@ class AgentExecutionService:
 
         try:
             # Create agent instance
-            agent = self.agent_registry.create_agent(agent_type, model)
+            agent = self.agent_registry.create_configured_agent(agent_type, model)
+
+            # Connect MCP servers before execution
+            for mcp_server in agent.mcp_servers:
+                if hasattr(mcp_server, 'connect') and not getattr(mcp_server, '_connected', False):
+                    await mcp_server.connect()
+                    mcp_server._connected = True
 
             # Prepare input with accumulated context
             agent_input = self._prepare_agent_input(agent_type, context)
@@ -210,7 +216,7 @@ class AgentExecutionService:
 
         # Safe condition evaluation without eval()
         try:
-            from loan_processing.agents.shared.utils import evaluate_condition
+            from loan_processing.utils import evaluate_condition
 
             return evaluate_condition(condition, result)
         except Exception:
@@ -252,7 +258,7 @@ class HandoffValidationService:
 
         # Safe condition evaluation without eval()
         try:
-            from loan_processing.agents.shared.utils import evaluate_condition
+            from loan_processing.utils import evaluate_condition
 
             return evaluate_condition(condition, result)
         except Exception:

@@ -8,9 +8,24 @@ This provides realistic demo data for the loan processing system.
 from __future__ import annotations
 
 import random
+import sys
+from pathlib import Path
 from typing import Any
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
+# Add project root to path for utils imports
+project_root = Path(__file__).parent.parent.parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+from loan_processing.utils import get_logger, log_execution  # noqa: E402
+
 from loan_processing.tools.services.financial_calculations import FinancialCalculationsService
+
+# Initialize logging
+logger = get_logger(__name__)
 
 
 class FinancialCalculationsServiceImpl(FinancialCalculationsService):
@@ -21,11 +36,18 @@ class FinancialCalculationsServiceImpl(FinancialCalculationsService):
     In production, this would connect to actual financial calculation engines.
     """
 
+    @log_execution(component="financial_service", operation="calculate_debt_to_income_ratio")
     async def calculate_debt_to_income_ratio(
         self, monthly_income: float, monthly_debt_payments: float
     ) -> dict[str, Any]:
         """Calculate debt-to-income ratio with qualification assessment."""
+        logger.info("Calculating debt-to-income ratio", 
+                   component="financial_service")
+        # Note: application_id correlation available via correlation_context from caller
+        
         if monthly_income <= 0:
+            logger.error("Invalid monthly income for DTI calculation", 
+                        component="financial_service")
             return {"error": "Monthly income must be greater than zero", "type": "calculation_error"}
 
         dti_ratio = (monthly_debt_payments / monthly_income) * 100
@@ -44,6 +66,12 @@ class FinancialCalculationsServiceImpl(FinancialCalculationsService):
             qualification = "poor"
             risk_level = "very_high"
 
+        logger.info("DTI calculation completed", 
+                   dti_ratio=round(dti_ratio, 2),
+                   qualification=qualification,
+                   risk_level=risk_level,
+                   component="financial_service")
+
         return {
             "debt_to_income_ratio": round(dti_ratio, 2),
             "monthly_income": monthly_income,
@@ -55,6 +83,7 @@ class FinancialCalculationsServiceImpl(FinancialCalculationsService):
             "type": "dti_calculation",
         }
 
+    @log_execution(component="financial_service", operation="calculate_loan_affordability")
     async def calculate_loan_affordability(
         self,
         monthly_income: float,
@@ -64,6 +93,8 @@ class FinancialCalculationsServiceImpl(FinancialCalculationsService):
         loan_term_months: int,
     ) -> dict[str, Any]:
         """Calculate loan affordability with comprehensive assessment."""
+        logger.info("Calculating loan affordability", 
+                   component="financial_service")
         # Calculate monthly payment
         monthly_rate = interest_rate / 12
         if monthly_rate == 0:
@@ -93,6 +124,13 @@ class FinancialCalculationsServiceImpl(FinancialCalculationsService):
             affordability = "unaffordable"
             approval_probability = random.uniform(0.10, 0.40)
 
+        logger.info("Loan affordability calculation completed", 
+                   affordability_status=affordability,
+                   approval_probability=round(approval_probability, 3),
+                   new_dti=round(new_dti, 2),
+                   monthly_payment=round(monthly_payment, 2),
+                   component="financial_service")
+
         return {
             "loan_amount": loan_amount,
             "monthly_payment": round(monthly_payment, 2),
@@ -106,6 +144,7 @@ class FinancialCalculationsServiceImpl(FinancialCalculationsService):
             "type": "affordability_assessment",
         }
 
+    @log_execution(component="financial_service", operation="calculate_monthly_payment")
     async def calculate_monthly_payment(
         self,
         loan_amount: float,
@@ -114,6 +153,8 @@ class FinancialCalculationsServiceImpl(FinancialCalculationsService):
         payment_type: str = "principal_and_interest",
     ) -> dict[str, Any]:
         """Calculate monthly loan payment using standard formula."""
+        logger.info("Calculating monthly payment", 
+                   component="financial_service")
         monthly_rate = interest_rate / 12
 
         if monthly_rate == 0:

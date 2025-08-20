@@ -40,15 +40,9 @@ def run_tests(test_type: str = "all", verbose: bool = False, coverage: bool = Tr
     elif test_type == "unit":
         cmd.extend(["tests/", "-k", "not integration"])
     elif test_type == "integration":
-        cmd.extend(["tests/tools_tests/test_integration.py"])
+        cmd.extend(["tests/test_integration.py"])
     elif test_type == "server":
-        cmd.extend(
-            [
-                "tests/tools_tests/application_verification/test_server.py",
-                "tests/tools_tests/document_processing/test_server.py",
-                "tests/tools_tests/financial_calculations/test_server.py",
-            ]
-        )
+        cmd.extend(["tests/test_agent_registry.py", "tests/test_safe_evaluator.py"])
     else:
         print(f"Unknown test type: {test_type}")
         return 1

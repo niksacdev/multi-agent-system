@@ -119,14 +119,14 @@ class TestAgentBehavior:
     @pytest.mark.asyncio
     async def test_agent_persona_loading(self):
         """Test that agents load personas correctly."""
-        from loan_processing.agents.shared.utils.persona_loader import load_persona
+        from loan_processing.utils import PersonaLoader
 
         # Test that persona files can be loaded
-        intake_persona = load_persona("intake")
+        intake_persona = PersonaLoader.load_persona("intake")
         assert intake_persona is not None
         assert len(intake_persona) > 0
 
-        credit_persona = load_persona("credit")
+        credit_persona = PersonaLoader.load_persona("credit")
         assert credit_persona is not None
         assert len(credit_persona) > 0
 

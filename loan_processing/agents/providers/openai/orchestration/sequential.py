@@ -7,10 +7,21 @@ process in order, with each agent building on the previous results.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
 from typing import Any
+
+# Add project root to path for utils imports
+project_root = Path(__file__).parent.parent.parent.parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+from loan_processing.utils import get_logger, log_execution  # noqa: E402
 
 from loan_processing.agents.providers.openai.orchestration.base import HandoffValidationService, PatternExecutor
 from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationContext
+
+# Initialize logging
+logger = get_logger(__name__)
 
 
 class SequentialPatternExecutor(PatternExecutor):
@@ -20,12 +31,21 @@ class SequentialPatternExecutor(PatternExecutor):
         """Initialize sequential pattern executor."""
         super().__init__(agent_registry)
         self.handoff_service = HandoffValidationService()
+        
+        logger.info("Sequential pattern executor initialized", component="sequential_executor")
 
+    @log_execution(component="sequential_executor", operation="execute")
     async def execute(self, pattern_config: dict[str, Any], context: OrchestrationContext, model: str | None) -> None:
         """Execute sequential orchestration pattern."""
-
+        
         agents = pattern_config.get("agents", [])
         handoff_rules = {rule["from"]: rule for rule in pattern_config.get("handoff_rules", [])}
+
+        logger.info("Starting sequential execution", 
+                   agent_count=len(agents),
+                   application_id=context.application.application_id,
+                   session_id=context.session_id,
+                   component="sequential_executor")
 
         context.add_audit_entry(f"Starting sequential execution with {len(agents)} agents")
 
@@ -35,15 +55,39 @@ class SequentialPatternExecutor(PatternExecutor):
             # Check if handoff conditions are met (skip for first agent)
             if i > 0:
                 previous_agent_type = agents[i - 1]["type"]
+                logger.info("Checking handoff conditions", 
+                           from_agent=previous_agent_type,
+                           to_agent=agent_type,
+                           component="sequential_executor")
+                
                 if not self.handoff_service.check_handoff_conditions(handoff_rules, previous_agent_type, context):
+                    logger.warning("Handoff conditions not met, stopping workflow", 
+                                 from_agent=previous_agent_type,
+                                 to_agent=agent_type,
+                                 component="sequential_executor")
                     context.add_audit_entry(f"Handoff conditions not met for {agent_type}, stopping workflow")
                     break
 
             # Execute agent
+            logger.info("Executing agent in sequence", 
+                       agent_type=agent_type,
+                       agent_index=i+1,
+                       total_agents=len(agents),
+                       component="sequential_executor")
+            
             context.add_audit_entry(f"Executing agent: {agent_type}")
             await self.agent_execution_service.execute_agent(agent_type, agent_config, context, model)
             context.add_audit_entry(f"Completed agent: {agent_type}")
+            
+            logger.info("Agent execution completed", 
+                       agent_type=agent_type,
+                       agent_index=i+1,
+                       component="sequential_executor")
 
+        logger.info("Sequential execution completed", 
+                   application_id=context.application.application_id,
+                   session_id=context.session_id,
+                   component="sequential_executor")
         context.add_audit_entry("Sequential execution completed")
 
     def validate_config(self, pattern_config: dict[str, Any]) -> list[str]:

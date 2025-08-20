@@ -45,14 +45,50 @@ git clone https://github.com/niksacdev/multi-agent-system.git
 cd multi-agent-system
 uv sync
 
-# 2. Set your OpenAI API key
-export OPENAI_API_KEY="your-key-here"
+# 2. Configure your API provider
+cp .env.example .env
+# Edit .env with your OpenAI or Azure OpenAI credentials
 
-# 3. Run the demo
-uv run python demo_sequential_processing.py
+# 3. Interactive startup - one command does it all!
+./start.sh          # Unix/Linux/macOS  
+# OR
+start.bat           # Windows
 ```
 
-**That's it!** You'll see a complete loan processing workflow in action.
+**Experience the magic!** The interactive startup script:
+- ✅ Checks your environment automatically
+- 🚀 Starts all MCP data services with progress indicators  
+- 🎉 Waits for everything to be ready
+- 🤖 Prompts you when ready to process loans
+- 🧹 Cleans up everything when you exit
+
+### 🔧 Alternative: Manual Setup
+
+If you prefer more control, you can start components separately:
+
+```bash
+# Option 1: Start MCP servers first, then console app
+python start_mcp_servers.py
+uv run python run_console_app.py
+
+# Option 2: Check server status
+python start_mcp_servers.py --status
+
+# Option 3: Stop servers manually  
+python start_mcp_servers.py --stop
+```
+
+**Manual startup** (if you prefer separate terminals):
+```bash
+# Terminal 1: Application verification service
+uv run python -m loan_processing.tools.mcp_servers.application_verification.server
+
+# Terminal 2: Document processing service  
+uv run python -m loan_processing.tools.mcp_servers.document_processing.server
+
+# Terminal 3: Financial calculations service
+uv run python -m loan_processing.tools.mcp_servers.financial_calculations.server
+```
 
 ## How It Works
 
@@ -77,6 +113,33 @@ Five specialized agents collaborate to process loan applications:
 
 Each agent uses the Jobs-to-be-Done framework to ensure customer-centric outcomes.  
 [→ Learn about the architecture](docs/architecture/agent-strategy.md)
+
+## Architecture: Decoupled by Design
+
+This system uses a **clean separation** between backend services and client applications:
+
+```
+multi-agent-system/
+├── loan_processing/        # 🏗️ Pure backend module
+│   ├── agents/            # Agent orchestration engine
+│   ├── tools/             # MCP servers & business services
+│   └── ...                # No client apps here!
+├── console_app/           # 🖥️ Standalone console client
+│   ├── config/            # App-specific configuration
+│   ├── src/main.py        # Decoupled application logic
+│   └── .env               # Environment-based settings
+└── web_app/               # 🌐 Future web client (planned)
+```
+
+### 🎯 **Benefits of This Architecture**
+
+- **🔧 Future-Ready**: When `loan_processing` becomes an API service, apps are already decoupled
+- **⚙️ Flexible Configuration**: Each app manages its own OpenAI/Azure OpenAI settings  
+- **🚀 Independent Deployment**: Backend and apps can be deployed separately
+- **🧪 Clean Testing**: Pure backend logic separated from UI concerns
+- **📦 Modular Development**: Teams can work on backend vs. frontend independently
+
+The console app demonstrates **configuration-driven** pattern discovery - no more hardcoded filesystem traversal!
 
 ## Documentation
 

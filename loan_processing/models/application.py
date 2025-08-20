@@ -12,7 +12,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class EmploymentStatus(str, Enum):
@@ -111,11 +111,16 @@ class LoanApplication(BaseModel):
         default_factory=dict, description="Additional application data for custom requirements"
     )
 
-    class Config:
-        """Pydantic configuration."""
-
-        use_enum_values = True
-        json_encoders = {datetime: lambda v: v.isoformat(), Decimal: lambda v: float(v)}
+    model_config = ConfigDict(
+        # Preserve enum objects for type safety while allowing explicit JSON serialization
+        json_encoders = {
+            datetime: lambda v: v.isoformat(), 
+            Decimal: lambda v: float(v),
+            # Explicit enum serialization when JSON conversion is needed
+            EmploymentStatus: lambda v: v.value,
+            LoanPurpose: lambda v: v.value,
+        }
+    )
 
     def __hash__(self) -> int:
         """Make application hashable for caching."""

@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from typing import Optional
 
-from loan_processing.agents.shared.models.application import LoanApplication
-from loan_processing.agents.shared.models.decision import LoanDecision
+from loan_processing.models.application import LoanApplication
+from loan_processing.models.decision import LoanDecision
 
 
 class LoanProcessingSystem:
@@ -29,9 +29,9 @@ class LoanProcessingSystem:
     def _create_engine(self, provider: str):
         """Create provider-specific orchestration engine."""
         if provider == "openai":
-            from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationEngine
+            from loan_processing.agents.providers.openai.orchestration.engine import ProcessingEngine
 
-            return OrchestrationEngine()
+            return ProcessingEngine.create_configured()
         elif provider == "semantic_kernel":
             # Future implementation
             raise NotImplementedError("Semantic Kernel provider not yet implemented")
