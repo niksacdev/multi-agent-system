@@ -26,7 +26,7 @@ This issue documents our configuration-driven agent management system implementa
 - **Core Implementation:** `loan_processing/agents/providers/openai/agentregistry.py`
 - **Configuration:** `loan_processing/agents/shared/config/agents.yaml`
 - **Utils:** `loan_processing/utils/`
-- **Key Commits:** 
+- **Key Commits:**
   - `567bc4a` - Updated tests and CI to match optimized configuration
   - `5850ec2` - Configuration cleanup and optimization
 
@@ -557,3 +557,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# ruff: noqa: E501

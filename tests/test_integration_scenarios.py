@@ -128,7 +128,6 @@ class TestCriticalLoanProcessingScenarios:
 
         # Test that application would be routed to FAST_TRACK
         # (Mock test since we don't want to make real API calls)
-        expected_routing = "FAST_TRACK"
         assert application.annual_income > 150000  # Meets fast-track criteria
 
     def test_marginal_credit_standard_scenario(self):

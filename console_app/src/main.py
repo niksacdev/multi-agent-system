@@ -234,8 +234,7 @@ class LoanProcessingConsole:
             additional_data={
                 # Property details that intake agent expects
                 "property_address": (
-                    f"{random.randint(100, 999)} Main Street, "
-                    f"San Francisco, CA 9411{random.randint(0, 9)}"
+                    f"{random.randint(100, 999)} Main Street, San Francisco, CA 9411{random.randint(0, 9)}"
                 ),
                 "property_value": scenario["property_value"],
                 "property_type": "SINGLE_FAMILY",
@@ -243,8 +242,7 @@ class LoanProcessingConsole:
                 "property_condition": "GOOD",
                 # Applicant details expected by intake agent
                 "current_address": (
-                    f"{random.randint(100, 999)} Elm Street, "
-                    f"San Francisco, CA 9411{random.randint(0, 9)}"
+                    f"{random.randint(100, 999)} Elm Street, San Francisco, CA 9411{random.randint(0, 9)}"
                 ),
                 "years_at_address": random.randint(1, 10),
                 # Monthly financial details

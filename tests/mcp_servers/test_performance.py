@@ -360,7 +360,7 @@ class TestMCPServerStressTests:
         durations = []
 
         # Run calculations continuously for multiple iterations
-        for iteration in range(10):
+        for _iteration in range(10):
             start_time = time.time()
 
             # Burst of calculations

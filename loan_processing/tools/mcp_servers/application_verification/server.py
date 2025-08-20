@@ -16,10 +16,10 @@ load_dotenv()
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP  # noqa: E402
 from loan_processing.utils import get_logger, log_execution  # noqa: E402
 
-from .service import ApplicationVerificationServiceImpl
+from .service import ApplicationVerificationServiceImpl  # noqa: E402
 
 # Initialize logging
 logger = get_logger(__name__)

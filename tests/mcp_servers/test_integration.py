@@ -334,10 +334,6 @@ class TestMCPServerIntegration:
         avg_monthly_deposits = sum(tx["amount"] for tx in bank_deposits)
 
         # Income stability assessment
-        income_sources = [
-            {"amount": primary_monthly, "source": "employment"},
-            {"amount": avg_monthly_deposits, "source": "bank_deposits"},
-        ]
 
         # Use the most conservative income figure for loan calculations
         conservative_income = min(verified_monthly_income, avg_monthly_deposits)

@@ -65,7 +65,10 @@ Return JSON with validation results.
 
                 result = PersonaLoader.load_persona(agent_type)
 
-                expected = f"You are the {agent_type} agent. Provide concise, structured domain outputs as JSON when appropriate."
+                expected = (
+                    f"You are the {agent_type} agent. "
+                    "Provide concise, structured domain outputs as JSON when appropriate."
+                )
                 assert result == expected
 
     def test_get_persona_path(self):
@@ -177,7 +180,7 @@ Return JSON with validation results.
         """Test persona loading with unicode characters."""
         unicode_content = """# Test Agent 🤖
 
-## Role & Responsibilities 
+## Role & Responsibilities
 You are a test agent with émojis and spëcial characters.
 
 ## Process
@@ -303,7 +306,10 @@ class TestPersonaLoaderIntegration:
         """Test that fallback works correctly in integration scenario."""
         # Test with non-existent persona
         result = PersonaLoader.load_persona("definitely_not_exists_12345")
-        expected = "You are the definitely_not_exists_12345 agent. Provide concise, structured domain outputs as JSON when appropriate."
+        expected = (
+            "You are the definitely_not_exists_12345 agent. "
+            "Provide concise, structured domain outputs as JSON when appropriate."
+        )
         assert result == expected
 
 
