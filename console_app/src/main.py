@@ -146,32 +146,32 @@ class LoanProcessingConsole:
 
         # Define specific test scenarios for different decision outcomes
         test_scenarios = {
-            # High-quality applicant → APPROVED
+            # Exceptionally strong applicant → APPROVED
             "approval": {
                 "applicant_name": "Sarah Johnson",
-                "annual_income": 200000.00,
-                "loan_amount": 400000.00,
-                "down_payment": 120000.00,  # 30% down
-                "existing_debt": 500.00,  # Very low debt
-                "months_employed": 84,  # 7 years stable employment
-                "employer_name": "Apple Inc.",
-                "property_value": 500000.00,
-                "monthly_expenses": 2500.00,
-                "credit_score": 780,  # Excellent credit
+                "annual_income": 250000.00,  # Higher income
+                "loan_amount": 300000.00,  # Lower loan amount (conservative)
+                "down_payment": 150000.00,  # 50% down payment
+                "existing_debt": 200.00,  # Minimal debt
+                "months_employed": 120,  # 10 years stable employment
+                "employer_name": "Google Inc.",
+                "property_value": 450000.00,  # Conservative LTV
+                "monthly_expenses": 2000.00,  # Low expenses
+                "credit_score": 820,  # Exceptional credit
                 "employment_type": "FULL_TIME_PERMANENT",
             },
             # Borderline applicant → CONDITIONAL_APPROVAL
             "conditional": {
                 "applicant_name": "Michael Chen",
-                "annual_income": 110000.00,
-                "loan_amount": 350000.00,
-                "down_payment": 70000.00,  # 20% down
-                "existing_debt": 1800.00,  # Moderate debt
-                "months_employed": 30,  # 2.5 years employment
+                "annual_income": 95000.00,  # Lower income
+                "loan_amount": 380000.00,  # Higher loan amount
+                "down_payment": 38000.00,  # 10% down (minimal)
+                "existing_debt": 2200.00,  # Higher debt
+                "months_employed": 24,  # 2 years employment
                 "employer_name": "TechStart LLC",
                 "property_value": 420000.00,
-                "monthly_expenses": 3200.00,
-                "credit_score": 680,  # Good credit
+                "monthly_expenses": 3500.00,  # Higher expenses
+                "credit_score": 650,  # Borderline credit
                 "employment_type": "FULL_TIME_CONTRACT",
             },
             # High-risk applicant → MANUAL_REVIEW

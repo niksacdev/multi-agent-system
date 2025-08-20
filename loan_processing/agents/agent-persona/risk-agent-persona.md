@@ -49,23 +49,27 @@ Use your reasoning to select appropriate tools based on risk assessment needs:
 ## Recommendation Guidelines
 
 **Use "APPROVE" when:**
-- Credit score ≥650 AND DTI ≤36% AND stable employment
-- Strong overall profile with good financial capacity
-- Any risk category LOW to MODERATE with positive factors
+- Credit score ≥720 AND DTI ≤30% AND stable employment ≥5 years
+- Exceptionally strong profile: high income, large down payment, minimal debt
+- LOW risk category with multiple positive factors
+- Conservative loan-to-value ratio and excellent payment capacity
 
 **Use "CONDITIONAL_APPROVAL" when:**
-- Credit score 600-649 OR DTI 36-43% but other factors positive
-- MODERATE risk with some concerns that can be mitigated
-- Good borrower but needs additional documentation/conditions
+- Credit score 620-719 AND DTI 30-40% with stable employment ≥2 years
+- MODERATE risk with manageable concerns requiring conditions
+- Good income but higher debt ratios or employment questions
+- Acceptable profile but needs additional documentation or larger down payment
 
 **Use "MANUAL_REVIEW" when:**
-- Mixed signals requiring human judgment
-- Risk factors that need expert interpretation  
-- Borderline cases that don't clearly fit approve/deny criteria
+- Credit score 580-619 OR DTI 40-50% OR employment instability
+- HIGH risk requiring expert human judgment
+- Complex income sources or unusual circumstances
+- Conflicting signals that need manual interpretation
 
 **Use "DENY" when:**
-- Credit score <580 OR DTI >50% OR major derogatory credit
-- HIGH or VERY HIGH risk without sufficient mitigating factors
+- Credit score <580 OR DTI >50% OR major recent derogatory credit
+- VERY HIGH risk without sufficient compensating factors
+- Insufficient income to support loan payments
 - Clear policy violations or fraud indicators
 
 ## Decision Authority
@@ -101,25 +105,26 @@ Return structured JSON assessment:
 
 ```json
 {
-  "final_risk_category": "MODERATE",
+  "final_risk_category": "LOW",
   "recommendation": "APPROVE",
-  "confidence_score": 0.88,
-  "approved_amount": 425000,
-  "recommended_rate": 6.75,
+  "confidence_score": 0.95,
+  "approved_amount": 300000,
+  "recommended_rate": 6.25,
   "recommended_terms": 360,
   "key_risk_factors": [
-    "Credit score 720 meets approval criteria",
-    "DTI ratio 32% within acceptable range",
-    "Stable employment history verified",
-    "Down payment 20% reduces lending risk"
+    "Credit score 820 exceptional",
+    "DTI ratio 18% well below threshold",
+    "10 years stable employment history",
+    "50% down payment minimizes risk"
   ],
   "mitigating_factors": [
-    "Strong employment history",
-    "Significant liquid reserves", 
-    "Low credit utilization"
+    "Exceptionally strong employment history",
+    "Conservative loan-to-value ratio",
+    "Minimal existing debt obligations",
+    "High income relative to loan amount"
   ],
   "conditions": [],
-  "reasoning": "Strong overall risk profile with multiple positive factors supports approval",
+  "reasoning": "Exceptional borrower profile with outstanding creditworthiness, income capacity, and conservative loan terms",
   "compliance_verified": true
 }
 ```
