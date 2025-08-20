@@ -295,7 +295,7 @@ uv run pytest tests/test_agent_registry.py -v
 ### 3. Console Application
 - `console_app/src/main.py` - Standalone console application (decoupled from backend)
 - `console_app/config/` - App-specific configuration system
-- `run_console_app.py` - Easy launcher script from project root
+- `scripts/run_console_app.py` - Easy launcher script from project root
 - Include sample data that exercises different decision paths
 - Document expected outcomes and user interactions
 

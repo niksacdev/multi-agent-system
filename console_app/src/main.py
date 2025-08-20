@@ -275,19 +275,9 @@ class LoanProcessingConsole:
         print(f"Loan Amount: ${application.loan_amount:,.2f}")
         print(f"Property Value: ${application.additional_data.get('property_value', 0):,.2f}")
         print(f"Annual Income: ${application.annual_income:,.2f}")
-        # With enum objects preserved, we can access .value directly
-        # Keep defensive check for backward compatibility
-        loan_purpose = (
-            application.loan_purpose.value if hasattr(application.loan_purpose, "value") else application.loan_purpose
-        )
-        employment_status = (
-            application.employment_status.value
-            if hasattr(application.employment_status, "value")
-            else application.employment_status
-        )
-
-        print(f"Loan Purpose: {loan_purpose}")
-        print(f"Employment: {employment_status}")
+        # Trust Pydantic models - enums are properly typed
+        print(f"Loan Purpose: {application.loan_purpose.value}")
+        print(f"Employment: {application.employment_status.value}")
         print()
 
     def display_pattern_info(self, pattern_id: str):
