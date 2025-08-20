@@ -205,3 +205,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# SpecStory (AI code documentation)
+.specstory/
+
+# Application results and logs
+results/
+console_app/results/

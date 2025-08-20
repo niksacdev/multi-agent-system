@@ -5,6 +5,26 @@
 ## Project Overview
 This is a Multi-Agent Loan Processing System using OpenAI Agents SDK with MCP (Model Context Protocol) servers as tools. The system implements autonomous agents that process loan applications through a coordinated workflow.
 
+## Critical Lessons Learned
+
+### Token Optimization Discovery
+**Problem**: Large persona files (2000+ lines) causing excessive token consumption and 30+ second response times.
+**Solution**: Reduced personas to 300-500 focused lines with clear directives.
+**Result**: 75% token reduction, 10x faster agent responses.
+
+### Context Loss Prevention
+**Problem**: After large refactoring sessions, Claude loses critical context and makes conflicting changes.
+**Solutions**:
+1. Use `/compact` command to consolidate conversations
+2. Create git checkpoints after major changes
+3. Provide explicit context anchoring for new sessions
+4. Keep sessions to 2-3 hours instead of 8+ hour marathons
+
+### Circular Debugging Detection
+**Problem**: Agents repeat failed solutions in endless loops.
+**Solution**: Track attempted fixes and request human intervention when loops detected.
+**Human Role**: Provide strategic pivots and "be pragmatic" guidance.
+
 ## Development Support Agents (USE PROACTIVELY)
 
 ### Available Support Agents
@@ -50,16 +70,24 @@ Claude has access to specialized development agents that MUST be used proactivel
 - **Agents are autonomous**: Each agent decides which MCP tools to use based on their assessment needs
 - **Persona-driven behavior**: Agent instructions are loaded from persona markdown files
 - **No hardcoded logic**: Avoid embedding business logic in orchestrator code
+- **Jobs-to-be-Done focused**: Agents designed around customer jobs, not internal processes
 
 ### 2. Clean Orchestration
 - **Minimal orchestrator code**: Orchestrators should only handle agent coordination and context passing
 - **Use personas for instructions**: All agent-specific logic lives in persona files
 - **Context accumulation**: Pass previous agent assessments as context to subsequent agents
+- **Configuration-driven**: Define orchestration patterns in YAML, not code
 
 ### 3. MCP Server Integration
 - **Tool selection by agents**: Agents autonomously select appropriate MCP servers based on needs
 - **Secure parameters**: Always use `applicant_id` (UUID) instead of SSN for privacy compliance
 - **Multiple server access**: Agents can access multiple MCP servers for comprehensive functionality
+
+### 4. Token Optimization (CRITICAL)
+- **Keep personas concise**: Target 300-500 lines, not 2000+
+- **Focus on WHAT not HOW**: Clear directives over verbose explanations
+- **Reference external docs**: Link to documentation instead of inline explanations
+- **Result**: 75% token reduction, 10x faster responses
 
 ## Repository Architecture (Updated)
 
@@ -161,7 +189,7 @@ uv run mypy loan_processing/ --ignore-missing-imports
 #### 4. Complete Pre-Commit Validation Script
 Use the validation script to check everything at once:
 ```bash
-uv run python validate_ci_fix.py
+uv run python scripts/validate_ci_fix.py
 ```
 
 **⚠️ NEVER COMMIT if any of these checks fail. Fix issues locally first.**
@@ -274,7 +302,7 @@ Working tests:
 uv run pytest tests/test_agent_registry.py tests/tools_tests/test_utils.py -v --cov=loan_processing --cov-report=term-missing
 
 # Quick validation
-uv run python validate_tests.py
+uv run python scripts/validate_ci_fix.py
 
 # Agent registry tests only 
 uv run pytest tests/test_agent_registry.py -v
@@ -295,7 +323,7 @@ uv run pytest tests/test_agent_registry.py -v
 ### 3. Console Application
 - `console_app/src/main.py` - Standalone console application (decoupled from backend)
 - `console_app/config/` - App-specific configuration system
-- `run_console_app.py` - Easy launcher script from project root
+- `scripts/run_console_app.py` - Easy launcher script from project root
 - Include sample data that exercises different decision paths
 - Document expected outcomes and user interactions
 
@@ -416,18 +444,43 @@ except AgentTimeoutError:
     # Handle agent timeouts
 ```
 
+### Context Management (Loss Prevention)
+```python
+# Use /compact command after large refactoring sessions
+# Create checkpoints after major changes
+git commit -m "checkpoint: refactoring complete"
+
+# Provide context anchoring for new sessions
+"We just completed X refactoring. Key changes:
+1. Moved Y to Z
+2. Renamed A to B
+3. Next task: C"
+```
+
+### Debugging Circular Loops
+```python
+# Detect when agent repeats failed solutions
+attempted_fixes = set()
+if current_fix in attempted_fixes:
+    print("LOOP DETECTED: Human intervention needed")
+    # Human provides strategic pivot
+```
+
 ## Best Practices
 
 1. **Use support agents proactively** - Consult architecture, PM, design, and code review agents
 2. **Keep orchestrators thin** - Business logic in personas, not code
-3. **Validate with experts** - Use system-architecture-reviewer before implementing
-4. **Review all code** - Use code-reviewer agent after writing significant code
-5. **Define requirements properly** - Use product-manager-advisor for feature planning
-6. **Design user experiences** - Use ux-ui-designer for any user-facing components
-7. **Document tool usage** - Clear descriptions in agent personas
-8. **Test comprehensively** - Unit, integration, and end-to-end tests
-9. **Monitor production** - Track metrics and agent performance
-10. **Iterate on personas** - Continuously improve based on outcomes
+3. **Optimize token usage** - Keep personas under 500 lines for 10x speed improvement
+4. **Manage context actively** - Use /compact and checkpoints to prevent context loss
+5. **Validate with experts** - Use system-architecture-reviewer before implementing
+6. **Review all code** - Use code-reviewer agent after writing significant code
+7. **Define requirements properly** - Use product-manager-advisor for feature planning
+8. **Design user experiences** - Use ux-ui-designer for any user-facing components
+9. **Document tool usage** - Clear descriptions in agent personas
+10. **Test comprehensively** - Unit, integration, and end-to-end tests
+11. **Monitor for loops** - Detect circular debugging and request human intervention
+12. **Focus sessions** - Keep to 2-3 hour focused sessions over 8+ hour marathons
+13. **Iterate on personas** - Continuously improve based on outcomes
 
 ## Quick Reference
 
@@ -439,7 +492,7 @@ except AgentTimeoutError:
 - MCP Servers: `loan_processing/tools/mcp_servers/*/server.py`
 - Console Application: `console_app/src/main.py`
 - Console Configuration: `console_app/config/app_config.yaml`
-- App Launcher: `run_console_app.py`
+- App Launcher: `scripts/run_console_app.py`
 
 ### Common Commands
 ```bash
@@ -454,7 +507,7 @@ uv run python -m loan_processing.tools.mcp_servers.document_processing.server
 uv run python -m loan_processing.tools.mcp_servers.financial_calculations.server
 
 # Run console application
-uv run python run_console_app.py
+uv run python scripts/run_console_app.py
 
 # Run tests
 uv run pytest tests/test_agent_registry.py -v                           # Agent registry tests
@@ -463,7 +516,7 @@ uv run pytest tests/test_agent_registry.py --cov=loan_processing       # With co
 
 # Test validation
 uv run python validate_tests.py    # Quick validation
-uv run python run_tests.py          # Full test suite (when all tests are updated)
+uv run python scripts/run_tests.py          # Full test suite (when all tests are updated)
 ```
 
 ### Environment Variables

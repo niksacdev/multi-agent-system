@@ -16,10 +16,12 @@ from typing import Any
 project_root = Path(__file__).parent.parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+from loan_processing.agents.providers.openai.orchestration.base import (  # noqa: E402
+    HandoffValidationService,
+    PatternExecutor,
+)
+from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationContext  # noqa: E402
 from loan_processing.utils import get_logger, log_execution  # noqa: E402
-
-from loan_processing.agents.providers.openai.orchestration.base import HandoffValidationService, PatternExecutor
-from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationContext
 
 # Initialize logging
 logger = get_logger(__name__)
@@ -32,17 +34,19 @@ class ParallelPatternExecutor(PatternExecutor):
         """Initialize parallel pattern executor."""
         super().__init__(agent_registry)
         self.handoff_service = HandoffValidationService()
-        
+
         logger.info("Parallel pattern executor initialized", component="parallel_executor")
 
     @log_execution(component="parallel_executor", operation="execute")
     async def execute(self, pattern_config: dict[str, Any], context: OrchestrationContext, model: str | None) -> None:
         """Execute parallel orchestration pattern."""
-        
-        logger.info("Starting parallel orchestration execution", 
-                   application_id=context.application.application_id,
-                   session_id=context.session_id,
-                   component="parallel_executor")
+
+        logger.info(
+            "Starting parallel orchestration execution",
+            application_id=context.application.application_id,
+            session_id=context.session_id,
+            component="parallel_executor",
+        )
 
         context.add_audit_entry("Starting parallel orchestration execution")
 
@@ -56,10 +60,12 @@ class ParallelPatternExecutor(PatternExecutor):
         # Execute synthesis agents (typically risk)
         await self._execute_synthesis_agents(pattern_config, context, model)
 
-        logger.info("Parallel orchestration execution completed", 
-                   application_id=context.application.application_id,
-                   session_id=context.session_id,
-                   component="parallel_executor")
+        logger.info(
+            "Parallel orchestration execution completed",
+            application_id=context.application.application_id,
+            session_id=context.session_id,
+            component="parallel_executor",
+        )
         context.add_audit_entry("Parallel orchestration execution completed")
 
     async def _execute_initial_agents(
@@ -83,10 +89,8 @@ class ParallelPatternExecutor(PatternExecutor):
         self, branches: list[dict[str, Any]], context: OrchestrationContext, model: str | None
     ) -> None:
         """Execute parallel branches concurrently."""
-        
-        logger.info("Starting parallel branches execution", 
-                   branch_count=len(branches),
-                   component="parallel_executor")
+
+        logger.info("Starting parallel branches execution", branch_count=len(branches), component="parallel_executor")
 
         context.add_audit_entry(f"Starting {len(branches)} parallel branches")
 
@@ -94,12 +98,14 @@ class ParallelPatternExecutor(PatternExecutor):
         tasks = []
         for branch in branches:
             branch_name = branch.get("branch_name", "unnamed")
-            
-            logger.info("Creating tasks for branch", 
-                       branch_name=branch_name,
-                       agent_count=len(branch.get("agents", [])),
-                       component="parallel_executor")
-            
+
+            logger.info(
+                "Creating tasks for branch",
+                branch_name=branch_name,
+                agent_count=len(branch.get("agents", [])),
+                component="parallel_executor",
+            )
+
             context.add_audit_entry(f"Creating task for branch: {branch_name}")
 
             for agent_config in branch.get("agents", []):
@@ -108,16 +114,12 @@ class ParallelPatternExecutor(PatternExecutor):
 
         # Execute all branches concurrently
         if tasks:
-            logger.info("Executing parallel branch agents", 
-                       task_count=len(tasks),
-                       component="parallel_executor")
-            
+            logger.info("Executing parallel branch agents", task_count=len(tasks), component="parallel_executor")
+
             context.add_audit_entry(f"Executing {len(tasks)} branch agents concurrently")
             await asyncio.gather(*tasks, return_exceptions=True)
-            
-            logger.info("All parallel branches completed", 
-                       task_count=len(tasks),
-                       component="parallel_executor")
+
+            logger.info("All parallel branches completed", task_count=len(tasks), component="parallel_executor")
             context.add_audit_entry("All parallel branches completed")
 
     async def _execute_branch_agent(

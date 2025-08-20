@@ -9,7 +9,6 @@ requiring changes to agent code. Agents remain autonomous in tool selection.
 from __future__ import annotations
 
 import sys
-import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,18 +18,18 @@ import yaml
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Add project root to path for utils imports
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from loan_processing.utils import get_logger, log_execution, correlation_context  # noqa: E402
-
-from loan_processing.agents.providers.openai.agentregistry import AgentRegistry
-from loan_processing.config.settings import SystemConfig, get_system_config
-from loan_processing.models.application import LoanApplication
-from loan_processing.models.decision import LoanDecision, LoanDecisionStatus
+from loan_processing.agents.providers.openai.agentregistry import AgentRegistry  # noqa: E402
+from loan_processing.config.settings import SystemConfig, get_system_config  # noqa: E402
+from loan_processing.models.application import LoanApplication  # noqa: E402
+from loan_processing.models.decision import LoanDecision, LoanDecisionStatus  # noqa: E402
+from loan_processing.utils import correlation_context, get_logger, log_execution  # noqa: E402
 
 # Initialize logging
 logger = get_logger(__name__)
@@ -57,6 +56,9 @@ class OrchestrationContext:
     errors: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
+    # Progress callback for real-time updates
+    progress_callback: Any = field(default=None)
+
     def add_audit_entry(self, message: str) -> None:
         """Add entry to audit trail with timestamp."""
         timestamp = datetime.now(timezone.utc).isoformat()
@@ -67,6 +69,69 @@ class OrchestrationContext:
         setattr(self, f"{agent_type}_result", result)
         self.agent_durations[agent_type] = duration
         self.add_audit_entry(f"{agent_type.title()} agent completed in {duration:.2f}s")
+
+        # Notify progress callback if available
+        if self.progress_callback:
+            try:
+                self.progress_callback(
+                    {
+                        "type": "agent_completed",
+                        "agent": agent_type,
+                        "duration": duration,
+                        "status": "success",
+                        "confidence": result.get("confidence_score", 0.0),
+                        "summary": self._get_agent_summary(agent_type, result),
+                    }
+                )
+            except Exception:
+                pass  # Don't fail processing if callback fails
+
+    def notify_agent_start(self, agent_type: str) -> None:
+        """Notify that an agent is starting."""
+        if self.progress_callback:
+            try:
+                self.progress_callback({"type": "agent_started", "agent": agent_type, "status": "processing"})
+            except Exception:
+                pass
+
+    def notify_agent_thinking(self, agent_type: str) -> None:
+        """Notify that an agent is waiting for OpenAI response."""
+        if self.progress_callback:
+            try:
+                self.progress_callback(
+                    {"type": "agent_thinking", "agent": agent_type, "status": "waiting_for_response"}
+                )
+            except Exception:
+                pass
+
+    def notify_agent_error(self, agent_type: str, error: str, duration: float) -> None:
+        """Notify that an agent failed."""
+        if self.progress_callback:
+            try:
+                self.progress_callback(
+                    {
+                        "type": "agent_error",
+                        "agent": agent_type,
+                        "duration": duration,
+                        "status": "error",
+                        "error": error,
+                    }
+                )
+            except Exception:
+                pass
+
+    def _get_agent_summary(self, agent_type: str, result: dict[str, Any]) -> str:
+        """Get a brief summary of agent result for progress updates."""
+        if agent_type == "intake":
+            return f"Validation: {result.get('validation_status', 'Unknown')}"
+        elif agent_type == "credit":
+            return f"Credit Score: {result.get('credit_score', 'N/A')}, Risk: {result.get('risk_category', 'Unknown')}"
+        elif agent_type == "income":
+            return f"Income Verified: {result.get('employment_verification_status', 'Unknown')}"
+        elif agent_type == "risk":
+            return f"Decision: {result.get('recommendation', 'Unknown')}"
+        else:
+            return f"Status: {result.get('status', 'Completed')}"
 
 
 class ProcessingEngine:
@@ -98,12 +163,11 @@ class ProcessingEngine:
     def _register_default_executors(self):
         """Register default pattern executors."""
         # Import here to avoid circular dependencies
-        from loan_processing.agents.providers.openai.orchestration.parallel import ParallelPatternExecutor
         from loan_processing.agents.providers.openai.orchestration.sequential import SequentialPatternExecutor
 
+        # Only register sequential pattern until parallel is fully implemented
         executors = [
             SequentialPatternExecutor(self.agent_registry),
-            ParallelPatternExecutor(self.agent_registry),
         ]
 
         for executor in executors:
@@ -114,13 +178,14 @@ class ProcessingEngine:
         pattern_type = executor.get_pattern_type()
         self.pattern_executors[pattern_type] = executor
 
-    @log_execution(component="orchestrator", operation="execute_pattern")  
+    @log_execution(component="orchestrator", operation="execute_pattern")
     async def execute_pattern(
         self,
         pattern_name: str,
         application: LoanApplication,
         model: str | None = None,
         context_overrides: dict[str, Any] | None = None,
+        progress_callback=None,
     ) -> LoanDecision:
         """
         Execute a specific orchestration pattern.
@@ -130,6 +195,7 @@ class ProcessingEngine:
             application: Loan application to process
             model: OpenAI model to use for agents
             context_overrides: Additional context data
+            progress_callback: Optional callback for progress updates
 
         Returns:
             Final loan decision
@@ -138,11 +204,13 @@ class ProcessingEngine:
 
         # Create correlation context for this processing session
         async with correlation_context(f"{pattern_name}_{application.application_id}") as session_id:
-            logger.info("Starting orchestration pattern execution", 
-                       pattern_name=pattern_name, 
-                       application_id=application.application_id,
-                       session_id=session_id,
-                       component="orchestrator")
+            logger.info(
+                "Starting orchestration pattern execution",
+                pattern_name=pattern_name,
+                application_id=application.application_id,
+                session_id=session_id,
+                component="orchestrator",
+            )
 
             # Load pattern configuration
             pattern_config = self._load_pattern(pattern_name)
@@ -156,7 +224,12 @@ class ProcessingEngine:
                 metadata=context_overrides or {},
             )
 
-            context.add_audit_entry(f"Started {pattern_name} orchestration for application {application.application_id}")
+            # Add progress callback to context
+            context.progress_callback = progress_callback
+
+            context.add_audit_entry(
+                f"Started {pattern_name} orchestration for application {application.application_id}"
+            )
 
             try:
                 # Get and validate executor
@@ -167,9 +240,11 @@ class ProcessingEngine:
                 if config_errors:
                     raise ValueError(f"Configuration errors: {'; '.join(config_errors)}")
 
-                logger.info("Pattern configuration validated", 
-                           pattern_type=pattern_config.get("pattern_type"),
-                           component="orchestrator")
+                logger.info(
+                    "Pattern configuration validated",
+                    pattern_type=pattern_config.get("pattern_type"),
+                    component="orchestrator",
+                )
 
                 # Execute pattern using appropriate executor
                 await executor.execute(pattern_config, context, model)
@@ -177,21 +252,22 @@ class ProcessingEngine:
                 # Generate final decision
                 decision = self._generate_loan_decision(pattern_config, context)
 
-                logger.info("Orchestration completed successfully", 
-                           decision_status=decision.decision.value,
-                           confidence_score=decision.confidence_score,
-                           processing_time_seconds=(datetime.now(timezone.utc) - start_time).total_seconds(),
-                           component="orchestrator")
+                logger.info(
+                    "Orchestration completed successfully",
+                    decision_status=decision.decision.value,
+                    confidence_score=decision.confidence_score,
+                    processing_time_seconds=(datetime.now(timezone.utc) - start_time).total_seconds(),
+                    component="orchestrator",
+                )
 
                 context.add_audit_entry("Orchestration completed successfully")
                 return decision
 
             except Exception as e:
-                logger.error("Orchestration failed", 
-                           error_message=str(e),
-                           error_type=type(e).__name__,
-                           component="orchestrator")
-                
+                logger.error(
+                    "Orchestration failed", error_message=str(e), error_type=type(e).__name__, component="orchestrator"
+                )
+
                 context.add_audit_entry(f"Orchestration failed: {str(e)}")
                 context.errors.append(str(e))
 
@@ -232,8 +308,12 @@ class ProcessingEngine:
             approved_amount=(
                 risk_result.get("approved_amount") if decision_status == LoanDecisionStatus.APPROVED else None
             ),
-            approved_rate=risk_result.get("recommended_rate"),
-            approved_term_months=risk_result.get("recommended_terms"),
+            approved_rate=(
+                risk_result.get("recommended_rate") if decision_status == LoanDecisionStatus.APPROVED else None
+            ),
+            approved_term_months=(
+                risk_result.get("recommended_terms") if decision_status == LoanDecisionStatus.APPROVED else None
+            ),
             decision_maker=f"{context.pattern_name}_orchestrator",
             review_priority=self._determine_priority(risk_result),
             reasoning=self._build_decision_reasoning(context),

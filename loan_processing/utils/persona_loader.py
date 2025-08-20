@@ -29,7 +29,9 @@ class PersonaLoader:
         try:
             return path.read_text(encoding="utf-8")
         except FileNotFoundError:
-            return f"You are the {persona_key} agent. Provide concise, structured domain outputs as JSON when appropriate."
+            return (
+                f"You are the {persona_key} agent. Provide concise, structured domain outputs as JSON when appropriate."
+            )
 
     @classmethod
     def get_persona_path(cls, persona_key: str) -> Path:
@@ -37,7 +39,7 @@ class PersonaLoader:
 
         Args:
             persona_key: e.g. "credit", "income", "risk", "intake".
-        
+
         Returns:
             Path to the persona markdown file
         """
@@ -50,7 +52,7 @@ class PersonaLoader:
 
         Args:
             persona_key: e.g. "credit", "income", "risk", "intake".
-        
+
         Returns:
             True if the persona file exists
         """
@@ -59,19 +61,19 @@ class PersonaLoader:
     @classmethod
     def list_available_personas(cls) -> list[str]:
         """Get list of available persona keys.
-        
+
         Returns:
             List of available persona keys (without -agent-persona.md suffix)
         """
         personas_dir = Path(__file__).parent.parent / "agents" / "agent-persona"
         if not personas_dir.exists():
             return []
-        
+
         personas = []
         for persona_file in personas_dir.glob("*-agent-persona.md"):
             persona_key = persona_file.name.replace("-agent-persona.md", "")
             personas.append(persona_key)
-        
+
         return sorted(personas)
 
 

@@ -1,128 +1,210 @@
 # Data Models
 
-The data structures that power the loan processing system.
+Type-safe data structures powering the multi-agent loan processing system.
 
 ## Overview
 
-All data models use **Pydantic v2** for type safety and validation. Models are designed to be:
+All data models use **Pydantic v2** for runtime validation and type safety. Our models are:
 
-- **Extensible**: Easy to add new fields
-- **Type-safe**: Full type annotations
-- **Privacy-compliant**: No sensitive data like SSN
+- **Privacy-First**: Use secure `applicant_id` instead of SSN
+- **Type-Safe**: Full type annotations with runtime validation
+- **Domain-Driven**: Models reflect real loan processing concepts
+- **Extensible**: Easy to add fields without breaking existing code
 
 ## Core Models
 
 ### Loan Application
 
-The main input to the system.
+The primary input structure for loan processing.
 
 **File**: [`loan_processing/models/application.py`](../loan_processing/models/application.py)
 
 ```python
 class LoanApplication(BaseModel):
-    application_id: str  # UUID format
-    applicant_id: str    # Internal ID (replaces SSN for privacy)
+    application_id: str           # Unique application identifier
+    applicant_id: str            # Secure ID (never SSN)
+    applicant_name: str
     loan_amount: Decimal
     loan_purpose: LoanPurpose
-    # ... see file for complete definition
+    annual_income: Decimal
+    employment_status: str
+    credit_score: Optional[int]
+    existing_debt: Decimal
+    down_payment: Decimal
+    property_value: Optional[Decimal]
+    additional_data: Dict[str, Any]  # Flexible extension point
 ```
+
+**Privacy Features**:
+- No SSN storage - uses secure `applicant_id`
+- Sensitive data in `additional_data` can be encrypted
+- Audit trail maintained separately
+
+### Agent Assessment
+
+Standardized output from each agent's evaluation.
+
+**File**: [`loan_processing/models/assessment.py`](../loan_processing/models/assessment.py)
+
+```python
+class AgentAssessment(BaseModel):
+    agent_name: str
+    agent_type: str
+    assessment_timestamp: datetime
+    status: AssessmentStatus  # COMPLETE, FAILED, PENDING
+    confidence_score: float    # 0.0 to 1.0
+    
+    # Flexible result structure
+    assessment_result: Dict[str, Any]
+    
+    # Decision support
+    risk_factors: List[str]
+    recommendations: List[str]
+    
+    # Audit trail
+    tools_used: List[str]
+    processing_time_ms: int
+```
+
+**Key Features**:
+- Standardized across all agent types
+- Flexible `assessment_result` for agent-specific data
+- Built-in observability with tools used and timing
 
 ### Loan Decision
 
-The output from agent processing.
+Final output after all agents complete processing.
 
 **File**: [`loan_processing/models/decision.py`](../loan_processing/models/decision.py)
 
 ```python
 class LoanDecision(BaseModel):
     application_id: str
-    decision: LoanDecisionStatus  # APPROVED, REJECTED, PENDING
-    decision_reason: str
-    confidence_score: float
-    # ... see file for complete definition
+    decision_id: str
+    
+    # Core decision
+    decision: DecisionStatus  # APPROVED, DENIED, CONDITIONAL, MANUAL_REVIEW
+    decision_timestamp: datetime
+    
+    # Decision details
+    approved_amount: Optional[Decimal]
+    interest_rate: Optional[Decimal]
+    term_months: Optional[int]
+    
+    # Reasoning
+    primary_reason: str
+    supporting_reasons: List[str]
+    conditions: List[str]  # For conditional approvals
+    
+    # Agent assessments
+    agent_assessments: List[AgentAssessment]
+    
+    # Compliance
+    regulatory_checks: Dict[str, bool]
+    fcra_compliant: bool
+    ecoa_compliant: bool
 ```
 
-### Assessment Results
+## Validation Examples
 
-What agents produce during processing.
-
-**File**: [`loan_processing/models/assessment.py`](../loan_processing/models/assessment.py)
+### Input Validation
 
 ```python
-class CreditAssessment(BaseModel):
-    applicant_id: str  # Privacy-compliant identifier
-    credit_score: int
-    risk_level: RiskLevel
-    assessment_details: dict[str, Any]
-    # ... see file for complete definition
+# Automatic validation on creation
+app = LoanApplication(
+    application_id="app-123",
+    applicant_id="usr-456",  # Secure ID, not SSN
+    loan_amount=Decimal("250000"),
+    annual_income=Decimal("75000"),
+    # Missing required field raises ValidationError
+)
 ```
-
-## Key Features
-
-### Privacy-First Design
-
-- Use internal `applicant_id` (UUID format)
-- Sensitive fields are clearly marked
-- All data access is logged
 
 ### Type Safety
 
-Every field is fully typed:
-
 ```python
-# Good: Type-safe
-loan_amount: Decimal
-application_date: datetime
-
-# Avoid: Untyped
-data: dict  # Too generic
+# Type checking at runtime
+app.credit_score = "high"  # ValidationError: not an integer
+app.loan_amount = -1000    # ValidationError: must be positive
 ```
 
-### Validation
-
-Pydantic automatically validates:
-
-- **Required fields**: Must be present
-- **Format checks**: Email, phone, UUID formats
-- **Range validation**: Min/max values
-- **Custom rules**: Business logic validation
-
-## Usage Examples
-
-### Creating an Application
+### Serialization
 
 ```python
-from loan_processing.models.application import LoanApplication
-from decimal import Decimal
+# Easy API integration
+json_data = app.model_dump_json()
+restored = LoanApplication.model_validate_json(json_data)
+```
 
-app = LoanApplication(
-    application_id="app-123",
-    applicant_id="user-456",  # Internal ID, not SSN
-    loan_amount=Decimal("250000"),
-    loan_purpose=LoanPurpose.HOME_PURCHASE
+## Domain Enums
+
+### Loan Purpose
+```python
+class LoanPurpose(str, Enum):
+    HOME_PURCHASE = "home_purchase"
+    REFINANCE = "refinance"
+    HOME_EQUITY = "home_equity"
+    DEBT_CONSOLIDATION = "debt_consolidation"
+```
+
+### Decision Status
+```python
+class DecisionStatus(str, Enum):
+    APPROVED = "approved"
+    DENIED = "denied"
+    CONDITIONAL = "conditional_approval"
+    MANUAL_REVIEW = "manual_review"
+```
+
+### Assessment Status
+```python
+class AssessmentStatus(str, Enum):
+    COMPLETE = "complete"
+    FAILED = "failed"
+    PENDING = "pending"
+    TIMEOUT = "timeout"
+```
+
+## Integration with Agents
+
+### Agent Input
+```python
+# Agents receive standardized context
+context = {
+    "application": loan_application.model_dump(),
+    "previous_assessments": [assessment.model_dump() for assessment in assessments]
+}
+```
+
+### Agent Output
+```python
+# Agents produce typed assessments
+assessment = AgentAssessment(
+    agent_name="Credit Agent",
+    agent_type="credit",
+    assessment_result={
+        "credit_score": 720,
+        "credit_tier": "excellent",
+        "debt_to_income_ratio": 0.28
+    },
+    confidence_score=0.92
 )
 ```
 
-### Processing Results
+## Benefits
 
-```python
-from loan_processing.models.decision import LoanDecision
+1. **Type Safety**: Catch errors at development time
+2. **Validation**: Automatic input validation
+3. **Documentation**: Models serve as API documentation
+4. **Serialization**: Easy JSON/dict conversion
+5. **Privacy**: Built-in privacy compliance
+6. **Extensibility**: Add fields without breaking code
 
-decision = LoanDecision(
-    application_id=app.application_id,
-    decision=LoanDecisionStatus.APPROVED,
-    confidence_score=0.85
-)
-```
+## Implementation Files
 
-## File Structure
+- [`loan_processing/models/application.py`](../loan_processing/models/application.py) - Application model
+- [`loan_processing/models/assessment.py`](../loan_processing/models/assessment.py) - Assessment model
+- [`loan_processing/models/decision.py`](../loan_processing/models/decision.py) - Decision model
+- [`loan_processing/models/__init__.py`](../loan_processing/models/__init__.py) - Model exports
 
-```text
-loan_processing/models/
-├── __init__.py
-├── application.py    # Input data
-├── assessment.py     # Agent outputs
-└── decision.py       # Final results
-```
-
-See the actual model files for complete field definitions and validation rules.
+See actual code files for complete implementation details.

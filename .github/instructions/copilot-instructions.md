@@ -10,11 +10,30 @@ Provide project context and coding guidelines that AI should follow when generat
 ## Project Context
 This is a **loan processing multi-agent system** demonstrating enterprise-grade architecture using OpenAI Agents SDK with MCP (Model Context Protocol) servers as tools. The system implements autonomous agents that process loan applications through coordinated workflows.
 
+## Critical Lessons Learned
+
+### Token Optimization
+- **Problem**: Large persona files (2000+ lines) cause excessive token consumption
+- **Solution**: Keep personas under 500 lines with focused directives
+- **Result**: 75% token reduction, 10x faster responses
+
+### Context Management
+- **Problem**: Context loss after large refactoring leads to conflicting changes
+- **Solution**: Use checkpoints, explicit context anchoring, 2-3 hour focused sessions
+- **Never**: Run 8+ hour marathon sessions without context management
+
+### Circular Debugging
+- **Problem**: AI repeats failed solutions in endless loops
+- **Solution**: Track attempted fixes, detect loops, request human intervention
+- **Human Role**: Provide strategic pivots and "be pragmatic" guidance
+
 **Key Design Principles**:
 - **Agent Autonomy**: Agents autonomously select MCP tools based on their assessment needs
 - **Persona-Driven**: Agent behavior defined in markdown personas, not hardcoded logic
 - **Clean Orchestration**: Minimal orchestrator code; business logic lives in personas
-- **Provider Portability**: Domain models & service abstractions remain provider-agnostic
+- **Jobs-to-be-Done Focus**: Agents designed around customer jobs, not internal processes
+- **Token Optimized**: Keep personas concise (300-500 lines) for performance
+- **Configuration-Driven**: Define orchestration patterns in YAML, not code
 
 ## Core Architecture
 - **Autonomous Agents**: Four specialized agents (Intake, Credit, Income, Risk) with persona-driven behavior
@@ -129,6 +148,8 @@ loan_processing/
 - **Usage**: Configured in `agents.yaml`, loaded automatically via `AgentRegistry`
 - **Updates**: Modify personas to change agent behavior without touching orchestrator code
 - **Security**: Personas must emphasize using `applicant_id` instead of SSN
+- **Optimization**: Keep personas under 500 lines for 10x faster responses
+- **Focus**: Clear directives over verbose explanations
 
 ## Quality Assurance
 

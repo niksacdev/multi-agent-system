@@ -263,7 +263,7 @@ We measure success through customer-centric metrics:
 - **Competitive Differentiation**: Unique value proposition based on job completion
 - **Customer Loyalty**: Satisfied customers become repeat customers and advocates
 - **Operational Focus**: Clear priorities based on customer impact
-- **Innovation Direction**: Framework for identifying improvement opportunities
+- **Improvement Direction**: Framework for identifying enhancement opportunities
 
 ### Technical Benefits
 - **Clear Requirements**: Agent capabilities directly tied to customer jobs
@@ -283,7 +283,7 @@ We measure success through customer-centric metrics:
 1. **Agent capabilities** should map to specific job steps
 2. **Error handling** should preserve job completion ability
 3. **Performance optimization** should prioritize job-critical paths
-4. **Integration design** should support seamless job flow
+4. **Integration design** should support smooth job flow
 
 ### For Business Teams
 1. **Value proposition** should focus on job completion benefits
@@ -299,7 +299,7 @@ We measure success through customer-centric metrics:
 - Measure effort required for each job step
 - Monitor emotional satisfaction throughout journey
 
-### Innovation Opportunities
+### Improvement Opportunities
 - Jobs that are underserved by current solutions
 - Job steps where customers expend significant effort
 - Emotional needs that aren't being met

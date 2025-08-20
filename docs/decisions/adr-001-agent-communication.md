@@ -21,7 +21,7 @@ The Agent Framework provides `AgentRunResponse` as the standard response type, b
 
 1. **Data Contracts**: Define Pydantic models for all inter-agent data exchange
 2. **Immutable Passing**: Pass data as immutable models between agents
-3. **Orchestration Layer**: Orchestration functions handle data transformation and routing
+3. **Orchestration Layer**: Orchestration functions handle data conversion and routing
 4. **Context Objects**: Use explicit context parameters with typed data structures
 
 ```python
@@ -58,7 +58,7 @@ async def assess_application(
 
 1. **Create `models/` package** with comprehensive Pydantic models
 2. **Define context types** for each agent interaction
-3. **Implement orchestration functions** that handle data transformation
+3. **Implement orchestration functions** that handle data conversion
 4. **Document data flow** in system architecture diagrams
 
 ```python

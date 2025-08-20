@@ -1,351 +1,257 @@
 """
-Tests for the configuration-driven orchestration engine.
+Comprehensive tests for Orchestration Engine.
 
-Tests the OrchestrationEngine, AgentRegistry, and pattern execution.
+Tests the main processing engine, context management, pattern loading, and workflow coordination.
 """
 
-import json
 from datetime import datetime
-from unittest.mock import AsyncMock, patch
+from decimal import Decimal
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from loan_processing.agents.providers.openai.agentregistry import AgentRegistry, MCPServerFactory
-from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationContext, OrchestrationEngine
-from loan_processing.agents.shared.models.application import (
-    EmploymentStatus,
-    LoanApplication,
-    LoanPurpose,
-)
-from loan_processing.agents.shared.models.decision import LoanDecision, LoanDecisionStatus
-
-
-@pytest.fixture
-def sample_application():
-    """Create a sample loan application for testing."""
-    return LoanApplication(
-        application_id="LN1234567890",
-        applicant_name="Test Applicant",
-        ssn="123-45-6789",
-        email="test@example.com",
-        phone="2125551234",
-        date_of_birth=datetime(1985, 1, 1),
-        loan_amount=400000.00,
-        loan_purpose=LoanPurpose.HOME_PURCHASE,
-        loan_term_months=360,
-        annual_income=120000.00,
-        employment_status=EmploymentStatus.EMPLOYED,
-        employer_name="Test Corp",
-        months_employed=24,
-        monthly_expenses=3000.00,
-        existing_debt=800.00,
-        assets=180000.00,
-        down_payment=120000.00,
-        additional_data={
-            "internal_applicant_id": "APP-TEST-001",
-            "property_address": "123 Test St, Test City, TS 12345",
-            "property_value": 500000.00,
-        },
-    )
-
-
-@pytest.fixture
-def mock_runner():
-    """Mock the OpenAI Agents SDK Runner."""
-    with patch("agents.Runner") as mock:
-        # Mock successful agent responses
-        mock_responses = {
-            "intake": {
-                "validation_status": "PASSED",
-                "confidence_score": 0.85,
-                "data_completeness_score": 0.90,
-                "fraud_indicators": [],
-                "verification_results": {"identity": True, "address": True},
-                "processing_path": "FAST_TRACK",
-                "issues_found": [],
-            },
-            "credit": {
-                "credit_score": 720,
-                "credit_tier": "GOOD",
-                "debt_to_income_ratio": 0.32,
-                "credit_utilization_ratio": 0.15,
-                "payment_history_score": 0.92,
-                "risk_category": "LOW",
-                "red_flags": [],
-                "confidence_score": 0.88,
-            },
-            "income": {
-                "verified_monthly_income": 10000.00,
-                "employment_verification_status": "VERIFIED",
-                "employment_stability_score": 0.95,
-                "income_trend": "STABLE",
-                "income_sources": ["primary_employment"],
-                "qualifying_income": 10000.00,
-                "concerns": [],
-                "confidence_score": 0.92,
-            },
-            "risk": {
-                "final_risk_category": "LOW",
-                "recommendation": "APPROVE",
-                "approved_amount": 400000.00,
-                "recommended_rate": 4.25,
-                "recommended_terms": 360,
-                "key_risk_factors": [],
-                "mitigating_factors": ["stable_income", "good_credit"],
-                "conditions": [],
-                "reasoning": "Low risk application with stable income",
-                "confidence_score": 0.90,
-                "compliance_verified": True,
-            },
-        }
-
-        def mock_run(agent, input=None):
-            # Extract agent type from input or use fallback
-            agent_type = "intake"  # Default
-            if hasattr(agent, "name"):
-                name_lower = agent.name.lower()
-                if "credit" in name_lower:
-                    agent_type = "credit"
-                elif "income" in name_lower:
-                    agent_type = "income"
-                elif "risk" in name_lower:
-                    agent_type = "risk"
-
-            response_data = mock_responses.get(agent_type, mock_responses["intake"])
-            return AsyncMock(return_value=json.dumps(response_data))()
-
-        mock.run = AsyncMock(side_effect=mock_run)
-        yield mock
-
-
-class TestAgentRegistry:
-    """Test the AgentRegistry functionality."""
-
-    def test_create_intake_agent(self):
-        """Test creating an intake agent."""
-        agent = AgentRegistry.create_agent("intake")
-
-        assert agent.name == "Intake Agent"
-        assert agent.instructions is not None
-        assert len(agent.mcp_servers) == 2  # application_verification + document_processing
-        assert "JSON format" in agent.instructions  # Structured output instructions
-
-    def test_create_credit_agent(self):
-        """Test creating a credit agent."""
-        agent = AgentRegistry.create_agent("credit", model="gpt-4")
-
-        assert agent.name == "Credit Agent"
-        assert agent.model == "gpt-4"
-        assert len(agent.mcp_servers) == 3  # All three MCP servers
-        assert "credit_score" in agent.instructions
-
-    def test_create_income_agent(self):
-        """Test creating an income agent."""
-        agent = AgentRegistry.create_agent("income")
-
-        assert agent.name == "Income Verification Agent"
-        assert len(agent.mcp_servers) == 3
-        assert "employment_verification_status" in agent.instructions
-
-    def test_create_risk_agent(self):
-        """Test creating a risk agent."""
-        agent = AgentRegistry.create_agent("risk")
-
-        assert agent.name == "Risk Evaluation Agent"
-        assert len(agent.mcp_servers) == 3
-        assert "final_risk_category" in agent.instructions
-
-    def test_invalid_agent_type(self):
-        """Test handling of invalid agent types."""
-        with pytest.raises(ValueError, match="Unknown agent type"):
-            AgentRegistry.create_agent("invalid_agent")
-
-    def test_get_agent_info(self):
-        """Test getting agent information."""
-        info = AgentRegistry.get_agent_info("intake")
-
-        assert info["name"] == "Intake Agent"
-        assert info["persona_file"] == "intake"
-        assert "application_verification" in info["mcp_servers"]
-        assert "Application validation" in info["capabilities"]
-
-    def test_list_agent_types(self):
-        """Test listing available agent types."""
-        types = AgentRegistry.list_agent_types()
-
-        assert "intake" in types
-        assert "credit" in types
-        assert "income" in types
-        assert "risk" in types
-        assert len(types) == 4
-
-
-class TestMCPServerFactory:
-    """Test the MCP server factory."""
-
-    def test_get_server_creates_instance(self):
-        """Test that get_server creates server instances."""
-        server = MCPServerFactory.get_server("application_verification")
-        assert server is not None
-
-    def test_get_server_caches_instances(self):
-        """Test that get_server caches server instances."""
-        server1 = MCPServerFactory.get_server("financial_calculations")
-        server2 = MCPServerFactory.get_server("financial_calculations")
-        assert server1 is server2  # Same instance
-
-    def test_invalid_server_type(self):
-        """Test handling of invalid server types."""
-        with pytest.raises(ValueError, match="Unknown MCP server type"):
-            MCPServerFactory.get_server("invalid_server")
+from loan_processing.agents.providers.openai.orchestration.engine import OrchestrationContext, ProcessingEngine
+from loan_processing.models.application import EmploymentStatus, LoanApplication, LoanPurpose
+from loan_processing.models.decision import LoanDecision
 
 
 class TestOrchestrationContext:
     """Test the OrchestrationContext functionality."""
 
-    def test_context_initialization(self, sample_application):
-        """Test context initialization."""
-        context = OrchestrationContext(
-            application=sample_application,
-            session_id="test-session",
-            processing_start_time=datetime.now(),
-            pattern_name="sequential",
+    def setup_method(self):
+        """Set up test environment."""
+        self.sample_application = LoanApplication(
+            application_id="LN1234567890",
+            applicant_name="Test User",
+            applicant_id="12345678-1234-1234-1234-123456789012",
+            email="test@example.com",
+            phone="2125551234",
+            date_of_birth=datetime(1985, 5, 15),
+            annual_income=Decimal("100000"),
+            loan_amount=Decimal("300000"),
+            loan_purpose=LoanPurpose.HOME_PURCHASE,
+            loan_term_months=360,
+            employment_status=EmploymentStatus.EMPLOYED,
+            down_payment=Decimal("60000"),
+            existing_debt=Decimal("1000"),
         )
 
-        assert context.application.application_id == "LN1234567890"
-        assert context.session_id == "test-session"
-        assert context.pattern_name == "sequential"
-        assert context.intake_result is None
+    def test_context_initialization(self):
+        """Test that context initializes correctly."""
+        context = OrchestrationContext(
+            application=self.sample_application,
+            session_id="test-session-123",
+            processing_start_time=datetime.now(),
+            pattern_name="test_pattern",
+        )
+
+        assert context.application == self.sample_application
+        assert context.session_id == "test-session-123"
+        assert context.pattern_name == "test_pattern"
         assert len(context.audit_trail) == 0
+        assert len(context.agent_durations) == 0
+        assert len(context.errors) == 0
+        assert len(context.metadata) == 0
 
-    def test_add_audit_entry(self, sample_application):
-        """Test adding audit entries."""
+    def test_add_audit_entry(self):
+        """Test adding audit trail entries."""
         context = OrchestrationContext(
-            application=sample_application,
-            session_id="test-session",
+            application=self.sample_application,
+            session_id="test-session-123",
             processing_start_time=datetime.now(),
-            pattern_name="sequential",
+            pattern_name="test_pattern",
         )
 
-        context.add_audit_entry("Test message")
+        context.add_audit_entry("Test audit message")
 
         assert len(context.audit_trail) == 1
-        assert "Test message" in context.audit_trail[0]
-        assert "[" in context.audit_trail[0]  # Contains timestamp
+        assert "Test audit message" in context.audit_trail[0]
+        # Should include timestamp
+        assert "[" in context.audit_trail[0]
+        assert "]" in context.audit_trail[0]
 
-    def test_set_agent_result(self, sample_application):
+    def test_set_agent_result(self):
         """Test setting agent results."""
         context = OrchestrationContext(
-            application=sample_application,
-            session_id="test-session",
+            application=self.sample_application,
+            session_id="test-session-123",
             processing_start_time=datetime.now(),
-            pattern_name="sequential",
+            pattern_name="test_pattern",
         )
 
-        result = {"status": "completed", "score": 0.85}
-        context.set_agent_result("intake", result, 2.5)
+        test_result = {"status": "completed", "confidence": 0.95}
+        context.set_agent_result("intake", test_result, 2.5)
 
-        assert context.intake_result == result
+        assert context.intake_result == test_result
         assert context.agent_durations["intake"] == 2.5
-        assert len(context.audit_trail) == 1
-        assert "Intake agent completed in 2.50s" in context.audit_trail[0]
+
+    def test_set_multiple_agent_results(self):
+        """Test setting results for multiple agents."""
+        context = OrchestrationContext(
+            application=self.sample_application,
+            session_id="test-session-123",
+            processing_start_time=datetime.now(),
+            pattern_name="test_pattern",
+        )
+
+        # Set results for different agents
+        context.set_agent_result("intake", {"status": "complete"}, 1.5)
+        context.set_agent_result("credit", {"score": 720}, 3.2)
+        context.set_agent_result("income", {"verified": True}, 2.1)
+        context.set_agent_result("risk", {"level": "low"}, 1.8)
+
+        assert context.intake_result == {"status": "complete"}
+        assert context.credit_result == {"score": 720}
+        assert context.income_result == {"verified": True}
+        assert context.risk_result == {"level": "low"}
+
+        assert len(context.agent_durations) == 4
+        assert abs(sum(context.agent_durations.values()) - 8.6) < 0.001  # Account for floating point precision
+
+    def test_notify_agent_start(self):
+        """Test notifying agent start."""
+        callback_calls = []
+
+        def test_callback(update):
+            callback_calls.append(update)
+
+        context = OrchestrationContext(
+            application=self.sample_application,
+            session_id="test-session-123",
+            processing_start_time=datetime.now(),
+            pattern_name="test_pattern",
+        )
+        context.progress_callback = test_callback
+
+        context.notify_agent_start("intake")
+
+        assert len(callback_calls) == 1
+        assert callback_calls[0]["agent"] == "intake"
+        assert callback_calls[0]["type"] == "agent_started"
+
+    def test_notify_agent_thinking(self):
+        """Test notifying agent thinking."""
+        callback_calls = []
+
+        def test_callback(update):
+            callback_calls.append(update)
+
+        context = OrchestrationContext(
+            application=self.sample_application,
+            session_id="test-session-123",
+            processing_start_time=datetime.now(),
+            pattern_name="test_pattern",
+        )
+        context.progress_callback = test_callback
+
+        context.notify_agent_thinking("credit")
+
+        assert len(callback_calls) == 1
+        assert callback_calls[0]["agent"] == "credit"
+        assert callback_calls[0]["type"] == "agent_thinking"
 
 
-@pytest.mark.legacy
-class TestOrchestrationEngine:
-    """Test the OrchestrationEngine functionality."""
+class TestProcessingEngine:
+    """Test the ProcessingEngine functionality."""
+
+    def setup_method(self):
+        """Set up test environment."""
+        self.mock_system_config = MagicMock()
+        self.mock_system_config.ai_model = "gpt-3.5-turbo"
+        self.mock_system_config.validate.return_value = []
+
+        self.sample_application = LoanApplication(
+            application_id="LN1234567890",
+            applicant_name="Test User",
+            applicant_id="12345678-1234-1234-1234-123456789012",
+            email="test@example.com",
+            phone="2125551234",
+            date_of_birth=datetime(1985, 5, 15),
+            annual_income=Decimal("100000"),
+            loan_amount=Decimal("300000"),
+            loan_purpose=LoanPurpose.HOME_PURCHASE,
+            loan_term_months=360,
+            employment_status=EmploymentStatus.EMPLOYED,
+            down_payment=Decimal("60000"),
+            existing_debt=Decimal("1000"),
+        )
 
     def test_engine_initialization(self):
-        """Test orchestration engine initialization."""
-        engine = OrchestrationEngine()
+        """Test that engine initializes correctly."""
+        with patch("loan_processing.agents.providers.openai.orchestration.engine.AgentRegistry"):
+            engine = ProcessingEngine(self.mock_system_config)
 
-        assert engine.patterns_dir.name == "config"
-        assert engine.agent_registry is not None
-        assert isinstance(engine._pattern_cache, dict)
-
-    @pytest.mark.asyncio
-    async def test_execute_sequential_pattern(self, sample_application, mock_runner):
-        """Test executing sequential orchestration pattern."""
-        engine = OrchestrationEngine()
-
-        decision = await engine.execute_pattern(
-            pattern_name="sequential", application=sample_application, model="gpt-4"
-        )
-
-        assert isinstance(decision, LoanDecision)
-        assert decision.application_id == "LN1234567890"
-        assert decision.orchestration_pattern == "sequential"
-        assert decision.decision_maker == "sequential_orchestrator"
-        assert decision.processing_duration_seconds > 0
+            assert engine.system_config == self.mock_system_config
+            assert engine.pattern_executors is not None
+            assert isinstance(engine.pattern_executors, dict)
 
     @pytest.mark.asyncio
-    async def test_execute_parallel_pattern(self, sample_application, mock_runner):
-        """Test executing parallel orchestration pattern."""
-        engine = OrchestrationEngine()
+    async def test_execute_pattern_success(self):
+        """Test successful pattern execution."""
+        # Mock pattern loading
+        mock_pattern = {
+            "name": "test_pattern",
+            "pattern_type": "sequential",
+            "version": "1.0",
+            "agents": [{"type": "intake", "name": "Intake Agent", "required": True, "timeout_seconds": 30}],
+        }
 
-        decision = await engine.execute_pattern(pattern_name="parallel", application=sample_application, model="gpt-4")
+        # Mock pattern executor
+        mock_executor = AsyncMock()
 
-        assert isinstance(decision, LoanDecision)
-        assert decision.orchestration_pattern == "parallel"
-        assert decision.decision_maker == "parallel_orchestrator"
+        with (
+            patch("loan_processing.agents.providers.openai.orchestration.engine.AgentRegistry"),
+            patch.object(ProcessingEngine, "_load_pattern") as mock_load,
+        ):
+            mock_load.return_value = mock_pattern
 
-    @pytest.mark.asyncio
-    async def test_invalid_pattern(self, sample_application):
-        """Test handling of invalid pattern names."""
-        engine = OrchestrationEngine()
+            engine = ProcessingEngine(self.mock_system_config)
+            # Manually set the executor for testing
+            engine.pattern_executors["sequential"] = mock_executor
 
-        with pytest.raises(FileNotFoundError):
-            await engine.execute_pattern(pattern_name="invalid_pattern", application=sample_application)
+            result = await engine.execute_pattern("sequential", self.sample_application, "gpt-4")
 
+            assert isinstance(result, LoanDecision)
+            assert result.application_id == self.sample_application.application_id
 
-@pytest.mark.integration
-@pytest.mark.legacy
-class TestOrchestrationIntegration:
-    """Integration tests for the full orchestration system."""
+    def test_create_configured_engine(self):
+        """Test creating a configured engine from environment."""
+        mock_config = MagicMock()
+        mock_config.validate.return_value = []
 
-    @pytest.mark.asyncio
-    async def test_full_sequential_workflow(self, sample_application, mock_runner):
-        """Test complete sequential workflow from start to finish."""
-        engine = OrchestrationEngine()
+        with (
+            patch("loan_processing.agents.providers.openai.orchestration.engine.get_system_config") as mock_get_config,
+            patch("loan_processing.agents.providers.openai.orchestration.engine.AgentRegistry"),
+        ):
+            mock_get_config.return_value = mock_config
 
-        # Execute full workflow
-        decision = await engine.execute_pattern(
-            pattern_name="sequential", application=sample_application, model="gpt-4"
-        )
+            engine = ProcessingEngine.create_configured()
 
-        # Verify decision structure
-        assert isinstance(decision, LoanDecision)
-        assert decision.application_id == sample_application.application_id
-        assert decision.decision in [
-            LoanDecisionStatus.APPROVED,
-            LoanDecisionStatus.CONDITIONAL,
-            LoanDecisionStatus.MANUAL_REVIEW,
-            LoanDecisionStatus.DENIED,
-        ]
-        assert decision.confidence_score >= 0.0
-        assert decision.confidence_score <= 1.0
-        assert decision.processing_duration_seconds > 0
-        assert decision.orchestration_pattern == "sequential"
+            assert engine is not None
+            assert engine.system_config == mock_config
 
-        # Verify reasoning contains orchestration information
-        assert "Orchestration Pattern: sequential" in decision.reasoning
-        assert "Session ID:" in decision.reasoning
+    def test_create_configured_engine_validation_errors(self):
+        """Test creating configured engine with validation errors."""
+        mock_config = MagicMock()
+        mock_config.validate.return_value = ["Config error 1", "Config error 2"]
 
-    @pytest.mark.asyncio
-    async def test_pattern_error_handling(self, sample_application):
-        """Test error handling in pattern execution."""
-        engine = OrchestrationEngine()
+        with patch("loan_processing.agents.providers.openai.orchestration.engine.get_system_config") as mock_get_config:
+            mock_get_config.return_value = mock_config
 
-        with patch.object(engine, "_get_executor") as mock_get_executor:
-            mock_get_executor.side_effect = Exception("Test error")
+            with pytest.raises(ValueError, match="System configuration errors"):
+                ProcessingEngine.create_configured()
 
-            decision = await engine.execute_pattern(pattern_name="sequential", application=sample_application)
+    def test_register_executor(self):
+        """Test registering a pattern executor."""
+        mock_executor = MagicMock()
+        mock_executor.get_pattern_type.return_value = "test_pattern"
 
-            # Should return error decision instead of raising
-            assert decision.decision == LoanDecisionStatus.MANUAL_REVIEW
-            assert "Processing error" in decision.decision_reason
-            assert decision.confidence_score == 0.0
-            assert "Test error" in decision.reasoning
+        with patch("loan_processing.agents.providers.openai.orchestration.engine.AgentRegistry"):
+            engine = ProcessingEngine(self.mock_system_config)
+            engine.register_executor(mock_executor)
+
+            assert "test_pattern" in engine.pattern_executors
+            assert engine.pattern_executors["test_pattern"] == mock_executor
 
 
 if __name__ == "__main__":

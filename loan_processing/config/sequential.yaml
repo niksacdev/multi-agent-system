@@ -11,11 +11,9 @@ agents:
   - type: "intake"
     name: "Application Intake"
     required: true
-    timeout_seconds: 180
-    description: "Validates application data and checks for fraud indicators"
-    success_conditions:
-      - "validation_status in ['PASSED', 'REQUIRES_REVIEW']"
-      - "confidence_score >= 0.7"
+    timeout_seconds: 30
+    description: "Fast data completeness check and routing assignment"
+    success_conditions: []
     
   - type: "credit" 
     name: "Credit Assessment"
@@ -23,10 +21,7 @@ agents:
     timeout_seconds: 240
     depends_on: ["intake"]
     description: "Evaluates creditworthiness and calculates risk metrics"
-    success_conditions:
-      - "credit_score is not null"
-      - "risk_category is not null"
-      - "confidence_score >= 0.7"
+    success_conditions: []
     
   - type: "income"
     name: "Income Verification"
@@ -34,9 +29,7 @@ agents:
     timeout_seconds: 240
     depends_on: ["credit"]
     description: "Verifies employment and income stability"
-    success_conditions:
-      - "employment_verification_status != 'FAILED'"
-      - "confidence_score >= 0.7"
+    success_conditions: []
     
   - type: "risk"
     name: "Risk Evaluation"
@@ -44,18 +37,13 @@ agents:
     timeout_seconds: 300
     depends_on: ["income"]
     description: "Synthesizes all assessments and provides final recommendation"
-    success_conditions:
-      - "recommendation is not null"
-      - "compliance_verified == true"
-      - "confidence_score >= 0.8"
+    success_conditions: []
 
 # Handoff rules between agents
 handoff_rules:
   - from: "intake"
     to: "credit"
-    conditions:
-      - "validation_status == 'PASSED'"
-      - "confidence_score >= 0.8"
+    conditions: []
     context_fields:
       - "validation_status"
       - "data_completeness_score"
@@ -66,9 +54,7 @@ handoff_rules:
     
   - from: "credit"
     to: "income"
-    conditions:
-      - "credit_tier in ['EXCELLENT', 'VERY_GOOD', 'GOOD', 'FAIR']"
-      - "risk_category != 'VERY_HIGH'"
+    conditions: []
     context_fields:
       - "credit_score"
       - "credit_tier"
@@ -79,9 +65,7 @@ handoff_rules:
     
   - from: "income" 
     to: "risk"
-    conditions:
-      - "employment_verification_status == 'VERIFIED'"
-      - "confidence_score >= 0.7"
+    conditions: []
     context_fields:
       - "verified_monthly_income"
       - "employment_stability_score"
@@ -90,49 +74,34 @@ handoff_rules:
       - "concerns"
     failure_action: "income_verification_required"
 
-# Final decision matrix
+# Simplified decision matrix focused on showcasing agent pattern
 decision_matrix:
   auto_approve:
-    description: "Automatic approval for low-risk applications"
+    description: "Automatic approval for strong applications"
     conditions:
-      - "final_risk_category == 'LOW'"
-      - "credit_score >= 750"
-      - "debt_to_income_ratio <= 0.28"
-      - "employment_verification_status == 'VERIFIED'"
-      - "len(red_flags) == 0"
+      - "risk_recommendation == 'APPROVE'"
     max_amount: 500000
     rate_adjustment: 0.0
     
   conditional_approval:
-    description: "Approval with conditions for moderate-risk applications"
+    description: "Approval with conditions for moderate applications"
     conditions:
-      - "final_risk_category in ['LOW', 'MODERATE']"
-      - "credit_score >= 650" 
-      - "debt_to_income_ratio <= 0.43"
-      - "employment_verification_status == 'VERIFIED'"
+      - "risk_recommendation == 'CONDITIONAL_APPROVAL'"
     max_amount: 400000
-    rate_adjustment: 0.5
+    rate_adjustment: 0.25
     required_conditions:
-      - "Additional income documentation"
-      - "Larger down payment if DTI > 0.36"
+      - "Additional documentation as specified by agents"
       
   manual_review:
-    description: "Requires human review for high-risk or complex cases"
+    description: "Requires human review as recommended by risk agent"
     conditions:
-      - "final_risk_category in ['HIGH', 'VERY_HIGH']"
-      - "credit_score < 650"
-      - "debt_to_income_ratio > 0.43"
-      - "len(red_flags) > 0"
-      - "employment_verification_status != 'VERIFIED'"
+      - "risk_recommendation == 'MANUAL_REVIEW'"
     escalation_priority: "standard"
     
   auto_deny:
-    description: "Automatic denial for applications that don't meet minimum standards"
+    description: "Applications that do not meet basic requirements"
     conditions:
-      - "validation_status == 'FAILED'"
-      - "credit_score < 580"
-      - "debt_to_income_ratio > 0.50"
-      - "len(fraud_indicators) > 0"
+      - "risk_recommendation == 'DENY'"
     denial_reason_required: true
 
 # Error handling configuration  

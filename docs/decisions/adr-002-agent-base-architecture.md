@@ -28,7 +28,7 @@ Key requirements:
 - **Consistency**: All agents should follow the same base patterns for error handling, logging, and responses
 - **Extensibility**: Easy to add new agent types and tools
 - **Development Experience**: Support for development with placeholder implementations when Agent Framework is not available
-- **Tool Integration**: Seamless integration with external APIs and services
+- **Tool Integration**: Easy integration with external APIs and services
 - **Structured Output**: All assessments should produce consistent, typed results
 
 ## Considered Options

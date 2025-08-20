@@ -40,10 +40,16 @@ def main() -> int:
     print("🚀 Validating CI Fix for Multi-Agent System")
     print("=" * 50)
 
-    # Check we're in the right directory
-    if not Path("loan_processing").exists():
-        print("❌ Error: Not in project root directory")
+    # Check we're in the right directory (move to project root if in scripts/)
+    project_root = Path(__file__).parent.parent
+    if not (project_root / "loan_processing").exists():
+        print("❌ Error: Cannot find project root directory")
         return 1
+
+    # Change to project root for all operations
+    import os
+
+    os.chdir(project_root)
 
     # Step 1: Install dependencies
     success, output = run_command(["uv", "sync"], "Installing dependencies")

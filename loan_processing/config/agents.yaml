@@ -5,50 +5,34 @@
 agents:
   intake:
     name: "Intake Agent"
-    description: "Validates applications and performs initial assessments"
+    description: "Fast data completeness check and routing assignment"
     persona_file: "intake"
-    mcp_servers:
-      - "application_verification"
-      - "document_processing"
+    mcp_servers: []
     capabilities:
-      - "Application validation"
-      - "Identity verification"
-      - "Fraud detection"
-      - "Data enrichment"
-      - "Routing decisions"
+      - "Basic data completeness check"
+      - "Simple routing assignment"
+      - "Fast application triage"
     provider_config:
       openai:
         model: "gpt-4"
         temperature: 0.1
-        timeout_seconds: 180
+        timeout_seconds: 30
     output_format:
       validation_status:
         type: "enum"
-        values: ["PASSED", "FAILED", "REQUIRES_REVIEW"]
+        values: ["COMPLETE", "INCOMPLETE", "FAILED"]
         description: "Overall validation status"
-      data_completeness_score:
-        type: "float"
-        range: [0.0, 1.0]
-        description: "Score indicating data completeness"
-      fraud_indicators:
-        type: "array"
-        item_type: "string"
-        description: "List of detected fraud indicators"
-      verification_results:
-        type: "object"
-        description: "Dictionary of verification outcomes"
-      processing_path:
+      routing_decision:
         type: "enum"
-        values: ["FAST_TRACK", "STANDARD", "ENHANCED_REVIEW"]
-        description: "Recommended processing path"
-      issues_found:
-        type: "array"
-        item_type: "string"
-        description: "List of issues requiring attention"
+        values: ["FAST_TRACK", "STANDARD", "ENHANCED", "MANUAL"]
+        description: "Processing route assignment"
       confidence_score:
         type: "float"
         range: [0.0, 1.0]
-        description: "Agent's confidence in assessment"
+        description: "Confidence in the assessment"
+      processing_notes:
+        type: "string"
+        description: "Brief notes about the processing"
 
   credit:
     name: "Credit Agent"

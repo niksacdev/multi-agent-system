@@ -12,16 +12,18 @@ from pathlib import Path
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Add project root to path for utils imports
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP  # noqa: E402
+
 from loan_processing.utils import get_logger, log_execution  # noqa: E402
 
-from .service import FinancialCalculationsServiceImpl
+from .service import FinancialCalculationsServiceImpl  # noqa: E402
 
 # Initialize logging
 logger = get_logger(__name__)
@@ -36,10 +38,12 @@ mcp.settings.port = 8012
 # Initialize service implementation
 financial_service = FinancialCalculationsServiceImpl()
 
-logger.info("Financial Calculations MCP Server initialized", 
-           component="mcp_server", 
-           server_name="financial_calculations",
-           port=8012)
+logger.info(
+    "Financial Calculations MCP Server initialized",
+    component="mcp_server",
+    server_name="financial_calculations",
+    port=8012,
+)
 
 
 @mcp.tool()
@@ -122,8 +126,12 @@ async def calculate_credit_utilization_ratio(total_credit_used: float, total_cre
     Returns:
         JSON string with utilization calculation
     """
-    logger.info("Credit utilization calculation request", 
-               total_credit_used=total_credit_used, total_credit_available=total_credit_available, component="mcp_server")
+    logger.info(
+        "Credit utilization calculation request",
+        total_credit_used=total_credit_used,
+        total_credit_available=total_credit_available,
+        component="mcp_server",
+    )
     result = await financial_service.calculate_credit_utilization_ratio(total_credit_used, total_credit_available)
     return json.dumps(result)
 
@@ -150,8 +158,12 @@ async def calculate_total_debt_service_ratio(
     Returns:
         JSON string with TDSR calculation
     """
-    logger.info("TDSR calculation request", 
-               monthly_income=monthly_income, total_monthly_debt=total_monthly_debt, component="mcp_server")
+    logger.info(
+        "TDSR calculation request",
+        monthly_income=monthly_income,
+        total_monthly_debt=total_monthly_debt,
+        component="mcp_server",
+    )
     result = await financial_service.calculate_total_debt_service_ratio(
         monthly_income, total_monthly_debt, property_taxes, insurance, hoa_fees
     )
@@ -162,13 +174,16 @@ async def calculate_total_debt_service_ratio(
 async def financial_calculations_health_check() -> str:
     """Health check endpoint for financial calculations service."""
     from datetime import datetime, timezone
-    return json.dumps({
-        "status": "healthy",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "server": "financial_calculations",
-        "version": "1.0.0",
-        "port": 8012
-    })
+
+    return json.dumps(
+        {
+            "status": "healthy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "server": "financial_calculations",
+            "version": "1.0.0",
+            "port": 8012,
+        }
+    )
 
 
 if __name__ == "__main__":
@@ -176,12 +191,15 @@ if __name__ == "__main__":
     transport = "sse"
     if len(sys.argv) > 1 and sys.argv[1] == "stdio":
         transport = "stdio"  # Allow stdio override for development
-    
+
     if transport == "sse":
-        logger.info("Starting Financial Calculations MCP Server", 
-                   transport="sse", url="http://localhost:8012/sse", component="mcp_server")
+        logger.info(
+            "Starting Financial Calculations MCP Server",
+            transport="sse",
+            url="http://localhost:8012/sse",
+            component="mcp_server",
+        )
     else:
-        logger.info("Starting Financial Calculations MCP Server", 
-                   transport="stdio", component="mcp_server")
-    
+        logger.info("Starting Financial Calculations MCP Server", transport="stdio", component="mcp_server")
+
     mcp.run(transport=transport)

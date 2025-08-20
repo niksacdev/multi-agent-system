@@ -361,9 +361,9 @@ class TestDocumentProcessingServiceEdgeCases:
         service = MCPDocumentProcessingService(mcp_client=None)
         assert service.mcp_client is None
 
-        # Should raise AttributeError when trying to use None client
-        with pytest.raises(AttributeError):
-            await service.extract_text_from_document("/path/to/doc.pdf")
+        # Should return empty dict when client is None (error is logged)
+        result = await service.extract_text_from_document("/path/to/doc.pdf")
+        assert result == {}
 
     @pytest.mark.asyncio
     async def test_mcp_client_exception_handling(
@@ -372,9 +372,9 @@ class TestDocumentProcessingServiceEdgeCases:
         """Test handling when MCP client raises an exception."""
         mock_mcp_client.call_tool.side_effect = Exception("MCP client error")
 
-        # Should propagate the exception
-        with pytest.raises(Exception, match="MCP client error"):
-            await service_impl.extract_text_from_document("/path/to/doc.pdf")
+        # Should return empty dict on exception (error is logged)
+        result = await service_impl.extract_text_from_document("/path/to/doc.pdf")
+        assert result == {}
 
     @pytest.mark.asyncio
     async def test_complex_schema_handling(

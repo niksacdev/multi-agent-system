@@ -1,95 +1,199 @@
 # Agent Patterns
 
-How to build autonomous agents that select their own tools.
+How to build and configure domain-driven autonomous agents using the registry pattern.
 
 ## Overview
 
-Our agents are **autonomous** - they decide which tools to use based on what they need to accomplish. No hardcoded workflows.
+Our agents are **autonomous** and **configuration-driven** - they decide which tools to use based on domain expertise encoded in personas, not hardcoded workflows.
 
 ## Architecture
 
 ```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│      Agent      │ ──▶│  MCP Servers    │ ──▶│ Business Logic  │
-│   (Autonomous)  │    │ (Tool Servers)  │    │ (Domain Logic)  │
+│  Agent Registry │──▶│    Agent +      │──▶│   MCP Servers   │
+│  (YAML Config)  │    │    Persona      │    │ (Tool Servers)  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
+        ↓                      ↓                      ↓
+   Configuration         Domain Logic            Autonomous
+   Driven Creation      in Markdown Files       Tool Selection
 ```
 
-**Key Principle**: Agents get access to tool servers. They decide what to use.
+## Agent Registry Pattern
 
-## Agent Implementation
+All agents are created through a centralized registry using YAML configuration:
 
-Each agent follows this pattern:
+```yaml
+# loan_processing/agents/shared/config/agents.yaml
+agents:
+  intake:
+    name: "Intake Agent"
+    persona_file: "intake"
+    mcp_servers: []  # Optimized for speed - no external tools
+    capabilities: 
+      - "Application validation"
+      - "Data completeness check"
+```
 
-1. **Load Persona**: Instructions on what tools to use and when
-2. **Connect to MCP Servers**: Access to multiple tool servers
-3. **Autonomous Selection**: Agent picks tools based on assessment needs
+```python
+# Simple agent creation
+from loan_processing.agents.providers.openai.agentregistry import AgentRegistry
 
-**Example**: See [`loan_processing/providers/openai/agents/credit.py`](../loan_processing/providers/openai/agents/credit.py)
+agent = AgentRegistry.create_agent("intake", model="gpt-4")
+```
+
+## Adding New Agents
+
+### Step 1: Define Agent Configuration
+
+Add your agent to `loan_processing/agents/shared/config/agents.yaml`:
+
+```yaml
+agents:
+  your_new_agent:
+    name: "Your Agent Name"
+    description: "What this agent does"
+    persona_file: "your_agent"  # References markdown file
+    mcp_servers: 
+      - "application_verification"  # Which MCP servers it can access
+      - "document_processing"
+    capabilities:
+      - "Specific capability 1"
+      - "Specific capability 2"
+    output_format:
+      assessment_field: "string"
+      score_field: "number"
+      decision: "string"
+    provider_config:
+      openai:
+        model: "gpt-4"
+        temperature: 0.1
+        timeout_seconds: 60
+```
+
+### Step 2: Create Agent Persona
+
+Create `loan_processing/agents/shared/agent-persona/your_agent.md`:
+
+```markdown
+# Your Agent Name
+
+## Role
+You are a specialized agent responsible for [specific domain task].
+
+## Domain Expertise
+[Describe the domain knowledge and expertise this agent has]
+
+## Available Tools
+You have access to the following MCP servers:
+- **application_verification**: For identity and employment checks
+- **document_processing**: For document analysis
+
+## Decision Framework
+[Provide decision-making guidance based on domain expertise]
+
+## Output Requirements
+Your assessment must include:
+- assessment_field: Your primary assessment
+- score_field: Numerical score (0-100)
+- decision: APPROVE/REVIEW/DENY
+```
+
+### Step 3: Use Your Agent
+
+```python
+# In orchestration or standalone
+agent = AgentRegistry.create_agent("your_new_agent")
+result = await agent.run(context)
+```
+
+## Current Agents
+
+### Domain Expert Agents
+
+1. **Intake Agent** ([persona](../loan_processing/agents/shared/agent-persona/intake.md))
+   - Fast application triage
+   - No MCP servers (optimized for speed)
+   - Routes applications to appropriate workflow
+
+2. **Credit Agent** ([persona](../loan_processing/agents/shared/agent-persona/credit.md))
+   - Comprehensive credit assessment
+   - Uses all three MCP servers
+   - Evaluates creditworthiness and risk
+
+3. **Income Agent** ([persona](../loan_processing/agents/shared/agent-persona/income.md))
+   - Employment and income verification
+   - Handles traditional and gig economy income
+   - Calculates debt-to-income ratios
+
+4. **Risk Agent** ([persona](../loan_processing/agents/shared/agent-persona/risk.md))
+   - Synthesizes all assessments
+   - Makes final recommendations
+   - Applies regulatory compliance checks
 
 ## MCP Server Pattern
 
-Business capabilities are exposed as independent tool servers:
+Business capabilities exposed as independent tool servers:
 
 ```text
 Port 8010: Application Verification
 ├── retrieve_credit_report()
 ├── verify_employment()
+├── verify_identity()
 └── get_bank_account_data()
 
 Port 8011: Document Processing
 ├── extract_text_from_document()
 ├── classify_document_type()
-└── validate_document_format()
+├── validate_document_format()
+└── extract_structured_data()
 
 Port 8012: Financial Calculations
 ├── calculate_debt_to_income_ratio()
 ├── calculate_loan_affordability()
-└── analyze_income_stability()
+├── analyze_income_stability()
+└── calculate_monthly_payment()
 ```
 
-**Implementation**: See [`mcp_servers/`](../mcp_servers/) directory
+Agents autonomously select which tools to use based on their persona instructions.
 
-## Agent Personas
+## Orchestration Integration
 
-Personas guide autonomous tool selection:
+Agents work within orchestration patterns:
 
-- [`agent-persona/credit-agent-persona.md`](../agent-persona/credit-agent-persona.md) - Credit assessment guidance
-- [`agent-persona/intake-agent-persona.md`](../agent-persona/intake-agent-persona.md) - Application validation
-- [`agent-persona/income-agent-persona.md`](../agent-persona/income-agent-persona.md) - Income verification
-- [`agent-persona/risk-agent-persona.md`](../agent-persona/risk-agent-persona.md) - Risk analysis
-
-## Current Implementation
-
-### What's Built
-
-```text
-providers/openai/
-├── agents/
-│   └── credit.py     ✅ Credit assessment agent
-└── orchestrators/
-    └── sequential.py ✅ Sequential processing
+### Sequential Pattern (Current)
+```yaml
+orchestration:
+  loan_processing:
+    pattern: "sequential"
+    agents: ["intake", "credit", "income", "risk"]
+    context_passing: "accumulative"
 ```
 
-### Planned
-
-```text
-providers/openai/
-├── agents/
-│   ├── credit.py     ✅ Built
-│   ├── intake.py     📋 Planned
-│   ├── income.py     📋 Planned
-│   └── risk.py       📋 Planned
-└── orchestrators/
-    ├── sequential.py ✅ Built
-    └── parallel.py   📋 Planned
+### Parallel Pattern (Planned)
+```yaml
+orchestration:
+  fast_processing:
+    pattern: "parallel"
+    branches:
+      - ["credit", "income"]  # Run simultaneously
+    aggregator: "risk"
 ```
 
-## Benefits
+## Benefits of This Pattern
 
-- **Flexible**: Agents adapt to different loan types
-- **Maintainable**: Business logic separate from agent logic
-- **Scalable**: Independent MCP servers can scale separately
-- **Testable**: Each component can be tested independently
+- **Domain-Driven**: Agents embody real domain expertise
+- **Configuration-Based**: Add agents without code changes
+- **Provider Agnostic**: Switch between OpenAI, Autogen, etc.
+- **Maintainable**: Business logic in personas, not code
+- **Testable**: Each component tested independently
+- **Scalable**: MCP servers scale separately
+
+## Implementation Files
+
+- **Agent Registry**: [`loan_processing/agents/providers/openai/agentregistry.py`](../loan_processing/agents/providers/openai/agentregistry.py)
+- **Configuration**: [`loan_processing/agents/shared/config/agents.yaml`](../loan_processing/agents/shared/config/agents.yaml)
+- **Personas**: [`loan_processing/agents/shared/agent-persona/`](../loan_processing/agents/shared/agent-persona/)
+- **MCP Servers**: [`loan_processing/tools/mcp_servers/`](../loan_processing/tools/mcp_servers/)
+- **Orchestration**: [`loan_processing/agents/providers/openai/orchestration/`](../loan_processing/agents/providers/openai/orchestration/)
 
 See the actual code files for complete implementation details.
