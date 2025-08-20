@@ -247,15 +247,4 @@ jobs:
         
         # Run a quick validation
         echo "🔍 Validating test imports..."
-        uv run python -c "
-import sys
-sys.path.append('.')
-try:
-    from tests.test_agent_registry import TestAgentRegistryCreation
-    from tests.test_safe_evaluator import TestSafeConditionEvaluator
-    from tests.tools_tests.test_utils import TestOutputFormatGeneration
-    print('✅ Core test classes import successfully')
-except ImportError as e:
-    print(f'❌ Test import validation failed: {e}')
-    sys.exit(1)
-        "
+        uv run python -c "import sys; sys.path.append('.'); from tests.test_agent_registry import TestAgentRegistryCreation; from tests.test_safe_evaluator import TestSafeConditionEvaluator; from tests.tools_tests.test_utils import TestOutputFormatGeneration; print('✅ Core test classes import successfully')"
