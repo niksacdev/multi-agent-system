@@ -203,6 +203,12 @@ uv run python scripts/validate_ci_fix.py
 
 ### Commit Best Practices
 
+#### Branch Management (CRITICAL)
+- **Always delete branches after PR merge**: Clean up both local and remote branches
+- **Create new branch for new work**: Never reuse old feature branches
+- **Branch naming**: Use descriptive names like `feat/feature-name` or `fix/bug-description`
+- **Keep main clean**: Always work in feature branches, never commit directly to main
+
 #### Commit Frequency (CRITICAL)
 - **Commit often**: After each logical change (not after hours of work)
 - **Atomic commits**: One logical change per commit

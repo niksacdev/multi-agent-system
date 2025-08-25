@@ -112,12 +112,21 @@ This system is designed with compliance in mind:
    - Implement tamper-proof audit trail
    - Add compliance reporting
 
+## 🤖 AI Assistant
+
+This repository uses Claude AI for automated assistance, but it is **restricted to repository maintainers only** to ensure responsible API usage and cost management. 
+
+If you need help with an issue:
+1. Create a detailed issue describing your problem
+2. A maintainer will review and assist you
+3. Do not mention @claude in your issues or comments as it will not trigger the assistant
+
 ## 📞 Contact
 
 Security Team: [your-email@example.com]
-Project Maintainer: [your-github-username]
+Project Maintainer: @niksacdev
 
 ---
 
 *Last Updated: August 2025*
-*Security Policy Version: 1.0*
+*Security Policy Version: 1.1*

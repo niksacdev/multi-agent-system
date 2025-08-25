@@ -1,0 +1,42 @@
+name: Claude Restricted Message
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [opened]
+
+jobs:
+  notify-restriction:
+    # Only run if someone other than the owner tries to use @claude
+    if: |
+      github.actor != 'niksacdev' &&
+      (
+        (github.event_name == 'issues' && contains(github.event.issue.body, '@claude')) ||
+        (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude'))
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Post restriction message
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = context.issue.number;
+            const actor = context.actor;
+            
+            const message = `🤖 **Claude AI Assistant Notice**
+            
+            Thank you for your interest in using Claude, @${actor}!
+            
+            The Claude AI assistant is currently restricted to repository maintainers only to ensure responsible API usage and cost management.
+            
+            Please describe your issue or question in detail, and a maintainer will review and assist you. We appreciate your understanding and contribution to the project!`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: message
+            });
