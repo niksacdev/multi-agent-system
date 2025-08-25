@@ -188,6 +188,34 @@ orchestration:
 - **Testable**: Each component tested independently
 - **Scalable**: MCP servers scale separately
 
+## Future MCP Server Expansion
+
+As the system evolves, agents will gain access to additional MCP servers:
+
+**Intake Agent**:
+- Document OCR and extraction
+- Fraud detection services
+- Application search and deduplication
+- Public records enrichment
+
+**Credit Agent**:
+- Multiple credit bureau APIs (Experian, Equifax, TransUnion)
+- Alternative credit data sources
+- Business credit reports
+- International credit databases
+
+**Income Agent**:
+- Payroll service integrations (ADP, Paychex)
+- Tax transcript APIs
+- Bank account aggregation
+- Gig economy platform APIs
+
+**Risk Agent**:
+- ML-based risk scoring models
+- Regulatory compliance tools (OFAC, AML)
+- Property valuation services
+- Insurance verification APIs
+
 ## Implementation Files
 
 - **Agent Registry**: [`loan_processing/agents/providers/openai/agentregistry.py`](../loan_processing/agents/providers/openai/agentregistry.py)
