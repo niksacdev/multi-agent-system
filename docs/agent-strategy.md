@@ -60,6 +60,10 @@ agent = AgentRegistry.create_agent("intake", model="gpt-4")
 - **A/B Testing Capability**: Test different agent configurations simultaneously
 - **Regulatory Adaptability**: Adjust business rules per jurisdiction through personas
 
+## Future Evolution Through Progressive Autonomy
+
+Our multi-agent architecture is a strategic investment that enables progressive enhancement without refactoring. Agents start simple with basic validations but gain intelligence as MCP servers are added. For example, the Intake Agent currently performs basic routing but will add document OCR, fraud detection, and search capabilities. Each agent can evolve independently - Credit can add multiple bureau APIs while Income integrates payroll services, all without touching other agents. This approach avoids the refactoring cost of moving from a single orchestrator to multi-agent later when complexity demands it.
+
 ## Multi-Provider Strategy
 
 ### Strategic Rationale

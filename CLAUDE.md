@@ -71,6 +71,8 @@ Claude has access to specialized development agents that MUST be used proactivel
 - **Persona-driven behavior**: Agent instructions are loaded from persona markdown files
 - **No hardcoded logic**: Avoid embedding business logic in orchestrator code
 - **Jobs-to-be-Done focused**: Agents designed around customer jobs, not internal processes
+- **Strategic multi-agent choice**: Architecture designed for future growth - agents will gain intelligence as MCP servers expand from current 3 to planned 20+
+- **Progressive autonomy**: Agents start simple but evolve independently without refactoring
 
 ### 2. Clean Orchestration
 - **Minimal orchestrator code**: Orchestrators should only handle agent coordination and context passing
