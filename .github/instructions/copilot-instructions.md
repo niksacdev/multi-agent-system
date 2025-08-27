@@ -102,7 +102,121 @@ uv run python validate_ci_fix.py
 - **No Leakage**: Domain models never import SDK symbols
 - **Provider Isolation**: OpenAI-specific code in `loan_processing/agents/providers/openai/`
 
-## Development Workflow
+## Development Support Agents
+
+### Available Virtual Development Agents
+GitHub Copilot should emulate these specialized development agents that provide expert guidance throughout the development process:
+
+1. **System Architecture Reviewer** (`/architecture-review`)
+   - **USE WHEN**: Designing new features, reviewing system architecture, analyzing impacts
+   - **PROVIDES**: Architecture guidance, system design reviews, impact analysis
+   - **QUESTIONS TO ASK**: "What are the system-wide impacts?", "Does this align with our architecture?", "What are the trade-offs?"
+
+2. **Product Manager Advisor** (`/pm-requirements`)
+   - **USE WHEN**: Creating GitHub issues, defining requirements, making technical decisions
+   - **PROVIDES**: Business value alignment, user story creation, test validation
+   - **QUESTIONS TO ASK**: "What's the business value?", "How does this help users?", "What are the acceptance criteria?"
+
+3. **UX/UI Designer** (`/ui-validation`)
+   - **USE WHEN**: Designing UI components, validating user experience, creating interfaces
+   - **PROVIDES**: Design validation, UI/UX improvements, usability analysis
+   - **QUESTIONS TO ASK**: "Is this intuitive?", "What's the user journey?", "How accessible is this?"
+
+4. **Code Reviewer** (`/code-quality`)
+   - **USE WHEN**: After writing significant code, before committing changes
+   - **PROVIDES**: Best practices feedback, architecture alignment, code quality review
+   - **QUESTIONS TO ASK**: "Does this follow patterns?", "Are there edge cases?", "Is this maintainable?"
+
+### When to Use Support Agents
+
+#### MANDATORY Agent Usage:
+- **Before Implementation**: Use `/architecture-review` for design validation
+- **After Code Writing**: Use `/code-quality` for all significant code changes
+- **For UI Changes**: Use `/ui-validation` for any user-facing components
+- **For Requirements**: Use `/pm-requirements` when creating features or issues
+
+#### Proactive Usage Pattern:
+```
+1. User requests feature → Use /pm-requirements for requirements
+2. Design solution → Use /architecture-review for validation  
+3. Implement code → Write the implementation
+4. Pre-commit checks → Run MANDATORY local quality checks (ruff, tests, coverage)
+5. Review code → Use /code-quality for feedback (AFTER checks pass)
+6. If UI involved → Use /ui-validation for validation
+```
+
+## Development Workflows with Support Agents
+
+### Feature Development Workflow
+```
+1. User Request → Use /pm-requirements:
+   - Analyze requirements and business value
+   - Create proper GitHub issues
+   - Define acceptance criteria
+
+2. Design Phase → Use /architecture-review:
+   - Review proposed architecture changes
+   - Analyze system impacts
+   - Validate design decisions
+
+3. Implementation → Write code following patterns
+
+4. Pre-Commit Validation (MANDATORY) → Run local quality checks:
+   - uv run ruff check . --fix (auto-fix issues)
+   - uv run ruff format . (auto-format)
+   - uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v
+   - Verify ≥85% coverage on core components
+
+5. Code Review → Use /code-quality (ONLY after checks pass):
+   - Review for best practices
+   - Check architecture alignment
+   - Validate code quality
+
+6. UI Components → Use /ui-validation (if applicable):
+   - Review user experience
+   - Validate interface design
+   - Ensure usability standards
+
+7. Document Decisions → Create ADR (MANDATORY):
+   - Document context and changes made based on support agent feedback
+   - Explain rationale for future developers
+   - Include support agent assessments and scores
+   - Track outstanding issues for future implementation
+```
+
+### Bug Fix Workflow
+```
+1. Issue Analysis → Use /architecture-review:
+   - Understand system impact
+   - Identify root cause areas
+
+2. Solution Design → Use /pm-requirements:
+   - Validate business impact
+   - Prioritize fix approach
+
+3. Implementation → Write fix
+
+4. Pre-Commit Validation (MANDATORY) → Run local quality checks:
+   - uv run ruff check . --fix (auto-fix issues)
+   - uv run ruff format . (auto-format)
+   - uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v
+   - Verify fix doesn't break existing functionality
+
+5. Review → Use /code-quality (ONLY after checks pass):
+   - Ensure fix doesn't introduce regressions
+   - Validate approach
+
+6. Document Fix → Create ADR (if significant):
+   - Document root cause analysis from support agents
+   - Explain solution approach and alternatives considered
+   - Record lessons learned for future similar issues
+```
+
+### Branch Management (CRITICAL)
+- **Always delete branches after PR merge**: Clean up both local and remote branches
+- **Create new branch for new work**: Never reuse old feature branches
+- **Branch naming**: Use descriptive names like `feat/feature-name` or `fix/bug-description`
+- **Keep main clean**: Always work in feature branches, never commit directly to main
 
 ### Collaborative Development
 - **Iterate**: Avoid monolithic feature drops
@@ -114,12 +228,13 @@ uv run python validate_ci_fix.py
 1. **Create Issue**: Clear acceptance criteria and design specs
 2. **Design Review**: Create/update ADR if architectural change
 3. **Implementation**: Build with tests and documentation
-4. **Code Review**: Use `/agent-persona` prompts for reviews
+4. **Code Review**: Use agent prompts for reviews
 
 ### Architecture Decision Records
 - **Location**: `docs/decisions/adr-NNN-title.md`
 - **Template**: Context → Decision → Consequences → Status
 - **Traceability**: Link ADR ↔ Issue ↔ Implementation PR
+- **MANDATORY**: Document all support agent feedback that leads to accepted changes
 
 ## File Organization
 
@@ -174,6 +289,56 @@ loan_processing/
 - [ ] Tests cover success / failure / malformed provider output
 - [ ] Personas avoid provider lock-in
 
+## Common Patterns
+
+### Sequential Processing
+```python
+context = {"application": application_data}
+context["intake_result"] = await intake_agent.run(context)
+context["credit_result"] = await credit_agent.run(context)
+context["income_result"] = await income_agent.run(context)
+final_decision = await risk_agent.run(context)
+```
+
+### Error Handling
+```python
+try:
+    result = await agent.run(input)
+except MCPServerError:
+    # Handle MCP server failures
+    logger.error("MCP server failed", exc_info=True)
+    # Fallback logic or retry
+except AgentTimeoutError:
+    # Handle agent timeouts
+    logger.warning("Agent timed out, using default")
+    # Use default or cached result
+```
+
+### Context Management (Loss Prevention)
+```python
+# Create checkpoints after major changes
+git commit -m "checkpoint: refactoring complete"
+
+# Provide context anchoring for new sessions
+"We just completed X refactoring. Key changes:
+1. Moved Y to Z
+2. Renamed A to B
+3. Next task: C"
+```
+
+### Debugging Circular Loops
+```python
+# Detect when agent repeats failed solutions
+attempted_fixes = set()
+if current_fix in attempted_fixes:
+    print("LOOP DETECTED: Human intervention needed")
+    # Request human to provide strategic pivot
+    # Apply "be pragmatic" guidance
+else:
+    attempted_fixes.add(current_fix)
+    # Proceed with fix attempt
+```
+
 ## Copilot Prompt Usage
 
 ### Development Guidelines
@@ -184,10 +349,30 @@ loan_processing/
 - **Testing**: Run `uv run pytest tests/test_agent_registry.py` before commits
 - **Demo Scripts**: Use `uv run python demo_sequential_processing.py` to test workflows
 
-### When to Use Prompts
-- **Design Phase**: `/design-review` for architecture validation
-- **Implementation**: `/agent-persona` for code review
-- **Testing**: `/test-generation` for comprehensive test coverage
+### Copilot-Specific Agent Prompts
+Use these prompts to activate specific agent behaviors:
+
+#### Architecture Review
+- `/architecture-review` - "Review this design for system-wide impacts and architecture alignment"
+- Questions: "What are the trade-offs?", "How does this affect scalability?", "What patterns should I follow?"
+
+#### Product Management
+- `/pm-requirements` - "Help me create clear requirements and acceptance criteria"
+- Questions: "What's the user story?", "How do we measure success?", "What are the edge cases?"
+
+#### UX/UI Design
+- `/ui-validation` - "Review this UI for usability and accessibility"
+- Questions: "Is the flow intuitive?", "Are there accessibility issues?", "How can we simplify?"
+
+#### Code Quality
+- `/code-quality` - "Review this code for best practices and maintainability"
+- Questions: "Are there performance issues?", "Is this testable?", "What edge cases am I missing?"
+
+### When to Use Agent Prompts
+- **Design Phase**: `/architecture-review` for system design validation
+- **Requirements**: `/pm-requirements` for creating issues and stories
+- **Implementation**: `/code-quality` for code review (after tests pass)
+- **UI Work**: `/ui-validation` for user experience review
 - **Documentation**: `/create-adr` for significant decisions
 
 ## Success Criteria

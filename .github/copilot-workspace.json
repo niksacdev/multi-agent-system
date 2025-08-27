@@ -1,0 +1,257 @@
+{
+  "name": "Multi-Agent Loan Processing System",
+  "description": "Enterprise-grade multi-agent system using OpenAI Agents SDK with MCP servers",
+  "version": "1.0.0",
+  "settings": {
+    "defaultBranch": "main",
+    "branchProtection": true,
+    "requireTests": true,
+    "minimumCoverage": 85,
+    "autoDeleteBranches": true
+  },
+  "developmentAgents": {
+    "architecture-reviewer": {
+      "name": "System Architecture Reviewer",
+      "trigger": "/architecture-review",
+      "description": "Reviews system architecture and design decisions",
+      "capabilities": [
+        "System design validation",
+        "Impact analysis",
+        "Architecture alignment review",
+        "Trade-off analysis"
+      ],
+      "prompts": {
+        "default": "Review this for system-wide impacts and architecture alignment",
+        "questions": [
+          "What are the system-wide impacts?",
+          "Does this align with our architecture principles?",
+          "What are the trade-offs?",
+          "How does this affect scalability?",
+          "What patterns should be followed?"
+        ]
+      }
+    },
+    "product-manager": {
+      "name": "Product Manager Advisor",
+      "trigger": "/pm-requirements",
+      "description": "Helps with requirements, user stories, and business value",
+      "capabilities": [
+        "Requirements definition",
+        "User story creation",
+        "Acceptance criteria",
+        "Business value alignment"
+      ],
+      "prompts": {
+        "default": "Help create clear requirements and acceptance criteria",
+        "questions": [
+          "What's the user story?",
+          "How does this help users?",
+          "What's the business value?",
+          "How do we measure success?",
+          "What are the edge cases?"
+        ]
+      }
+    },
+    "ux-designer": {
+      "name": "UX/UI Designer",
+      "trigger": "/ui-validation",
+      "description": "Reviews UI/UX for usability and accessibility",
+      "capabilities": [
+        "UI/UX validation",
+        "Accessibility review",
+        "User journey mapping",
+        "Design pattern recommendations"
+      ],
+      "prompts": {
+        "default": "Review this UI for usability and accessibility",
+        "questions": [
+          "Is the flow intuitive?",
+          "Are there accessibility issues?",
+          "What's the user journey?",
+          "How can we simplify?",
+          "Does this follow design patterns?"
+        ]
+      }
+    },
+    "code-reviewer": {
+      "name": "Code Reviewer",
+      "trigger": "/code-quality",
+      "description": "Reviews code for quality, patterns, and best practices",
+      "capabilities": [
+        "Code quality review",
+        "Pattern validation",
+        "Performance analysis",
+        "Security review"
+      ],
+      "prompts": {
+        "default": "Review this code for best practices and maintainability",
+        "questions": [
+          "Does this follow our patterns?",
+          "Are there performance issues?",
+          "Is this testable?",
+          "What edge cases are missing?",
+          "Is error handling complete?"
+        ]
+      }
+    }
+  },
+  "workflows": {
+    "featureDevelopment": {
+      "name": "Feature Development Workflow",
+      "steps": [
+        {
+          "step": 1,
+          "name": "Requirements",
+          "agent": "product-manager",
+          "actions": ["Analyze requirements", "Create GitHub issue", "Define acceptance criteria"]
+        },
+        {
+          "step": 2,
+          "name": "Design",
+          "agent": "architecture-reviewer",
+          "actions": ["Review architecture", "Analyze impacts", "Validate design"]
+        },
+        {
+          "step": 3,
+          "name": "Implementation",
+          "agent": null,
+          "actions": ["Write code following patterns"]
+        },
+        {
+          "step": 4,
+          "name": "Pre-Commit",
+          "agent": null,
+          "actions": ["Run ruff checks", "Run tests", "Verify coverage"]
+        },
+        {
+          "step": 5,
+          "name": "Code Review",
+          "agent": "code-reviewer",
+          "actions": ["Review best practices", "Check architecture", "Validate quality"]
+        },
+        {
+          "step": 6,
+          "name": "UI Review",
+          "agent": "ux-designer",
+          "condition": "if UI components",
+          "actions": ["Review UX", "Validate design", "Check usability"]
+        },
+        {
+          "step": 7,
+          "name": "Documentation",
+          "agent": null,
+          "actions": ["Create ADR", "Document decisions", "Track issues"]
+        }
+      ]
+    },
+    "bugFix": {
+      "name": "Bug Fix Workflow",
+      "steps": [
+        {
+          "step": 1,
+          "name": "Analysis",
+          "agent": "architecture-reviewer",
+          "actions": ["Understand impact", "Identify root cause"]
+        },
+        {
+          "step": 2,
+          "name": "Solution Design",
+          "agent": "product-manager",
+          "actions": ["Validate impact", "Prioritize approach"]
+        },
+        {
+          "step": 3,
+          "name": "Implementation",
+          "agent": null,
+          "actions": ["Write fix"]
+        },
+        {
+          "step": 4,
+          "name": "Pre-Commit",
+          "agent": null,
+          "actions": ["Run checks", "Verify no regressions"]
+        },
+        {
+          "step": 5,
+          "name": "Review",
+          "agent": "code-reviewer",
+          "actions": ["Validate fix", "Check for regressions"]
+        },
+        {
+          "step": 6,
+          "name": "Documentation",
+          "agent": null,
+          "condition": "if significant",
+          "actions": ["Create ADR", "Document root cause", "Record lessons"]
+        }
+      ]
+    }
+  },
+  "qualityGates": {
+    "preCommit": {
+      "mandatory": true,
+      "checks": [
+        "uv run ruff check . --fix",
+        "uv run ruff format .",
+        "uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v"
+      ],
+      "coverage": {
+        "minimum": 85,
+        "targets": [
+          "loan_processing.agents.providers.openai.agentregistry",
+          "loan_processing.agents.shared"
+        ]
+      }
+    },
+    "prValidation": {
+      "maxLines": 200,
+      "requiresIssue": true,
+      "requiresTests": true,
+      "requiresADR": "for architectural changes"
+    }
+  },
+  "contextManagement": {
+    "sessionLength": {
+      "recommended": "2-3 hours",
+      "maximum": "4 hours",
+      "warning": "Context loss likely after 4+ hours"
+    },
+    "checkpoints": {
+      "frequency": "after major changes",
+      "format": "git commit -m 'checkpoint: {description}'"
+    },
+    "contextAnchoring": {
+      "template": "We just completed {task}. Key changes:\n1. {change1}\n2. {change2}\n3. Next: {nextTask}"
+    }
+  },
+  "loopDetection": {
+    "enabled": true,
+    "maxAttempts": 3,
+    "action": "request human intervention",
+    "guidance": "Apply 'be pragmatic' approach when loops detected"
+  },
+  "tools": {
+    "packageManager": "uv",
+    "linter": "ruff",
+    "formatter": "ruff format",
+    "testRunner": "pytest",
+    "coverageReporter": "pytest-cov"
+  },
+  "documentation": {
+    "adrLocation": "docs/decisions/adr-{number}-{title}.md",
+    "adrRequired": [
+      "architectural changes",
+      "support agent feedback implementation",
+      "significant bug fixes"
+    ],
+    "syncFiles": [
+      {
+        "master": "CLAUDE.md",
+        "copies": [
+          ".github/instructions/copilot-instructions.md",
+          ".cursorrules"
+        ]
+      }
+    ]
+  }
+}
