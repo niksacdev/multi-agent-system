@@ -75,7 +75,7 @@ def main() -> int:
             "--cov-report=term-missing",
         ],
         "Running core stable tests",
-        env={"PYTHONPATH": "."}
+        env={"PYTHONPATH": "."},
     )
 
     if not success:
@@ -104,7 +104,7 @@ def main() -> int:
     success, output = run_command(
         ["uv", "run", "pytest", "tests/test_agent_registry.py", "tests/test_safe_evaluator.py", "--collect-only", "-q"],
         "Counting core tests",
-        env={"PYTHONPATH": "."}
+        env={"PYTHONPATH": "."},
     )
 
     if success:
