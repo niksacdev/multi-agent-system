@@ -127,6 +127,11 @@ GitHub Copilot should emulate these specialized development agents that provide 
    - **PROVIDES**: Best practices feedback, architecture alignment, code quality review
    - **QUESTIONS TO ASK**: "Does this follow patterns?", "Are there edge cases?", "Is this maintainable?"
 
+5. **GitOps CI/CD Specialist** (`/gitops-ci`)
+   - **USE WHEN**: Committing code, troubleshooting CI/CD issues, optimizing pipelines
+   - **PROVIDES**: Git workflow guidance, CI/CD pipeline optimization, deployment strategies
+   - **QUESTIONS TO ASK**: "Will this pass CI?", "How can I optimize the pipeline?", "What's the deployment strategy?"
+
 ### When to Use Support Agents
 
 #### MANDATORY Agent Usage:
@@ -134,6 +139,8 @@ GitHub Copilot should emulate these specialized development agents that provide 
 - **After Code Writing**: Use `/code-quality` for all significant code changes
 - **For UI Changes**: Use `/ui-validation` for any user-facing components
 - **For Requirements**: Use `/pm-requirements` when creating features or issues
+- **Before Committing**: Use `/gitops-ci` to validate CI/CD compatibility
+- **For CI Issues**: Use `/gitops-ci` when tests fail in CI but pass locally
 
 #### Proactive Usage Pattern:
 ```
@@ -143,6 +150,7 @@ GitHub Copilot should emulate these specialized development agents that provide 
 4. Pre-commit checks → Run MANDATORY local quality checks (ruff, tests, coverage)
 5. Review code → Use /code-quality for feedback (AFTER checks pass)
 6. If UI involved → Use /ui-validation for validation
+7. Before commit → Use /gitops-ci to ensure CI/CD compatibility
 ```
 
 ## Development Workflows with Support Agents
@@ -177,7 +185,12 @@ GitHub Copilot should emulate these specialized development agents that provide 
    - Validate interface design
    - Ensure usability standards
 
-7. Document Decisions → Create ADR (MANDATORY):
+7. CI/CD Validation → Use /gitops-ci:
+   - Validate commit structure
+   - Ensure CI pipeline compatibility
+   - Review deployment strategy
+
+8. Document Decisions → Create ADR (MANDATORY):
    - Document context and changes made based on support agent feedback
    - Explain rationale for future developers
    - Include support agent assessments and scores
@@ -206,7 +219,11 @@ GitHub Copilot should emulate these specialized development agents that provide 
    - Ensure fix doesn't introduce regressions
    - Validate approach
 
-6. Document Fix → Create ADR (if significant):
+6. CI/CD Check → Use /gitops-ci:
+   - Ensure fix won't break CI pipeline
+   - Validate deployment safety
+
+7. Document Fix → Create ADR (if significant):
    - Document root cause analysis from support agents
    - Explain solution approach and alternatives considered
    - Record lessons learned for future similar issues
@@ -368,11 +385,17 @@ Use these prompts to activate specific agent behaviors:
 - `/code-quality` - "Review this code for best practices and maintainability"
 - Questions: "Are there performance issues?", "Is this testable?", "What edge cases am I missing?"
 
+#### GitOps & CI/CD
+- `/gitops-ci` - "Review my changes for CI/CD compatibility and deployment safety"
+- Questions: "Will this pass CI?", "What's the deployment strategy?", "How can I fix failing tests?"
+
 ### When to Use Agent Prompts
 - **Design Phase**: `/architecture-review` for system design validation
 - **Requirements**: `/pm-requirements` for creating issues and stories
 - **Implementation**: `/code-quality` for code review (after tests pass)
 - **UI Work**: `/ui-validation` for user experience review
+- **CI/CD Issues**: `/gitops-ci` for pipeline troubleshooting and optimization
+- **Before Commit**: `/gitops-ci` to validate CI compatibility
 - **Documentation**: `/create-adr` for significant decisions
 
 ## Success Criteria
