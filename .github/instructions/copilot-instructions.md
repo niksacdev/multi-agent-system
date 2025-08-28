@@ -132,6 +132,12 @@ GitHub Copilot should emulate these specialized development agents that provide 
    - **PROVIDES**: Git workflow guidance, CI/CD pipeline optimization, deployment strategies
    - **QUESTIONS TO ASK**: "Will this pass CI?", "How can I optimize the pipeline?", "What's the deployment strategy?"
 
+6. **Sync Coordinator** (`/sync-instructions`)
+   - **USE WHEN**: Instruction files need synchronization, ADRs are added or changed
+   - **PROVIDES**: Consistency analysis across instruction files, synchronization recommendations
+   - **QUESTIONS TO ASK**: "Are instruction files in sync?", "What needs updating after this ADR?", "How should I resolve this conflict?"
+   - **NOTE**: Usually runs automatically via GitHub Actions on PRs
+
 ### When to Use Support Agents
 
 #### MANDATORY Agent Usage:
@@ -389,6 +395,10 @@ Use these prompts to activate specific agent behaviors:
 - `/gitops-ci` - "Review my changes for CI/CD compatibility and deployment safety"
 - Questions: "Will this pass CI?", "What's the deployment strategy?", "How can I fix failing tests?"
 
+#### Instruction Synchronization
+- `/sync-instructions` - "Check if instruction files are synchronized and identify needed updates"
+- Questions: "What changed in this ADR?", "Which files need updating?", "How do I resolve conflicts?"
+
 ### When to Use Agent Prompts
 - **Design Phase**: `/architecture-review` for system design validation
 - **Requirements**: `/pm-requirements` for creating issues and stories
@@ -396,6 +406,7 @@ Use these prompts to activate specific agent behaviors:
 - **UI Work**: `/ui-validation` for user experience review
 - **CI/CD Issues**: `/gitops-ci` for pipeline troubleshooting and optimization
 - **Before Commit**: `/gitops-ci` to validate CI compatibility
+- **Instruction Updates**: `/sync-instructions` when ADRs or CLAUDE.md change
 - **Documentation**: `/create-adr` for significant decisions
 
 ## Success Criteria

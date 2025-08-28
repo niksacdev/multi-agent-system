@@ -46,6 +46,15 @@ Claude has access to specialized development agents that MUST be used proactivel
    - USE WHEN: After writing significant code, before committing changes
    - PROVIDES: Best practices feedback, architecture alignment, code quality review
 
+5. **gitops-ci-specialist**:
+   - USE WHEN: Committing code, troubleshooting CI/CD issues, optimizing pipelines
+   - PROVIDES: Git workflow guidance, CI/CD pipeline optimization, deployment strategies
+
+6. **sync-coordinator**:
+   - USE WHEN: Instruction files need synchronization, ADRs are added/changed
+   - PROVIDES: Automatic synchronization of instruction files across tools
+   - NOTE: Usually runs automatically via GitHub Actions, manual invocation rarely needed
+
 ### When to Use Support Agents
 
 #### MANDATORY Usage:
@@ -363,6 +372,61 @@ uv run pytest tests/test_agent_registry.py -v
 - Log all agent decisions and tool usage
 - Track processing times and success rates
 - Monitor MCP server availability and performance
+
+## Instruction File Synchronization
+
+### Automatic Synchronization Process
+
+This repository uses **automatic pre-merge synchronization** to maintain consistency across all instruction files. When you update CLAUDE.md, ADRs, or developer agents, a sync coordinator agent automatically updates related files in the same PR.
+
+### How It Works
+
+1. **Trigger**: When a PR modifies key instruction files:
+   - `docs/decisions/*.md` (ADRs)
+   - `CLAUDE.md` (this file)
+   - `docs/developer-agents/*.md`
+   - `.github/instructions/copilot-instructions.md`
+
+2. **Sync Agent**: Runs automatically and:
+   - Analyzes changes in the PR
+   - Updates affected instruction files
+   - Commits changes to the same PR with `[skip-sync]` flag
+   - Preserves tool-specific features
+
+3. **Single PR**: All changes (original + synchronized) are reviewed together
+
+### Synchronization Hierarchy
+
+When conflicts arise, this hierarchy determines source of truth:
+
+1. **ADRs** - Architecture decisions override everything
+2. **CLAUDE.md** - Primary source for development practices (this file)
+3. **Developer agents** - Domain-specific expertise
+4. **Copilot instructions** - Derived from above sources
+5. **Chatmodes** - Tool-specific implementations
+
+### Manual Override
+
+- Add `[skip-sync]` to commit message to skip synchronization
+- Run workflow manually via Actions tab if needed
+- Sync agent preserves natural language and tool-specific features
+
+### What Gets Synchronized
+
+**Automatically synchronized**:
+- Development standards and practices
+- Agent invocation patterns  
+- Quality gates and pre-commit checks
+- Workflow definitions
+- Architecture principles from ADRs
+
+**NOT synchronized** (tool-specific):
+- IDE-specific configurations
+- Tool-specific command patterns (e.g., `/commands`)
+- Platform installation instructions
+- Tool UI references
+
+See [ADR-003](docs/decisions/adr-003-instruction-synchronization.md) for detailed synchronization strategy.
 
 ## Development Workflows with Support Agents
 
