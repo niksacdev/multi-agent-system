@@ -40,13 +40,14 @@ Multi-Agent Loan Processing System using OpenAI Agents SDK with MCP (Model Conte
 1. Use support agents for design validation
 2. Implement following existing patterns
 3. Run pre-commit validation
-4. **If instruction files modified**: Run sync-coordinator agent (MANDATORY)
+4. **If instruction files modified**: Run agent-sync-coordinator (MANDATORY)
 5. Keep PRs small (50-200 lines)
 6. Document decisions in ADRs
 
 ## Pre-Commit Synchronization
 **MANDATORY**: Before committing changes to instruction files:
-- Run sync-coordinator agent via available tools
+- Run agent-sync-coordinator via available tools (not instruction-sync-coordinator)
 - Apply recommended synchronization updates
 - Include sync changes in commit
 - This ensures CLAUDE.md, Copilot instructions, and Cursor rules stay in sync
+- Triggers: ADR changes, CLAUDE.md updates, developer agent modifications

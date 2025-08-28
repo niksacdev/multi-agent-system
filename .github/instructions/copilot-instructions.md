@@ -94,38 +94,39 @@ This is a **loan processing multi-agent system** demonstrating enterprise-grade 
 ## Development Support Agents
 
 ### Available Virtual Development Agents
-GitHub Copilot should emulate these specialized development agents that provide expert guidance throughout the development process:
+GitHub Copilot chatmodes are defined in `.github/chatmodes/` directory (SOURCE OF TRUTH):
 
-1. **System Architecture Reviewer** (`/architecture-review`)
+1. **System Architecture Reviewer** (`/architecture-review` - `.github/chatmodes/architecture-reviewer.chatmode.md`)
    - **USE WHEN**: Designing new features, reviewing system architecture, analyzing impacts
    - **PROVIDES**: Architecture guidance, system design reviews, impact analysis
    - **QUESTIONS TO ASK**: "What are the system-wide impacts?", "Does this align with our architecture?", "What are the trade-offs?"
 
-2. **Product Manager Advisor** (`/pm-requirements`)
+2. **Product Manager Advisor** (`/pm-requirements` - `.github/chatmodes/product-manager.chatmode.md`)
    - **USE WHEN**: Creating GitHub issues, defining requirements, making technical decisions
    - **PROVIDES**: Business value alignment, user story creation, test validation
    - **QUESTIONS TO ASK**: "What's the business value?", "How does this help users?", "What are the acceptance criteria?"
 
-3. **UX/UI Designer** (`/ui-validation`)
+3. **UX/UI Designer** (`/ui-validation` - `.github/chatmodes/ux-designer.chatmode.md`)
    - **USE WHEN**: Designing UI components, validating user experience, creating interfaces
    - **PROVIDES**: Design validation, UI/UX improvements, usability analysis
    - **QUESTIONS TO ASK**: "Is this intuitive?", "What's the user journey?", "How accessible is this?"
 
-4. **Code Reviewer** (`/code-quality`)
+4. **Code Reviewer** (`/code-quality` - `.github/chatmodes/code-reviewer.chatmode.md`)
    - **USE WHEN**: After writing significant code, before committing changes
    - **PROVIDES**: Best practices feedback, architecture alignment, code quality review
    - **QUESTIONS TO ASK**: "Does this follow patterns?", "Are there edge cases?", "Is this maintainable?"
 
-5. **GitOps CI/CD Specialist** (`/gitops-ci`)
+5. **GitOps CI/CD Specialist** (`/gitops-ci` - `.github/chatmodes/gitops-ci-specialist.chatmode.md`)
    - **USE WHEN**: Committing code, troubleshooting CI/CD issues, optimizing pipelines
    - **PROVIDES**: Git workflow guidance, CI/CD pipeline optimization, deployment strategies
    - **QUESTIONS TO ASK**: "Will this pass CI?", "How can I optimize the pipeline?", "What's the deployment strategy?"
 
-6. **Sync Coordinator** (`/sync-instructions`)
+6. **Agent Sync Coordinator** (`/sync-instructions` - `.github/chatmodes/sync-coordinator.chatmode.md`)
    - **USE WHEN**: **MANDATORY before committing** changes to instruction files, ADRs, or developer agents
-   - **PROVIDES**: Consistency analysis across instruction files, synchronization recommendations
-   - **QUESTIONS TO ASK**: "Are instruction files in sync?", "What needs updating after this ADR?", "How should I resolve this conflict?"
-   - **CRITICAL**: Always run this before committing if you modified CLAUDE.md, ADRs, or any instruction files
+   - **PROVIDES**: Consistency analysis across `.claude/agents/` (if exists), `.github/chatmodes/`, `.cursor/rules/`, `.cursorrules`
+   - **QUESTIONS TO ASK**: "Are instruction files in sync?", "What needs updating?", "How should I resolve conflicts?"
+   - **CRITICAL**: Always run before committing changes to CLAUDE.md, ADRs, developer agents, or instruction files
+   - **NAMING**: Use "agent-sync-coordinator" not "instruction-sync-coordinator"
 
 ### When to Use Support Agents
 
@@ -136,7 +137,7 @@ GitHub Copilot should emulate these specialized development agents that provide 
 - **For Requirements**: Use `/pm-requirements` when creating features or issues
 - **Before Committing**: Use `/gitops-ci` to validate CI/CD compatibility
 - **For CI Issues**: Use `/gitops-ci` when tests fail in CI but pass locally
-- **Before ANY Commit with Instruction Changes**: Use `/sync-instructions` to ensure consistency
+- **Before ANY Commit with Instruction/ADR/Agent Changes**: Use `/sync-instructions` (agent-sync-coordinator) to ensure consistency
 
 #### Proactive Usage Pattern:
 ```
@@ -146,7 +147,7 @@ GitHub Copilot should emulate these specialized development agents that provide 
 4. Pre-commit checks → Run MANDATORY local quality checks (ruff, tests, coverage)
 5. Review code → Use /code-quality for feedback (AFTER checks pass)
 6. If UI involved → Use /ui-validation for validation
-7. If instruction files changed → Use /sync-instructions (MANDATORY)
+7. If instruction files changed → Use /sync-instructions (agent-sync-coordinator, MANDATORY)
 8. Before commit → Use /gitops-ci to ensure CI/CD compatibility
 ```
 
@@ -362,9 +363,10 @@ Use these prompts to activate specific agent behaviors:
 - `/gitops-ci` - "Review my changes for CI/CD compatibility and deployment safety"
 - Questions: "Will this pass CI?", "What's the deployment strategy?", "How can I fix failing tests?"
 
-#### Instruction Synchronization
+#### Agent Synchronization
 - `/sync-instructions` - "Check if instruction files are synchronized and identify needed updates"
 - Questions: "What changed in this ADR?", "Which files need updating?", "How do I resolve conflicts?"
+- **Agent Name**: agent-sync-coordinator (not instruction-sync-coordinator)
 
 ### When to Use Agent Prompts
 - **Design Phase**: `/architecture-review` for system design validation

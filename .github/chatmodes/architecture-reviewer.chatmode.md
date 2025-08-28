@@ -80,6 +80,19 @@ Provide structured review with:
 - Risk Assessment (debt, maintenance, evolution)
 - Decision (Approve/Request Changes/Discussion)
 
+## Sync Notification Requirement
+
+**IMPORTANT**: When your architectural feedback leads to changes in:
+- Architecture principles or patterns
+- Testing standards or quality gates
+- Development workflows or processes
+- Security guidelines or requirements
+
+You MUST notify that the agent-sync-coordinator should be run to update:
+- `.github/instructions/copilot-instructions.md`
+- `.cursorrules` or `.cursor/rules/`
+- Related chatmode files
+
 See review examples: `docs/decisions/adr-003-instruction-synchronization.md:Decision-Makers`
 
 Remember: Balance ideal architecture with pragmatic implementation. The goal is working software that can evolve.

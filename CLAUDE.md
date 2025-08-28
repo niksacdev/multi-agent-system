@@ -38,29 +38,37 @@ This is a Multi-Agent Loan Processing System using OpenAI Agents SDK with MCP (M
 
 ## Development Support Agents (USE PROACTIVELY)
 
+### Claude Agent Configuration
+**Claude agents are configured in `.claude/agents/` directory**:
+- This is the SOURCE OF TRUTH for Claude's agent implementations
+- Use Task tool with appropriate `subagent_type` to invoke them
+- Agents are loaded directly from these markdown files
+- No dependency on `docs/developer-agents/` (that's reference only)
+
 ### Available Support Agents
 Claude has access to specialized development agents that MUST be used proactively for brainstorming, design validation and implementation:
 
-1. **system-architecture-reviewer**: 
+1. **system-architecture-reviewer** (`.claude/agents/system-architecture-reviewer.md`): 
    - USE WHEN: Designing new features, reviewing system architecture, analyzing impacts
    - PROVIDES: Architecture guidance, system design reviews, impact analysis
 
-2. **product-manager-advisor**:
+2. **product-manager-advisor** (`.claude/agents/product-manager-advisor.md`):
    - USE WHEN: Creating GitHub issues, defining requirements, making technical decisions
    - PROVIDES: Business value alignment, user story creation, test validation
 
-3. **ux-ui-designer**:
+3. **ux-ui-designer** (`.claude/agents/ux-ui-designer.md`):
    - USE WHEN: Designing UI components, validating user experience, creating interfaces
    - PROVIDES: Design validation, UI/UX improvements, usability analysis
 
-4. **code-reviewer**:
+4. **code-reviewer** (`.claude/agents/code-reviewer.md`):
    - USE WHEN: After writing significant code, before committing changes
    - PROVIDES: Best practices feedback, architecture alignment, code quality review
 
-5. **sync-coordinator**:
-   - USE WHEN: **MANDATORY before ANY commit** that modifies instruction files
+5. **agent-sync-coordinator** (Claude agent: `.claude/agents/`):
+   - USE WHEN: **MANDATORY before ANY commit** that modifies instruction files, ADRs, or developer agents
    - PROVIDES: Ensures consistency across CLAUDE.md, GitHub Copilot instructions, and Cursor rules
-   - **CRITICAL**: If you modify CLAUDE.md, ADRs, or developer agents, you MUST run sync-coordinator before committing
+   - **CRITICAL**: If you modify CLAUDE.md, ADRs, or developer agents, you MUST run this agent before committing
+   - **HOW TO USE**: Use Task tool with `subagent_type: agent-sync-coordinator`
 
 5. **gitops-ci-specialist**:
    - USE WHEN: Committing code, troubleshooting CI/CD issues, optimizing pipelines
@@ -78,7 +86,7 @@ Claude has access to specialized development agents that MUST be used proactivel
 - **After Code Writing**: Use code-reviewer for all significant code changes
 - **For UI Changes**: Use ux-ui-designer for any user-facing components
 - **For Requirements**: Use product-manager-advisor when creating features or issues
-- **Before ANY Commit with Instruction Changes**: Use sync-coordinator to ensure consistency
+- **Before ANY Commit with Instruction/ADR/Agent Changes**: Use agent-sync-coordinator to ensure consistency
 
 #### Proactive Usage Pattern:
 ```
@@ -207,17 +215,20 @@ Project rules structure:
 
 1. **Check if sync is needed**: Did you modify any of:
    - CLAUDE.md
-   - docs/decisions/*.md (ADRs)
-   - docs/developer-agents/*.md
-   - .github/instructions/copilot-instructions.md
-   - .github/chatmodes/*.chatmode.md
-   - .cursor/rules/*.mdc
+   - `docs/decisions/*.md` (ADRs - architectural changes)
+   - `docs/developer-agents/*.md` (developer agent documentation)
+   - `.claude/agents/*.md` (Claude agent implementations)
+   - `.github/chatmodes/*.chatmode.md` (GitHub Copilot implementations)
+   - `.cursor/rules/*.mdc` (Cursor implementations)
+   - `.github/instructions/copilot-instructions.md`
 
-2. **If yes, run sync-coordinator agent**:
-   - Use the Task tool to invoke the sync-coordinator agent
+2. **If yes, run agent-sync-coordinator**:
+   - Use the Task tool with `subagent_type: agent-sync-coordinator`
    - Provide list of changed files and nature of changes
    - Apply any synchronization updates it recommends
    - Include sync changes in your commit
+   - Agent location: `.claude/agents/agent-sync-coordinator.md`
+   - Syncs between: `.claude/agents/`, `.github/chatmodes/`, `.cursor/rules/`
 
 3. **Skip sync only if**:
    - No instruction files were modified
