@@ -57,6 +57,11 @@ Claude has access to specialized development agents that MUST be used proactivel
    - USE WHEN: After writing significant code, before committing changes
    - PROVIDES: Best practices feedback, architecture alignment, code quality review
 
+5. **sync-coordinator**:
+   - USE WHEN: **MANDATORY before ANY commit** that modifies instruction files
+   - PROVIDES: Ensures consistency across CLAUDE.md, GitHub Copilot instructions, and Cursor rules
+   - **CRITICAL**: If you modify CLAUDE.md, ADRs, or developer agents, you MUST run sync-coordinator before committing
+
 5. **gitops-ci-specialist**:
    - USE WHEN: Committing code, troubleshooting CI/CD issues, optimizing pipelines
    - PROVIDES: Git workflow guidance, CI/CD pipeline optimization, deployment strategies
@@ -73,6 +78,7 @@ Claude has access to specialized development agents that MUST be used proactivel
 - **After Code Writing**: Use code-reviewer for all significant code changes
 - **For UI Changes**: Use ux-ui-designer for any user-facing components
 - **For Requirements**: Use product-manager-advisor when creating features or issues
+- **Before ANY Commit with Instruction Changes**: Use sync-coordinator to ensure consistency
 
 #### Proactive Usage Pattern:
 ```
@@ -194,6 +200,29 @@ Project rules structure:
 #### VS Code / GitHub Copilot
 - Uses `.github/instructions/copilot-instructions.md`
 - Chatmodes in `.github/chatmodes/*.chatmode.md`
+
+### Pre-Commit Synchronization (MANDATORY)
+
+**CRITICAL**: Before committing ANY changes that modify instruction files:
+
+1. **Check if sync is needed**: Did you modify any of:
+   - CLAUDE.md
+   - docs/decisions/*.md (ADRs)
+   - docs/developer-agents/*.md
+   - .github/instructions/copilot-instructions.md
+   - .github/chatmodes/*.chatmode.md
+   - .cursor/rules/*.mdc
+
+2. **If yes, run sync-coordinator agent**:
+   - Use the Task tool to invoke the sync-coordinator agent
+   - Provide list of changed files and nature of changes
+   - Apply any synchronization updates it recommends
+   - Include sync changes in your commit
+
+3. **Skip sync only if**:
+   - No instruction files were modified
+   - Changes are purely in code files
+   - Commit message includes `[skip-sync]` flag
 
 ### Commit Best Practices
 

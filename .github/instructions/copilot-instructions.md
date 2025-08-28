@@ -122,10 +122,10 @@ GitHub Copilot should emulate these specialized development agents that provide 
    - **QUESTIONS TO ASK**: "Will this pass CI?", "How can I optimize the pipeline?", "What's the deployment strategy?"
 
 6. **Sync Coordinator** (`/sync-instructions`)
-   - **USE WHEN**: Instruction files need synchronization, ADRs are added or changed
+   - **USE WHEN**: **MANDATORY before committing** changes to instruction files, ADRs, or developer agents
    - **PROVIDES**: Consistency analysis across instruction files, synchronization recommendations
    - **QUESTIONS TO ASK**: "Are instruction files in sync?", "What needs updating after this ADR?", "How should I resolve this conflict?"
-   - **NOTE**: Usually runs automatically via GitHub Actions on PRs
+   - **CRITICAL**: Always run this before committing if you modified CLAUDE.md, ADRs, or any instruction files
 
 ### When to Use Support Agents
 
@@ -136,6 +136,7 @@ GitHub Copilot should emulate these specialized development agents that provide 
 - **For Requirements**: Use `/pm-requirements` when creating features or issues
 - **Before Committing**: Use `/gitops-ci` to validate CI/CD compatibility
 - **For CI Issues**: Use `/gitops-ci` when tests fail in CI but pass locally
+- **Before ANY Commit with Instruction Changes**: Use `/sync-instructions` to ensure consistency
 
 #### Proactive Usage Pattern:
 ```
@@ -145,7 +146,8 @@ GitHub Copilot should emulate these specialized development agents that provide 
 4. Pre-commit checks → Run MANDATORY local quality checks (ruff, tests, coverage)
 5. Review code → Use /code-quality for feedback (AFTER checks pass)
 6. If UI involved → Use /ui-validation for validation
-7. Before commit → Use /gitops-ci to ensure CI/CD compatibility
+7. If instruction files changed → Use /sync-instructions (MANDATORY)
+8. Before commit → Use /gitops-ci to ensure CI/CD compatibility
 ```
 
 ## Development Workflows with Support Agents
