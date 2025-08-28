@@ -1,0 +1,44 @@
+---
+description: "Core rules for Multi-Agent Loan Processing System"
+alwaysApply: true
+---
+
+# Multi-Agent System Development Rules
+
+## Primary Reference
+All detailed guidelines are in: `CLAUDE.md`
+
+## Project Context
+Multi-Agent Loan Processing System using OpenAI Agents SDK with MCP (Model Context Protocol) servers. Autonomous agents process loan applications through coordinated workflows.
+
+## Critical Rules (Always Follow)
+
+1. **Security**: ALWAYS use `applicant_id` (UUID), NEVER use SSN in any context
+2. **Token Optimization**: Keep agent personas under 500 lines
+3. **File References**: Use file path references instead of inline code
+4. **Testing**: Run validation before any commit
+5. **Package Manager**: Use `uv` exclusively, never pip/poetry/conda
+
+## Quick Commands
+- Validate: `uv run python scripts/validate_ci_fix.py`
+- Test: `uv run pytest tests/test_agent_registry.py -v`
+- Run app: `uv run python scripts/run_console_app.py`
+
+## Architecture Principles
+- Agents autonomously select MCP tools
+- Business logic in personas, not orchestrator code
+- Configuration-driven orchestration (YAML)
+- Clean separation between providers and domain
+
+## Key File References
+- Architecture decisions: `docs/decisions/adr-*.md`
+- Agent patterns: `loan_processing/agents/providers/openai/orchestration/`
+- Agent personas: `loan_processing/agents/agent-persona/*.md`
+- Configuration: `loan_processing/config/agents.yaml`
+
+## Development Workflow
+1. Use support agents for design validation
+2. Implement following existing patterns
+3. Run pre-commit validation
+4. Keep PRs small (50-200 lines)
+5. Document decisions in ADRs

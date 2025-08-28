@@ -2,7 +2,7 @@
 
 > **📋 Instruction Sync**: This is the **master reference** for all development practices. When updating, sync changes to `.github/instructions/copilot-instructions.md`. See `.github/sync-instructions.md` for guidelines.
 > 
-> **📝 Cursor IDE Note**: Cursor now uses `.cursor/` folder with `.md` files instead of `.cursorrules`. To use these instructions in Cursor, create `.cursor/rules.md` and copy relevant sections.
+> **📝 Cursor IDE Note**: Cursor now uses `.cursor/rules/` directory with `.mdc` files (Markdown with metadata). Project rules are automatically loaded. See `CURSOR_MIGRATION.md` for details.
 
 ## Project Overview
 This is a Multi-Agent Loan Processing System using OpenAI Agents SDK with MCP (Model Context Protocol) servers as tools. The system implements autonomous agents that process loan applications through a coordinated workflow.
@@ -177,12 +177,19 @@ Run complete validation: `uv run python scripts/validate_ci_fix.py`
 
 ### IDE Configuration Notes
 
-#### Cursor IDE (Updated)
-Cursor has migrated from `.cursorrules` to a folder-based approach:
-- Create `.cursor/` folder in your project root
-- Add instruction files as `.md` files (e.g., `.cursor/rules.md`, `.cursor/context.md`)
-- Cursor will automatically load these files for context
-- The old `.cursorrules` file is deprecated and can be removed
+#### Cursor IDE (Current Structure)
+Cursor uses a rules-based system with automatic context attachment:
+- Rules stored in `.cursor/rules/` directory
+- Files use `.mdc` format (Markdown with metadata)
+- Rules auto-attach based on file patterns (globs)
+- Hierarchical: subdirectories can have specific rules
+- Old `.cursorrules` file is deprecated
+
+Project rules structure:
+- `.cursor/rules/project-rules.mdc` - Always applied
+- `.cursor/rules/agent-development.mdc` - Auto-attaches for agent files
+- `.cursor/rules/testing.mdc` - Auto-attaches for test files
+- `.cursor/rules/security.mdc` - Auto-attaches for sensitive files
 
 #### VS Code / GitHub Copilot
 - Uses `.github/instructions/copilot-instructions.md`

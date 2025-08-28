@@ -1,0 +1,34 @@
+---
+description: "Rules for working with agent code and personas"
+globs:
+  - "loan_processing/agents/**/*.py"
+  - "loan_processing/agents/**/*.md"
+  - "loan_processing/config/agents.yaml"
+---
+
+# Agent Development Rules
+
+## Agent Creation Pattern
+Reference implementation: `loan_processing/agents/providers/openai/agentregistry.py`
+
+## Key Rules for Agents
+1. **Never hardcode tool selection** - Agents autonomously choose MCP servers
+2. **Persona-driven behavior** - All logic in markdown personas, not Python code
+3. **Use AgentRegistry** - Create agents via `AgentRegistry.create_agent()`
+4. **Keep orchestrators thin** - Only coordination logic, no business rules
+
+## Agent Persona Guidelines
+- Maximum 500 lines (performance optimization)
+- Clear, directive language over verbose explanations
+- Reference documentation instead of inline explanations
+- Include structured output format in personas
+
+## MCP Server Integration
+- Servers run on ports: 8010 (verification), 8011 (documents), 8012 (financial)
+- Agents access servers based on persona instructions
+- Always use secure identifiers (applicant_id, not SSN)
+
+## Testing Agents
+- Unit tests: `tests/test_agent_registry.py`
+- Integration tests: `tests/test_integration_scenarios.py`
+- Coverage requirement: ≥85% on core components
