@@ -54,28 +54,17 @@ This is a **loan processing multi-agent system** demonstrating enterprise-grade 
 - **UV Package Manager**: Use `uv add`, `uv sync`, `uv run` (NEVER pip, poetry, or conda)
 
 ### Pre-Commit Quality Checks (MANDATORY)
-**CRITICAL**: Run these commands locally BEFORE every commit to prevent CI failures:
+**CRITICAL**: Run validation locally BEFORE every commit to prevent CI failures.
 
-```bash
-# 1. Code Quality (MANDATORY - must pass)
-uv run ruff check .                     # Check for lint issues
-uv run ruff check . --fix              # Auto-fix fixable issues
-uv run ruff format --check .           # Check code formatting
-uv run ruff format .                    # Auto-format code
-uv run ruff check .                     # Final verification (must show "All checks passed!")
+**Quick Validation**: `uv run python scripts/validate_ci_fix.py`
+- See full implementation: `scripts/validate_ci_fix.py`
+- CI automation: `.github/workflows/test.yml`
 
-# 2. Test Validation (MANDATORY - must pass)
-uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v
-uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v \
-  --cov=loan_processing.agents.providers.openai.agentregistry \
-  --cov=loan_processing.agents.shared --cov-report=term-missing    # Must be ≥85% coverage
-
-# 3. Type Checking (RECOMMENDED)
-uv run mypy loan_processing/ --ignore-missing-imports
-
-# 4. Complete Validation (shortcut for all checks)
-uv run python validate_ci_fix.py
-```
+**Key Requirements**:
+- Linting: Must pass `ruff check`
+- Formatting: Must pass `ruff format`
+- Tests: Core tests must pass
+- Coverage: ≥85% on critical modules
 
 **⚠️ NEVER COMMIT if any checks fail. Fix all issues locally first.**
 
@@ -105,38 +94,39 @@ uv run python validate_ci_fix.py
 ## Development Support Agents
 
 ### Available Virtual Development Agents
-GitHub Copilot should emulate these specialized development agents that provide expert guidance throughout the development process:
+GitHub Copilot chatmodes are defined in `.github/chatmodes/` directory (SOURCE OF TRUTH):
 
-1. **System Architecture Reviewer** (`/architecture-review`)
+1. **System Architecture Reviewer** (`/architecture-review` - `.github/chatmodes/architecture-reviewer.chatmode.md`)
    - **USE WHEN**: Designing new features, reviewing system architecture, analyzing impacts
    - **PROVIDES**: Architecture guidance, system design reviews, impact analysis
    - **QUESTIONS TO ASK**: "What are the system-wide impacts?", "Does this align with our architecture?", "What are the trade-offs?"
 
-2. **Product Manager Advisor** (`/pm-requirements`)
+2. **Product Manager Advisor** (`/pm-requirements` - `.github/chatmodes/product-manager.chatmode.md`)
    - **USE WHEN**: Creating GitHub issues, defining requirements, making technical decisions
    - **PROVIDES**: Business value alignment, user story creation, test validation
    - **QUESTIONS TO ASK**: "What's the business value?", "How does this help users?", "What are the acceptance criteria?"
 
-3. **UX/UI Designer** (`/ui-validation`)
+3. **UX/UI Designer** (`/ui-validation` - `.github/chatmodes/ux-designer.chatmode.md`)
    - **USE WHEN**: Designing UI components, validating user experience, creating interfaces
    - **PROVIDES**: Design validation, UI/UX improvements, usability analysis
    - **QUESTIONS TO ASK**: "Is this intuitive?", "What's the user journey?", "How accessible is this?"
 
-4. **Code Reviewer** (`/code-quality`)
+4. **Code Reviewer** (`/code-quality` - `.github/chatmodes/code-reviewer.chatmode.md`)
    - **USE WHEN**: After writing significant code, before committing changes
    - **PROVIDES**: Best practices feedback, architecture alignment, code quality review
    - **QUESTIONS TO ASK**: "Does this follow patterns?", "Are there edge cases?", "Is this maintainable?"
 
-5. **GitOps CI/CD Specialist** (`/gitops-ci`)
+5. **GitOps CI/CD Specialist** (`/gitops-ci` - `.github/chatmodes/gitops-ci-specialist.chatmode.md`)
    - **USE WHEN**: Committing code, troubleshooting CI/CD issues, optimizing pipelines
    - **PROVIDES**: Git workflow guidance, CI/CD pipeline optimization, deployment strategies
    - **QUESTIONS TO ASK**: "Will this pass CI?", "How can I optimize the pipeline?", "What's the deployment strategy?"
 
-6. **Sync Coordinator** (`/sync-instructions`)
-   - **USE WHEN**: Instruction files need synchronization, ADRs are added or changed
-   - **PROVIDES**: Consistency analysis across instruction files, synchronization recommendations
-   - **QUESTIONS TO ASK**: "Are instruction files in sync?", "What needs updating after this ADR?", "How should I resolve this conflict?"
-   - **NOTE**: Usually runs automatically via GitHub Actions on PRs
+6. **Agent Sync Coordinator** (`/sync-instructions` - `.github/chatmodes/sync-coordinator.chatmode.md`)
+   - **USE WHEN**: **MANDATORY before committing** changes to instruction files, ADRs, or developer agents
+   - **PROVIDES**: Consistency analysis across `.claude/agents/` (if exists), `.github/chatmodes/`, `.cursor/rules/`, `.cursorrules`
+   - **QUESTIONS TO ASK**: "Are instruction files in sync?", "What needs updating?", "How should I resolve conflicts?"
+   - **CRITICAL**: Always run before committing changes to CLAUDE.md, ADRs, developer agents, or instruction files
+   - **NAMING**: Use "agent-sync-coordinator" not "instruction-sync-coordinator"
 
 ### When to Use Support Agents
 
@@ -147,6 +137,7 @@ GitHub Copilot should emulate these specialized development agents that provide 
 - **For Requirements**: Use `/pm-requirements` when creating features or issues
 - **Before Committing**: Use `/gitops-ci` to validate CI/CD compatibility
 - **For CI Issues**: Use `/gitops-ci` when tests fail in CI but pass locally
+- **Before ANY Commit with Instruction/ADR/Agent Changes**: Use `/sync-instructions` (agent-sync-coordinator) to ensure consistency
 
 #### Proactive Usage Pattern:
 ```
@@ -156,7 +147,8 @@ GitHub Copilot should emulate these specialized development agents that provide 
 4. Pre-commit checks → Run MANDATORY local quality checks (ruff, tests, coverage)
 5. Review code → Use /code-quality for feedback (AFTER checks pass)
 6. If UI involved → Use /ui-validation for validation
-7. Before commit → Use /gitops-ci to ensure CI/CD compatibility
+7. If instruction files changed → Use /sync-instructions (agent-sync-coordinator, MANDATORY)
+8. Before commit → Use /gitops-ci to ensure CI/CD compatibility
 ```
 
 ## Development Workflows with Support Agents
@@ -315,57 +307,33 @@ loan_processing/
 ## Common Patterns
 
 ### Sequential Processing
-```python
-context = {"application": application_data}
-context["intake_result"] = await intake_agent.run(context)
-context["credit_result"] = await credit_agent.run(context)
-context["income_result"] = await income_agent.run(context)
-final_decision = await risk_agent.run(context)
-```
+See implementation: `loan_processing/agents/providers/openai/orchestration/sequential.py`
+- Context accumulation pattern for agent coordination
+- Each agent adds results to shared context
 
 ### Error Handling
-```python
-try:
-    result = await agent.run(input)
-except MCPServerError:
-    # Handle MCP server failures
-    logger.error("MCP server failed", exc_info=True)
-    # Fallback logic or retry
-except AgentTimeoutError:
-    # Handle agent timeouts
-    logger.warning("Agent timed out, using default")
-    # Use default or cached result
-```
+See patterns: `loan_processing/agents/providers/openai/orchestration/base.py:187-210`
+- MCPServerError handling
+- AgentTimeoutError management
+- Retry logic and fallback strategies
 
 ### Context Management (Loss Prevention)
-```python
-# Create checkpoints after major changes
-git commit -m "checkpoint: refactoring complete"
-
-# Provide context anchoring for new sessions
-"We just completed X refactoring. Key changes:
-1. Moved Y to Z
-2. Renamed A to B
-3. Next task: C"
-```
+Best practices from experience:
+- Create git checkpoints after major changes
+- Provide explicit context anchoring for new sessions
+- Document key changes when switching tasks
+- See detailed strategies: `CLAUDE.md:Context-Loss-Prevention`
 
 ### Debugging Circular Loops
-```python
-# Detect when agent repeats failed solutions
-attempted_fixes = set()
-if current_fix in attempted_fixes:
-    print("LOOP DETECTED: Human intervention needed")
-    # Request human to provide strategic pivot
-    # Apply "be pragmatic" guidance
-else:
-    attempted_fixes.add(current_fix)
-    # Proceed with fix attempt
-```
+Pattern implementation: `loan_processing/utils/decorators.py`
+- Track attempted fixes to detect repetition
+- Request human intervention when loops detected
+- Apply "be pragmatic" guidance
 
 ## Copilot Prompt Usage
 
 ### Development Guidelines
-- **Package Manager**: ALWAYS use `uv` commands (`uv run`, `uv add`, `uv sync`) - NEVER pip/poetry
+- **Package Manager**: ALWAYS use `uv` commands (`uv run`, `uv add`, `uv sync`, `uv run python`) - NEVER pip/poetry
 - **Adding Agents**: Create persona markdown in `agents/shared/agent-persona/`, add config to `agents.yaml`, use `AgentRegistry.create_agent()`
 - **Modifying Behavior**: Update persona files or `agents.yaml` config, not orchestrator code
 - **MCP Integration**: Agents autonomously select tools based on persona instructions
@@ -395,9 +363,10 @@ Use these prompts to activate specific agent behaviors:
 - `/gitops-ci` - "Review my changes for CI/CD compatibility and deployment safety"
 - Questions: "Will this pass CI?", "What's the deployment strategy?", "How can I fix failing tests?"
 
-#### Instruction Synchronization
+#### Agent Synchronization
 - `/sync-instructions` - "Check if instruction files are synchronized and identify needed updates"
 - Questions: "What changed in this ADR?", "Which files need updating?", "How do I resolve conflicts?"
+- **Agent Name**: agent-sync-coordinator (not instruction-sync-coordinator)
 
 ### When to Use Agent Prompts
 - **Design Phase**: `/architecture-review` for system design validation

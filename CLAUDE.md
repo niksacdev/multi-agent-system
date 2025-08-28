@@ -1,6 +1,8 @@
 # Claude Development Rules for Multi-Agent System
 
-> **📋 Instruction Sync**: This is the **master reference** for all development practices. When updating, sync changes to `.cursorrules` and `.github/instructions/copilot-instructions.md`. See `.github/sync-instructions.md` for guidelines.
+> **📋 Instruction Sync**: This is the **master reference** for all development practices. When updating, sync changes to `.github/instructions/copilot-instructions.md`. See `.github/sync-instructions.md` for guidelines.
+> 
+> **📝 Cursor IDE Note**: Cursor now uses `.cursor/rules/` directory with `.mdc` files (Markdown with metadata). Project rules are automatically loaded. See `CURSOR_MIGRATION.md` for details.
 
 ## Project Overview
 This is a Multi-Agent Loan Processing System using OpenAI Agents SDK with MCP (Model Context Protocol) servers as tools. The system implements autonomous agents that process loan applications through a coordinated workflow.
@@ -11,6 +13,15 @@ This is a Multi-Agent Loan Processing System using OpenAI Agents SDK with MCP (M
 **Problem**: Large persona files (2000+ lines) causing excessive token consumption and 30+ second response times.
 **Solution**: Reduced personas to 300-500 focused lines with clear directives.
 **Result**: 75% token reduction, 10x faster agent responses.
+
+### Prompt Optimization Best Practices
+**Critical for Cost Management**: Use file references instead of inline code to minimize context window usage.
+
+**Rules**:
+1. **Never include code snippets** in instruction files - use: `See implementation: path/to/file.py:line-range`
+2. **Reference documentation** instead of explaining - use: `See architecture: docs/decisions/adr-001.md`
+3. **Cross-reference sections** instead of duplicating - use: `As defined in CLAUDE.md:Security-Guidelines`
+4. **Keep instructions concise** - link to examples rather than embedding them
 
 ### Context Loss Prevention
 **Problem**: After large refactoring sessions, Claude loses critical context and makes conflicting changes.
@@ -27,24 +38,37 @@ This is a Multi-Agent Loan Processing System using OpenAI Agents SDK with MCP (M
 
 ## Development Support Agents (USE PROACTIVELY)
 
+### Claude Agent Configuration
+**Claude agents are configured in `.claude/agents/` directory**:
+- This is the SOURCE OF TRUTH for Claude's agent implementations
+- Use Task tool with appropriate `subagent_type` to invoke them
+- Agents are loaded directly from these markdown files
+- No dependency on `docs/developer-agents/` (that's reference only)
+
 ### Available Support Agents
 Claude has access to specialized development agents that MUST be used proactively for brainstorming, design validation and implementation:
 
-1. **system-architecture-reviewer**: 
+1. **system-architecture-reviewer** (`.claude/agents/system-architecture-reviewer.md`): 
    - USE WHEN: Designing new features, reviewing system architecture, analyzing impacts
    - PROVIDES: Architecture guidance, system design reviews, impact analysis
 
-2. **product-manager-advisor**:
+2. **product-manager-advisor** (`.claude/agents/product-manager-advisor.md`):
    - USE WHEN: Creating GitHub issues, defining requirements, making technical decisions
    - PROVIDES: Business value alignment, user story creation, test validation
 
-3. **ux-ui-designer**:
+3. **ux-ui-designer** (`.claude/agents/ux-ui-designer.md`):
    - USE WHEN: Designing UI components, validating user experience, creating interfaces
    - PROVIDES: Design validation, UI/UX improvements, usability analysis
 
-4. **code-reviewer**:
+4. **code-reviewer** (`.claude/agents/code-reviewer.md`):
    - USE WHEN: After writing significant code, before committing changes
    - PROVIDES: Best practices feedback, architecture alignment, code quality review
+
+5. **agent-sync-coordinator** (Claude agent: `.claude/agents/`):
+   - USE WHEN: **MANDATORY before ANY commit** that modifies instruction files, ADRs, or developer agents
+   - PROVIDES: Ensures consistency across CLAUDE.md, GitHub Copilot instructions, and Cursor rules
+   - **CRITICAL**: If you modify CLAUDE.md, ADRs, or developer agents, you MUST run this agent before committing
+   - **HOW TO USE**: Use Task tool with `subagent_type: agent-sync-coordinator`
 
 5. **gitops-ci-specialist**:
    - USE WHEN: Committing code, troubleshooting CI/CD issues, optimizing pipelines
@@ -62,6 +86,7 @@ Claude has access to specialized development agents that MUST be used proactivel
 - **After Code Writing**: Use code-reviewer for all significant code changes
 - **For UI Changes**: Use ux-ui-designer for any user-facing components
 - **For Requirements**: Use product-manager-advisor when creating features or issues
+- **Before ANY Commit with Instruction/ADR/Agent Changes**: Use agent-sync-coordinator to ensure consistency
 
 #### Proactive Usage Pattern:
 ```
@@ -125,28 +150,15 @@ loan_processing/
 ```
 
 ### Configuration-Driven Agent Creation
-The system now uses YAML configuration for agent definitions and a registry pattern:
+The system uses YAML configuration for agent definitions and a registry pattern.
 
-```yaml
-# loan_processing/agents/shared/config/agents.yaml
-agents:
-  intake:
-    name: "Intake Agent" 
-    persona_file: "intake"
-    mcp_servers: ["application_verification", "document_processing"]
-    capabilities: ["Application validation", "Identity verification"]
-    output_format:
-      validation_status: "string"
-      confidence_score: "number"
-```
+**Configuration**: See `loan_processing/agents/shared/config/agents.yaml`
+- Defines agent names, MCP servers, capabilities, output formats
+- Loaded by `ConfigurationLoader` utility class
 
-```python
-# Agent creation via registry
-from loan_processing.agents.providers.openai.agentregistry import AgentRegistry
-
-# Create any agent type from configuration
-agent = AgentRegistry.create_agent("intake", model="gpt-4")
-```
+**Agent Creation**: See `loan_processing/agents/providers/openai/agentregistry.py`
+- Use `AgentRegistry.create_agent(agent_type, model)` 
+- Automatically loads configuration and persona files
 
 ### Shared Utilities
 - **ConfigurationLoader**: Loads and validates YAML configuration
@@ -157,58 +169,71 @@ agent = AgentRegistry.create_agent("intake", model="gpt-4")
 
 ### Pre-Commit Quality Checks (MANDATORY)
 
-**CRITICAL**: Always run these checks locally BEFORE making any commit to prevent GitHub Actions failures:
+**CRITICAL**: Always run these checks locally BEFORE making any commit to prevent GitHub Actions failures.
 
-#### 1. Code Quality Checks (MANDATORY)
-```bash
-# Run ALL checks in this exact order before committing:
+#### Quick Validation
+Run complete validation: `uv run python scripts/validate_ci_fix.py`
+- See implementation: `scripts/validate_ci_fix.py`
+- Automated in: `.github/workflows/test.yml`
 
-# 1. Linting check (must pass)
-uv run ruff check .
+#### Manual Checks
+1. **Linting**: `uv run ruff check . --fix`
+2. **Formatting**: `uv run ruff format .`
+3. **Tests**: See test commands in `scripts/validate_ci_fix.py:64-78`
+4. **Coverage**: Must be ≥85% on core modules
 
-# 2. Auto-fix any fixable issues
-uv run ruff check . --fix
-
-# 3. Format check (must pass)
-uv run ruff format --check .
-
-# 4. Auto-format if needed
-uv run ruff format .
-
-# 5. Final verification (must show "All checks passed!")
-uv run ruff check .
-```
-
-#### 2. Test Validation (MANDATORY)
-```bash
-# Run core stable tests (must pass)
-uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v
-
-# Run with coverage check (must be ≥85%)
-uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v \
-  --cov=loan_processing.agents.providers.openai.agentregistry \
-  --cov=loan_processing.agents.shared \
-  --cov-report=term-missing
-```
-
-#### 3. Type Checking (RECOMMENDED)
-```bash
-# Check types (warnings okay, but no errors)
-uv run mypy loan_processing/ --ignore-missing-imports
-```
-
-#### 4. Complete Pre-Commit Validation Script
-Use the validation script to check everything at once:
-```bash
-uv run python scripts/validate_ci_fix.py
-```
-
-**⚠️ NEVER COMMIT if any of these checks fail. Fix issues locally first.**
+**⚠️ NEVER COMMIT if any checks fail. Fix issues locally first.**
 
 #### Integration with Support Agents
 - **ALWAYS run pre-commit checks** before using the code-reviewer agent
 - **Include check results** when asking for agent feedback
 - **Fix any issues** identified by checks before requesting code review
+
+### IDE Configuration Notes
+
+#### Cursor IDE (Current Structure)
+Cursor uses a rules-based system with automatic context attachment:
+- Rules stored in `.cursor/rules/` directory
+- Files use `.mdc` format (Markdown with metadata)
+- Rules auto-attach based on file patterns (globs)
+- Hierarchical: subdirectories can have specific rules
+- Old `.cursorrules` file is deprecated
+
+Project rules structure:
+- `.cursor/rules/project-rules.mdc` - Always applied
+- `.cursor/rules/agent-development.mdc` - Auto-attaches for agent files
+- `.cursor/rules/testing.mdc` - Auto-attaches for test files
+- `.cursor/rules/security.mdc` - Auto-attaches for sensitive files
+
+#### VS Code / GitHub Copilot
+- Uses `.github/instructions/copilot-instructions.md`
+- Chatmodes in `.github/chatmodes/*.chatmode.md`
+
+### Pre-Commit Synchronization (MANDATORY)
+
+**CRITICAL**: Before committing ANY changes that modify instruction files:
+
+1. **Check if sync is needed**: Did you modify any of:
+   - CLAUDE.md
+   - `docs/decisions/*.md` (ADRs - architectural changes)
+   - `docs/developer-agents/*.md` (developer agent documentation)
+   - `.claude/agents/*.md` (Claude agent implementations)
+   - `.github/chatmodes/*.chatmode.md` (GitHub Copilot implementations)
+   - `.cursor/rules/*.mdc` (Cursor implementations)
+   - `.github/instructions/copilot-instructions.md`
+
+2. **If yes, run agent-sync-coordinator**:
+   - Use the Task tool with `subagent_type: agent-sync-coordinator`
+   - Provide list of changed files and nature of changes
+   - Apply any synchronization updates it recommends
+   - Include sync changes in your commit
+   - Agent location: `.claude/agents/agent-sync-coordinator.md`
+   - Syncs between: `.claude/agents/`, `.github/chatmodes/`, `.cursor/rules/`
+
+3. **Skip sync only if**:
+   - No instruction files were modified
+   - Changes are purely in code files
+   - Commit message includes `[skip-sync]` flag
 
 ### Commit Best Practices
 
@@ -306,6 +331,7 @@ git commit -m "fix tests and update docs and refactor code"
 - `uv add package` - Add dependencies
 - `uv sync` - Install dependencies
 - `uv run pytest` - Run tests
+- `uv run python` - Run Python scripts
 - Never use pip, poetry, or conda
 
 ### Current Test Status
@@ -390,6 +416,7 @@ This repository uses **automatic pre-merge synchronization** to maintain consist
 2. **Sync Agent**: Runs automatically and:
    - Analyzes changes in the PR
    - Updates affected instruction files
+   - **Optimizes prompts**: Replaces code snippets with file references
    - Commits changes to the same PR with `[skip-sync]` flag
    - Preserves tool-specific features
 
@@ -498,45 +525,28 @@ See [ADR-003](docs/decisions/adr-003-instruction-synchronization.md) for detaile
 ## Common Patterns
 
 ### Sequential Processing
-```python
-context = {"application": application_data}
-context["intake_result"] = await intake_agent.run(context)
-context["credit_result"] = await credit_agent.run(context)
-context["income_result"] = await income_agent.run(context)
-final_decision = await risk_agent.run(context)
-```
+See implementation: `loan_processing/agents/providers/openai/orchestration/sequential.py:43-102`
+- Context accumulation pattern for passing results between agents
+- Each agent adds results to shared context dictionary
 
-### Error Handling
-```python
-try:
-    result = await agent.run(input)
-except MCPServerError:
-    # Handle MCP server failures
-except AgentTimeoutError:
-    # Handle agent timeouts
-```
+### Error Handling  
+See implementation: `loan_processing/agents/providers/openai/orchestration/base.py:187-210`
+- MCPServerError handling for tool failures
+- AgentTimeoutError for long-running operations
+- Retry logic and fallback strategies
 
 ### Context Management (Loss Prevention)
-```python
-# Use /compact command after large refactoring sessions
-# Create checkpoints after major changes
-git commit -m "checkpoint: refactoring complete"
-
-# Provide context anchoring for new sessions
-"We just completed X refactoring. Key changes:
-1. Moved Y to Z
-2. Renamed A to B
-3. Next task: C"
-```
+**Best Practices**:
+- Use `/compact` command after large refactoring sessions
+- Create git checkpoints: `git commit -m "checkpoint: refactoring complete"`
+- Provide explicit context anchoring for new sessions
+- Document key changes when switching tasks
 
 ### Debugging Circular Loops
-```python
-# Detect when agent repeats failed solutions
-attempted_fixes = set()
-if current_fix in attempted_fixes:
-    print("LOOP DETECTED: Human intervention needed")
-    # Human provides strategic pivot
-```
+See pattern in: `loan_processing/utils/decorators.py`
+- Track attempted fixes to detect repetition
+- Request human intervention when loops detected
+- Apply "be pragmatic" guidance from humans
 
 ## Best Practices
 

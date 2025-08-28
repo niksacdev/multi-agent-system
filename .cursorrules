@@ -1,202 +1,130 @@
-# Cursor AI Rules for Multi-Agent Loan Processing System
+# Cursor Development Rules - Multi-Agent System
 
-<!-- 📋 Sync Note: This file syncs with CLAUDE.md (master reference). Update from CLAUDE.md only. See .github/sync-instructions.md -->
+> **📋 Sync Note**: Derived from CLAUDE.md. Use agent-sync-coordinator before committing instruction changes.
 
-## Project Overview
-Multi-Agent Loan Processing System using OpenAI Agents SDK with MCP (Model Context Protocol) servers as tools. Autonomous agents process loan applications through coordinated workflows.
+## Project Context
+Multi-Agent Loan Processing System using OpenAI Agents SDK with MCP servers. Autonomous agents process loan applications through coordinated workflows.
 
-## Critical Lessons Learned
+## Critical Rules (Always Follow)
 
-### Token Optimization
-- **Problem**: Large persona files (2000+ lines) cause excessive token consumption
-- **Solution**: Keep personas under 500 lines with focused directives
-- **Result**: 75% token reduction, 10x faster responses
+### Security & Performance
+- **ALWAYS** use `applicant_id` (UUID), **NEVER** SSN
+- Keep agent personas under 500 lines (75% token reduction)
+- Use file references not inline code: `See: loan_processing/agents/agentregistry.py:145-167`
+- Detect circular debugging loops, request human intervention
 
-### Context Management
-- **Problem**: Context loss after large refactoring leads to conflicting changes
-- **Solution**: Use checkpoints, explicit context anchoring, 2-3 hour focused sessions
-- **Never**: Run 8+ hour marathon sessions without context management
+### Package Management
+- **ONLY** use `uv`: `uv run`, `uv add`, `uv sync`
+- **NEVER** use pip, poetry, conda
 
-### Circular Debugging
-- **Problem**: AI repeats failed solutions in endless loops
-- **Solution**: Track attempted fixes, detect loops, request human intervention
-- **Human Role**: Provide strategic pivots and "be pragmatic" guidance
-
-## Key Architecture Principles
-
-### Agent Design
-- **Autonomous Agents**: Agents decide which MCP tools to use based on assessment needs
-- **Persona-Driven**: All agent logic defined in markdown personas, loaded via `load_persona()`
-- **No Hardcoded Logic**: Orchestrators only coordinate; business logic lives in personas
-- **Jobs-to-be-Done Focus**: Agents designed around customer jobs, not internal processes
-- **Token Optimized**: Keep personas concise (300-500 lines) for performance
-
-### MCP Server Integration
-- **Tool Servers**: Application verification (8010), Document processing (8011), Financial calculations (8012)
-- **Agent Selection**: Agents autonomously choose tools based on their persona instructions
-- **Secure Parameters**: ALWAYS use `applicant_id` (UUID), NEVER use SSN
-- **Multiple Access**: Agents can access multiple MCP servers as needed
-
-### Orchestration
-- **Configuration-Driven**: Define workflows in YAML, not code
-- **Context Accumulation**: Pass assessments forward to subsequent agents
-- **Clean Separation**: Provider-specific code isolated from domain models
-
-## Code Patterns
-
-### Configuration-Driven Agent Creation
-```python
-# Use AgentRegistry with YAML configuration
-from loan_processing.agents.providers.openai.agentregistry import AgentRegistry
-
-# Create any agent type from configuration
-agent = AgentRegistry.create_agent("intake", model="gpt-4")
-
-# Agent config loaded from agents.yaml:
-# - name, persona_file, mcp_servers, capabilities, output_format
-```
-
-### Orchestrator Pattern
-```python
-# Minimal orchestrator - just coordination
-context = {"application": application_data}
-context["agent1_result"] = await agent1.run(context)
-context["agent2_result"] = await agent2.run(context)
-# Pass accumulated context forward
-```
-
-## Development Rules
-
-### Pre-Commit Quality Checks (MANDATORY)
-**CRITICAL**: Always run these checks locally BEFORE any commit to prevent CI failures:
-
+### Pre-Commit Validation (MANDATORY)
 ```bash
-# 1. MANDATORY Code Quality Checks (in order)
-uv run ruff check .                    # Check for issues
-uv run ruff check . --fix             # Auto-fix issues
-uv run ruff format --check .          # Check formatting
-uv run ruff format .                   # Auto-format
-uv run ruff check .                    # Final verification (must pass)
+# Quick validation - run before EVERY commit
+uv run python scripts/validate_ci_fix.py
 
-# 2. MANDATORY Test Validation  
-uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v
-uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v \
-  --cov=loan_processing.agents.providers.openai.agentregistry \
-  --cov=loan_processing.agents.shared --cov-report=term-missing  # ≥85% coverage
+# Manual checks if needed
+uv run ruff check . --fix
+uv run ruff format .
+uv run pytest tests/test_agent_registry.py -v
+```
+**Never commit if checks fail. Fix locally first.**
 
-# 3. RECOMMENDED Type Checking
-uv run mypy loan_processing/ --ignore-missing-imports
+## Architecture Patterns
 
-# 4. Complete Validation (recommended)
-uv run python validate_ci_fix.py
+### Agent Creation
+```python
+from loan_processing.agents.providers.openai.agentregistry import AgentRegistry
+agent = AgentRegistry.create_agent("intake", model="gpt-4")
 ```
 
-**⚠️ NEVER COMMIT if any checks fail. Fix issues locally first.**
+### Configuration-Driven
+- Agents: `loan_processing/agents/shared/config/agents.yaml`
+- Personas: `loan_processing/agents/shared/agent-persona/*.md`
+- Business logic in personas, not orchestrator code
 
-### Must Follow
-1. **Run pre-commit checks** - MANDATORY before every commit (see above)
-2. **Use uv for all commands** - `uv run`, `uv add`, `uv sync` (never pip/poetry)
-3. **Commit often** - atomic commits, one logical change per commit
-4. **AgentRegistry.create_agent()** for agent creation from YAML config
-5. **Keep orchestrators thin** - no business logic, just coordination
-6. **Use applicant_id** for all verifications - never SSN
-7. **Update personas/config** to change behavior - not code
-
-### Never Do
-1. **Never hardcode agent instructions** in Python code
-2. **Never put business logic** in orchestrators
-3. **Never use SSN** or sensitive IDs in tool calls
-4. **Never commit without testing** - always run full test suite
-5. **Never modify orchestrator** to change agent behavior
-
-## File Organization (Updated)
+### Repository Structure
 ```
 loan_processing/
-├── agents/
-│   ├── providers/
-│   │   └── openai/
-│   │       ├── agentregistry.py      # Agent creation from config
-│   │       └── orchestration/        # Orchestration patterns
+├── agents/           # Domain (orchestration, registry)
+│   ├── providers/openai/
 │   └── shared/
-│       ├── config/
-│       │   └── agents.yaml           # Agent configurations
-│       ├── models/                   # Data models
-│       ├── utils/                    # Shared utilities
-│       └── agent-persona/            # Agent instruction markdown files
-├── tools/
-│   ├── mcp_servers/                  # MCP server implementations
-│   └── services/                     # Business services
+└── tools/           # Infrastructure (MCP servers)
 ```
+
+## Development Workflow
+
+### 1. Feature Development
+```
+Design → Use architecture agents for validation
+Code → Follow existing patterns
+Test → Run validation script
+Sync → If instructions changed, run agent-sync-coordinator
+Commit → Small, atomic commits (50-200 lines)
+```
+
+### 2. Support Agents (Use Proactively)
+- **Architecture Review**: System design validation
+- **Code Review**: After writing, before committing
+- **Product Manager**: Requirements and issues
+- **UX Designer**: UI/UX validation
+- **Agent Sync**: When ADRs/CLAUDE.md change
+
+### 3. Commit Best Practices
+- Delete branches after PR merge
+- Never reuse feature branches
+- Commit often (after each logical change)
+- Run tests before every commit
 
 ## Testing Requirements
-- **Coverage**: Maintain >90% test coverage
-- **Test Types**: Agent registry, utilities, integration (in progress)
-- **Pre-commit**: Run `uv run pytest tests/test_agent_registry.py -v`
-- **Package Manager**: ALWAYS use `uv` - never pip, poetry, conda
-- **MCP Mocking**: Mock MCP servers for unit tests
+- Core tests must pass: `tests/test_agent_registry.py`
+- Coverage ≥85% on critical modules
+- Always use `uv run pytest`, never plain pytest
 
-## Common Tasks
-
-### Add New Agent
-1. Create persona markdown in `loan_processing/agents/shared/agent-persona/`
-2. Add configuration in `agents/shared/config/agents.yaml`
-3. Configure name, persona_file, mcp_servers, capabilities, output_format
-4. Use `AgentRegistry.create_agent(type)` to create instances
-5. Write comprehensive tests in `tests/test_agent_registry.py`
-
-### Modify Agent Behavior
-1. Edit persona markdown file only
-2. Do NOT modify orchestrator code
-3. Test with demo script
-4. Verify expected behavior changes
-
-### Debug Agent Decisions
-1. Check persona instructions first
-2. Verify MCP server availability
-3. Review agent's tool selection logic
-4. Check context passed between agents
-
-## Security & Privacy
-- **PII Protection**: Encrypt sensitive data
-- **Audit Logging**: Log all agent decisions
-- **Access Control**: Limit MCP server access
-- **Parameter Security**: Use internal IDs only
-
-## Performance Guidelines
-- **Model Selection**: gpt-3.5-turbo for speed, gpt-4 for accuracy
-- **Timeout Handling**: Implement for long operations
-- **Context Size**: Minimize between agents
-- **Parallel Processing**: Where assessments are independent
-
-## Quick Commands (Use uv ONLY)
+## Quick Commands
 ```bash
-# Package management
-uv sync                        # Install dependencies
-uv add package_name           # Add dependency
-uv add --dev package_name     # Add dev dependency
+# Validate everything
+uv run python scripts/validate_ci_fix.py
 
-# Start MCP servers
-uv run python -m loan_processing.tools.mcp_servers.application_verification.server
-uv run python -m loan_processing.tools.mcp_servers.document_processing.server
-uv run python -m loan_processing.tools.mcp_servers.financial_calculations.server
-
-# Run demo
-uv run python demo_sequential_processing.py
-
-# Run tests
+# Run core tests
 uv run pytest tests/test_agent_registry.py -v
-uv run pytest tests/test_agent_registry.py --cov=loan_processing
-uv run python validate_tests.py  # Quick validation
 
-# Test validation scripts
-uv run python run_tests.py --type unit
+# Run console app
+uv run python scripts/run_console_app.py
+
+# Check agent registry
+uv run python -c "from loan_processing.agents.providers.openai.agentregistry import AgentRegistry; print(AgentRegistry.get_agent_types())"
 ```
 
-## Remember
-- **ALWAYS use uv** for package management and test execution
-- **YAML configuration** defines agent behavior via `agents.yaml`
-- Personas define detailed instructions, config defines structure
-- Orchestrators coordinate, not decide
-- Agents are autonomous tool selectors
-- Security first: applicant_id, not SSN
-- Test with `uv run pytest` before committing
+## Common Patterns
+
+### Sequential Processing
+See: `loan_processing/agents/providers/openai/orchestration/sequential.py`
+
+### Error Handling
+See: `loan_processing/agents/providers/openai/orchestration/base.py:187-210`
+
+### Context Management
+- Create git checkpoints after major changes
+- Provide explicit context for new sessions
+- Keep sessions to 2-3 hours, not 8+ marathons
+
+## File References
+- Master instructions: `CLAUDE.md`
+- Architecture decisions: `docs/decisions/adr-*.md`
+- Agent patterns: `docs/agent-patterns.md`
+- Security guidelines: `SECURITY.md`
+
+## Synchronization Requirements
+
+**MANDATORY**: Run agent-sync-coordinator when:
+- ADRs are added or modified
+- CLAUDE.md is updated
+- Developer agents change significantly
+- Testing standards or workflows change
+
+**Tool Implementations**:
+- Claude agents: `.claude/agents/` (if exists)
+- GitHub Copilot: `.github/chatmodes/`
+- Cursor rules: `.cursor/rules/` or this file
+
+Remember: This is a condensed reference. See CLAUDE.md for comprehensive guidelines.

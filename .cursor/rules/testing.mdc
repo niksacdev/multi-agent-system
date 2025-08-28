@@ -1,0 +1,40 @@
+---
+description: "Testing standards and patterns"
+globs:
+  - "tests/**/*.py"
+  - "scripts/validate_ci_fix.py"
+  - "scripts/run_tests.py"
+---
+
+# Testing Rules
+
+## Pre-Commit Validation (MANDATORY)
+Always run before committing: `uv run python scripts/validate_ci_fix.py`
+
+## Test Requirements
+- Core tests MUST pass: `test_agent_registry.py`, `test_safe_evaluator.py`
+- Coverage ≥85% on critical modules
+- Use `uv run pytest` exclusively (never use pip/poetry)
+
+## Test Patterns
+- Mock MCP server responses appropriately
+- Test async operations with proper fixtures
+- Test both success and failure paths
+- Use Pydantic models for test data validation
+
+## Current Test Status
+- Working: `test_agent_registry.py` (27 tests)
+- Working: `test_safe_evaluator.py`
+- In Progress: Integration tests need updating
+
+## Test Commands
+```bash
+# Run core tests with coverage
+uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v --cov=loan_processing
+
+# Quick validation
+uv run python scripts/validate_ci_fix.py
+
+# Full test suite (when all updated)
+uv run python scripts/run_tests.py
+```

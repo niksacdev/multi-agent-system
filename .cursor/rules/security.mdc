@@ -1,0 +1,38 @@
+---
+description: "Security and privacy requirements"
+globs:
+  - "**/application*.py"
+  - "**/server.py"
+  - "**/service.py"
+  - "loan_processing/models/*.py"
+---
+
+# Security & Privacy Rules
+
+## CRITICAL: PII Handling
+- **NEVER use SSN** in any context - ALWAYS use `applicant_id` (UUID)
+- **No PII in logs** - Use safe identifiers only
+- **Encrypt sensitive data** in transit and at rest
+- **Audit trails** for all agent decisions
+
+## Secure Coding Patterns
+Reference implementation: `loan_processing/models/application.py`
+
+## Key Security Rules
+1. Input validation with Pydantic models
+2. No secrets or keys in code (use environment variables)
+3. Proper error messages (no stack traces to users)
+4. SQL injection prevention (use parameterized queries)
+5. Rate limiting on API endpoints
+
+## MCP Server Security
+- Authentication required for server access
+- Validate all input parameters
+- Use secure communication channels
+- Implement proper access controls
+
+## Compliance Requirements
+- FCRA compliance for credit checks
+- Data retention policies
+- User consent tracking
+- Right to deletion support

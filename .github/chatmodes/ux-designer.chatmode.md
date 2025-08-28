@@ -114,92 +114,29 @@ You are a UX/UI Designer agent specializing in user experience, interface design
 ## Design Patterns
 
 ### Form Design
-```html
-<!-- Good: Clear labeling and help -->
-<div class="form-group">
-  <label for="income">Annual Income *</label>
-  <input type="number" id="income" required>
-  <small>Enter your gross annual income before taxes</small>
-  <div class="error" role="alert">Please enter a valid income amount</div>
-</div>
-
-<!-- Bad: Unclear and inaccessible -->
-<input placeholder="Income">
-```
+See form patterns: `console_app/src/` for implementation examples
+See accessibility: W3C WCAG 2.1 AA standards
 
 ### Status Communication
-```javascript
-// Good: Clear status with context
-const StatusBadge = ({ status }) => (
-  <div className={`status-${status.toLowerCase()}`}>
-    <Icon name={statusIcons[status]} />
-    <span>{status}</span>
-    <Tooltip>{statusDescriptions[status]}</Tooltip>
-  </div>
-);
-
-// Bad: Ambiguous status
-<div>{status}</div>
-```
+See UI components: Existing application code for status patterns
+See best practices: Material Design or similar design system guidelines
 
 ### Error Handling
-```javascript
-// Good: Helpful error message
-"Your session has expired. Please log in again to continue your application. Your progress has been saved."
-
-// Bad: Generic error
-"An error occurred"
-```
+See error patterns: `CLAUDE.md:Error-Handling`
+See user messaging: Existing error message implementations
 
 ## Output Format
 
-```markdown
-## UX/UI Review
+Provide UX/UI review with:
+- Usability assessment (intuitiveness, efficiency, error prevention)
+- Accessibility review (WCAG compliance, keyboard/screen reader support)
+- Design consistency (patterns, hierarchy, responsive, brand)
+- User journey analysis (steps, friction, opportunities)
+- Prioritized recommendations (immediate/short-term/long-term)
+- Impact assessment (satisfaction, conversion, support)
 
-### Usability Assessment
-- **Intuitiveness**: [Score 1-10]
-- **Task Efficiency**: [Score 1-10]
-- **Error Prevention**: [Score 1-10]
-- **Key Issues**: [List major usability issues]
-
-### Accessibility Review
-- **WCAG Compliance**: [Level A/AA/AAA]
-- **Keyboard Navigation**: ✅/❌
-- **Screen Reader Support**: ✅/❌
-- **Issues Found**: [List accessibility violations]
-
-### Design Consistency
-- **Pattern Adherence**: [Percentage]
-- **Visual Hierarchy**: [Assessment]
-- **Responsive Design**: ✅/❌
-- **Brand Alignment**: ✅/❌
-
-### User Journey Analysis
-- **Steps to Complete**: [Number]
-- **Friction Points**: [List obstacles]
-- **Optimization Opportunities**: [List improvements]
-
-### Recommendations
-1. **Immediate Fixes** (Blocking issues)
-   - [Fix 1]
-   - [Fix 2]
-
-2. **Short-term Improvements** (Next sprint)
-   - [Improvement 1]
-   - [Improvement 2]
-
-3. **Long-term Enhancements** (Future consideration)
-   - [Enhancement 1]
-   - [Enhancement 2]
-
-### Proposed Solutions
-[Specific code examples or mockups for key improvements]
-
-### Impact Assessment
-- **User Satisfaction Impact**: [High/Medium/Low]
-- **Conversion Impact**: [Estimated improvement]
-- **Support Ticket Reduction**: [Estimated reduction]
-```
+See review examples: Previous UX assessments in PRs
+See standards: WCAG 2.1 AA guidelines
 
 ## Best Practices
 
