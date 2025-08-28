@@ -82,7 +82,7 @@ This strategy applies to:
 - `.github/instructions/copilot-instructions.md` - GitHub Copilot instructions
 - `docs/developer-agents/*.md` - All developer agent definitions
 - `.github/chatmodes/*.chatmode.md` - All chatmode files
-- `.cursorrules` - Cursor IDE instructions
+- `.cursor/rules/*.mdc` - Cursor IDE rule files
 - Any future instruction or configuration files
 
 ### Synchronization Integration

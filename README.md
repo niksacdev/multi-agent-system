@@ -60,7 +60,7 @@ This repository was built using Claude Code as the primary developer, working wi
 **Results**: 
 - [Our Human-AI collaboration methodology](docs/agent-based-development.md)
 - [Design decisions made with AI agent input](docs/decisions/)
-- IDE Tools Synchronization Strategy ([CLAUDE.md](CLAUDE.md), [Copilot](.github/instructions/copilot-instructions.md), [Cursor](.cursorrules), [Sync Strategy](.github/sync-instructions.md))
+- IDE Tools Synchronization Strategy ([CLAUDE.md](CLAUDE.md), [Copilot](.github/instructions/copilot-instructions.md), [Cursor](.cursor/rules/), [Sync Strategy](docs/synchronization-strategy.md))
 
 ---
 

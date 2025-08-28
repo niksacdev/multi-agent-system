@@ -82,17 +82,8 @@ Provide structured review with:
 
 ## Sync Notification Requirement
 
-**IMPORTANT**: When your architectural feedback leads to changes in:
-- Architecture principles or patterns
-- Testing standards or quality gates
-- Development workflows or processes
-- Security guidelines or requirements
-
-You MUST notify that the agent-sync-coordinator should be run to update:
-- `.github/instructions/copilot-instructions.md`
-- `.cursorrules` or `.cursor/rules/`
-- Related chatmode files
-
-See review examples: `docs/decisions/adr-003-instruction-synchronization.md:Decision-Makers`
+**IMPORTANT**: When your architectural feedback leads to changes in development practices, remind the user to:
+- Run `/sync-check` with the sync-coordinator agent before committing
+- This ensures all instruction files stay synchronized
 
 Remember: Balance ideal architecture with pragmatic implementation. The goal is working software that can evolve.
