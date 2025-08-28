@@ -332,7 +332,7 @@ Pattern implementation: `loan_processing/utils/decorators.py`
 ## Copilot Prompt Usage
 
 ### Development Guidelines
-- **Package Manager**: ALWAYS use `uv` commands (`uv run`, `uv add`, `uv sync`) - NEVER pip/poetry
+- **Package Manager**: ALWAYS use `uv` commands (`uv run`, `uv add`, `uv sync`, `uv run python`) - NEVER pip/poetry
 - **Adding Agents**: Create persona markdown in `agents/shared/agent-persona/`, add config to `agents.yaml`, use `AgentRegistry.create_agent()`
 - **Modifying Behavior**: Update persona files or `agents.yaml` config, not orchestrator code
 - **MCP Integration**: Agents autonomously select tools based on persona instructions

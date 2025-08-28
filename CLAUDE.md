@@ -320,6 +320,7 @@ git commit -m "fix tests and update docs and refactor code"
 - `uv add package` - Add dependencies
 - `uv sync` - Install dependencies
 - `uv run pytest` - Run tests
+- `uv run python` - Run Python scripts
 - Never use pip, poetry, or conda
 
 ### Current Test Status
