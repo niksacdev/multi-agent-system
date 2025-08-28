@@ -1,6 +1,8 @@
 # Claude Development Rules for Multi-Agent System
 
-> **📋 Instruction Sync**: This is the **master reference** for all development practices. When updating, sync changes to `.cursorrules` and `.github/instructions/copilot-instructions.md`. See `.github/sync-instructions.md` for guidelines.
+> **📋 Instruction Sync**: This is the **master reference** for all development practices. When updating, sync changes to `.github/instructions/copilot-instructions.md`. See `.github/sync-instructions.md` for guidelines.
+> 
+> **📝 Cursor IDE Note**: Cursor now uses `.cursor/` folder with `.md` files instead of `.cursorrules`. To use these instructions in Cursor, create `.cursor/rules.md` and copy relevant sections.
 
 ## Project Overview
 This is a Multi-Agent Loan Processing System using OpenAI Agents SDK with MCP (Model Context Protocol) servers as tools. The system implements autonomous agents that process loan applications through a coordinated workflow.
@@ -172,6 +174,19 @@ Run complete validation: `uv run python scripts/validate_ci_fix.py`
 - **ALWAYS run pre-commit checks** before using the code-reviewer agent
 - **Include check results** when asking for agent feedback
 - **Fix any issues** identified by checks before requesting code review
+
+### IDE Configuration Notes
+
+#### Cursor IDE (Updated)
+Cursor has migrated from `.cursorrules` to a folder-based approach:
+- Create `.cursor/` folder in your project root
+- Add instruction files as `.md` files (e.g., `.cursor/rules.md`, `.cursor/context.md`)
+- Cursor will automatically load these files for context
+- The old `.cursorrules` file is deprecated and can be removed
+
+#### VS Code / GitHub Copilot
+- Uses `.github/instructions/copilot-instructions.md`
+- Chatmodes in `.github/chatmodes/*.chatmode.md`
 
 ### Commit Best Practices
 
