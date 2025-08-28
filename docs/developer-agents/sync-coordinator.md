@@ -95,13 +95,36 @@ When resolving conflicts or determining source of truth, follow this hierarchy:
 
 ## Update Patterns
 
+### Prompt Optimization During Sync (CRITICAL)
+**Always optimize prompts during synchronization to reduce context window usage:**
+
+1. **Replace Code Snippets with File References**
+   - ❌ Bad: Including inline code examples in instructions
+   - ✅ Good: "See implementation in `loan_processing/agents/agentregistry.py:145-167`"
+   - ✅ Good: "Follow pattern in `tests/test_agent_registry.py`"
+
+2. **Compact Verbose Explanations**
+   - ❌ Bad: Long explanations of how something works
+   - ✅ Good: "See architecture in `docs/decisions/adr-001-agent-registry-pattern.md`"
+   - Extract patterns to referenced documents
+
+3. **Consolidate Duplicate Information**
+   - Remove redundant explanations across files
+   - Reference single source of truth
+   - Use "See CLAUDE.md:section-name" for shared concepts
+
+4. **Use Relative References**
+   - Reference sections within same file: "See 'Security Guidelines' above"
+   - Cross-reference other instruction files: "As defined in CLAUDE.md"
+
 ### Adding New ADR
 When a new ADR is added:
 1. Extract key decisions and requirements
-2. Update CLAUDE.md's relevant sections
-3. Update copilot-instructions.md with same requirements
+2. Update CLAUDE.md's relevant sections (with file references, not inline code)
+3. Update copilot-instructions.md with same requirements (compact form)
 4. If agent-related, update agent definitions
 5. Create/update relevant chatmodes
+6. **Compaction step**: Replace any inline code with file references
 
 ### Modifying CLAUDE.md
 When CLAUDE.md changes:

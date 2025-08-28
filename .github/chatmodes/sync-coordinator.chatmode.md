@@ -54,26 +54,11 @@ When resolving conflicts, follow this precedence order:
 
 ## Synchronization Patterns
 
-### When ADR Changes
-```
-ADR Added/Modified → Extract key decisions →
-Update CLAUDE.md sections → Update copilot-instructions →
-Update relevant agents → Update chatmodes if needed
-```
+### Synchronization Workflows
 
-### When CLAUDE.md Changes
-```
-CLAUDE.md Modified → Identify changed sections →
-Map to copilot-instructions sections →
-Preserve tool-specific features → Update agent references
-```
-
-### When Developer Agents Change
-```
-Agent Definition Modified → Update references in CLAUDE.md →
-Update copilot-instructions descriptions →
-Synchronize chatmode implementations
-```
+See detailed patterns: `docs/developer-agents/sync-coordinator.md`
+See ADR hierarchy: `docs/decisions/adr-003-instruction-synchronization.md`
+See optimization: `docs/decisions/adr-004-prompt-optimization-strategy.md`
 
 ## What to Synchronize
 
@@ -130,14 +115,12 @@ Synchronize chatmode implementations
 - Single PR contains all related changes
 
 ### Commit Message Format
-```
-sync: update instruction files for [reason]
 
-- Updated [file] with [changes]
-- Synchronized [file] with [source]
-- Aligned with ADR-[number] decisions
-[skip-sync]
-```
+Use format: `sync: update instruction files for [reason]`
+Include: Updated files, synchronized sources, ADR alignment
+Always add: `[skip-sync]` flag to prevent loops
+
+See examples: `git log --grep="sync:" --oneline`
 
 ### Quality Checks
 1. **Semantic preservation**: Meaning maintained

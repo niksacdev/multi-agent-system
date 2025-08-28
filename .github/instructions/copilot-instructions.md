@@ -54,28 +54,17 @@ This is a **loan processing multi-agent system** demonstrating enterprise-grade 
 - **UV Package Manager**: Use `uv add`, `uv sync`, `uv run` (NEVER pip, poetry, or conda)
 
 ### Pre-Commit Quality Checks (MANDATORY)
-**CRITICAL**: Run these commands locally BEFORE every commit to prevent CI failures:
+**CRITICAL**: Run validation locally BEFORE every commit to prevent CI failures.
 
-```bash
-# 1. Code Quality (MANDATORY - must pass)
-uv run ruff check .                     # Check for lint issues
-uv run ruff check . --fix              # Auto-fix fixable issues
-uv run ruff format --check .           # Check code formatting
-uv run ruff format .                    # Auto-format code
-uv run ruff check .                     # Final verification (must show "All checks passed!")
+**Quick Validation**: `uv run python scripts/validate_ci_fix.py`
+- See full implementation: `scripts/validate_ci_fix.py`
+- CI automation: `.github/workflows/test.yml`
 
-# 2. Test Validation (MANDATORY - must pass)
-uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v
-uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v \
-  --cov=loan_processing.agents.providers.openai.agentregistry \
-  --cov=loan_processing.agents.shared --cov-report=term-missing    # Must be ≥85% coverage
-
-# 3. Type Checking (RECOMMENDED)
-uv run mypy loan_processing/ --ignore-missing-imports
-
-# 4. Complete Validation (shortcut for all checks)
-uv run python validate_ci_fix.py
-```
+**Key Requirements**:
+- Linting: Must pass `ruff check`
+- Formatting: Must pass `ruff format`
+- Tests: Core tests must pass
+- Coverage: ≥85% on critical modules
 
 **⚠️ NEVER COMMIT if any checks fail. Fix all issues locally first.**
 
@@ -315,52 +304,28 @@ loan_processing/
 ## Common Patterns
 
 ### Sequential Processing
-```python
-context = {"application": application_data}
-context["intake_result"] = await intake_agent.run(context)
-context["credit_result"] = await credit_agent.run(context)
-context["income_result"] = await income_agent.run(context)
-final_decision = await risk_agent.run(context)
-```
+See implementation: `loan_processing/agents/providers/openai/orchestration/sequential.py`
+- Context accumulation pattern for agent coordination
+- Each agent adds results to shared context
 
 ### Error Handling
-```python
-try:
-    result = await agent.run(input)
-except MCPServerError:
-    # Handle MCP server failures
-    logger.error("MCP server failed", exc_info=True)
-    # Fallback logic or retry
-except AgentTimeoutError:
-    # Handle agent timeouts
-    logger.warning("Agent timed out, using default")
-    # Use default or cached result
-```
+See patterns: `loan_processing/agents/providers/openai/orchestration/base.py:187-210`
+- MCPServerError handling
+- AgentTimeoutError management
+- Retry logic and fallback strategies
 
 ### Context Management (Loss Prevention)
-```python
-# Create checkpoints after major changes
-git commit -m "checkpoint: refactoring complete"
-
-# Provide context anchoring for new sessions
-"We just completed X refactoring. Key changes:
-1. Moved Y to Z
-2. Renamed A to B
-3. Next task: C"
-```
+Best practices from experience:
+- Create git checkpoints after major changes
+- Provide explicit context anchoring for new sessions
+- Document key changes when switching tasks
+- See detailed strategies: `CLAUDE.md:Context-Loss-Prevention`
 
 ### Debugging Circular Loops
-```python
-# Detect when agent repeats failed solutions
-attempted_fixes = set()
-if current_fix in attempted_fixes:
-    print("LOOP DETECTED: Human intervention needed")
-    # Request human to provide strategic pivot
-    # Apply "be pragmatic" guidance
-else:
-    attempted_fixes.add(current_fix)
-    # Proceed with fix attempt
-```
+Pattern implementation: `loan_processing/utils/decorators.py`
+- Track attempted fixes to detect repetition
+- Request human intervention when loops detected
+- Apply "be pragmatic" guidance
 
 ## Copilot Prompt Usage
 

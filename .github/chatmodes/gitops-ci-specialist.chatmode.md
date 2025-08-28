@@ -73,45 +73,18 @@ You are a GitOps and CI/CD expert specializing in GitHub workflows, version cont
 ## Workflow Design Patterns
 
 ### Branch Protection
-```yaml
-# Example branch protection recommendations
-- Require pull request reviews (minimum 1-2)
-- Require status checks to pass before merging
-- Enforce linear history when appropriate
-- Automatically delete head branches after merge
-- Restrict who can push to main/master
-```
+See branch protection rules: `.github/branch-protection-rules.json`
+See workflow requirements: `.github/workflows/test.yml`
 
 ### CI/CD Pipeline Structure
-```yaml
-# Recommended multi-stage pipeline
-stages:
-  1. Validation: Linting, formatting, security scanning
-  2. Build: Compilation, dependency resolution
-  3. Test: Unit tests, integration tests, coverage
-  4. Quality: Code quality metrics, performance tests
-  5. Deploy: Staging deployment, production deployment
-  6. Monitor: Health checks, smoke tests, rollback triggers
-```
+See pipeline implementation: `.github/workflows/test.yml`
+See validation script: `scripts/validate_ci_fix.py`
 
 ## Commit Message Standards
 
 ### Conventional Commits Format
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-**Types**: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert
-
-### Examples
-- `feat(auth): add OAuth2 integration for GitHub login`
-- `fix(ci): resolve test failures in Node 18 environment`
-- `docs(readme): update CI/CD pipeline documentation`
-- `ci(actions): optimize build caching for 50% faster runs`
+See commit standards: `CLAUDE.md:Commit-Message-Format`
+See examples: Recent commits in `git log --oneline -10`
 
 ## Infrastructure as Code
 

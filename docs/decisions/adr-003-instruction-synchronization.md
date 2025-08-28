@@ -26,6 +26,7 @@ We will implement **pre-merge automatic synchronization** using an AI-powered sy
 2. **Commits updates to the same PR** before merge
 3. **Preserves natural language** without templates
 4. **Maintains tool-specific features** while ensuring consistency
+5. **Optimizes prompts** by replacing code snippets with file references to minimize context window usage
 
 ### Synchronization Hierarchy
 
@@ -78,6 +79,8 @@ Create `docs/developer-agents/sync-coordinator.md` with:
 - Natural language understanding of instruction relationships
 - Semantic diff capabilities
 - Tool-specific feature preservation
+- **Prompt optimization**: Replace inline code with file references
+- **Context reduction**: Remove duplicate information, use cross-references
 
 ### Phase 2: GitHub Action Workflow
 Create `.github/workflows/sync-instructions.yml`:

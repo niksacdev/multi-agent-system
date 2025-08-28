@@ -12,6 +12,15 @@ This is a Multi-Agent Loan Processing System using OpenAI Agents SDK with MCP (M
 **Solution**: Reduced personas to 300-500 focused lines with clear directives.
 **Result**: 75% token reduction, 10x faster agent responses.
 
+### Prompt Optimization Best Practices
+**Critical for Cost Management**: Use file references instead of inline code to minimize context window usage.
+
+**Rules**:
+1. **Never include code snippets** in instruction files - use: `See implementation: path/to/file.py:line-range`
+2. **Reference documentation** instead of explaining - use: `See architecture: docs/decisions/adr-001.md`
+3. **Cross-reference sections** instead of duplicating - use: `As defined in CLAUDE.md:Security-Guidelines`
+4. **Keep instructions concise** - link to examples rather than embedding them
+
 ### Context Loss Prevention
 **Problem**: After large refactoring sessions, Claude loses critical context and makes conflicting changes.
 **Solutions**:
@@ -125,28 +134,15 @@ loan_processing/
 ```
 
 ### Configuration-Driven Agent Creation
-The system now uses YAML configuration for agent definitions and a registry pattern:
+The system uses YAML configuration for agent definitions and a registry pattern.
 
-```yaml
-# loan_processing/agents/shared/config/agents.yaml
-agents:
-  intake:
-    name: "Intake Agent" 
-    persona_file: "intake"
-    mcp_servers: ["application_verification", "document_processing"]
-    capabilities: ["Application validation", "Identity verification"]
-    output_format:
-      validation_status: "string"
-      confidence_score: "number"
-```
+**Configuration**: See `loan_processing/agents/shared/config/agents.yaml`
+- Defines agent names, MCP servers, capabilities, output formats
+- Loaded by `ConfigurationLoader` utility class
 
-```python
-# Agent creation via registry
-from loan_processing.agents.providers.openai.agentregistry import AgentRegistry
-
-# Create any agent type from configuration
-agent = AgentRegistry.create_agent("intake", model="gpt-4")
-```
+**Agent Creation**: See `loan_processing/agents/providers/openai/agentregistry.py`
+- Use `AgentRegistry.create_agent(agent_type, model)` 
+- Automatically loads configuration and persona files
 
 ### Shared Utilities
 - **ConfigurationLoader**: Loads and validates YAML configuration
@@ -157,53 +153,20 @@ agent = AgentRegistry.create_agent("intake", model="gpt-4")
 
 ### Pre-Commit Quality Checks (MANDATORY)
 
-**CRITICAL**: Always run these checks locally BEFORE making any commit to prevent GitHub Actions failures:
+**CRITICAL**: Always run these checks locally BEFORE making any commit to prevent GitHub Actions failures.
 
-#### 1. Code Quality Checks (MANDATORY)
-```bash
-# Run ALL checks in this exact order before committing:
+#### Quick Validation
+Run complete validation: `uv run python scripts/validate_ci_fix.py`
+- See implementation: `scripts/validate_ci_fix.py`
+- Automated in: `.github/workflows/test.yml`
 
-# 1. Linting check (must pass)
-uv run ruff check .
+#### Manual Checks
+1. **Linting**: `uv run ruff check . --fix`
+2. **Formatting**: `uv run ruff format .`
+3. **Tests**: See test commands in `scripts/validate_ci_fix.py:64-78`
+4. **Coverage**: Must be ≥85% on core modules
 
-# 2. Auto-fix any fixable issues
-uv run ruff check . --fix
-
-# 3. Format check (must pass)
-uv run ruff format --check .
-
-# 4. Auto-format if needed
-uv run ruff format .
-
-# 5. Final verification (must show "All checks passed!")
-uv run ruff check .
-```
-
-#### 2. Test Validation (MANDATORY)
-```bash
-# Run core stable tests (must pass)
-uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v
-
-# Run with coverage check (must be ≥85%)
-uv run pytest tests/test_agent_registry.py tests/test_safe_evaluator.py -v \
-  --cov=loan_processing.agents.providers.openai.agentregistry \
-  --cov=loan_processing.agents.shared \
-  --cov-report=term-missing
-```
-
-#### 3. Type Checking (RECOMMENDED)
-```bash
-# Check types (warnings okay, but no errors)
-uv run mypy loan_processing/ --ignore-missing-imports
-```
-
-#### 4. Complete Pre-Commit Validation Script
-Use the validation script to check everything at once:
-```bash
-uv run python scripts/validate_ci_fix.py
-```
-
-**⚠️ NEVER COMMIT if any of these checks fail. Fix issues locally first.**
+**⚠️ NEVER COMMIT if any checks fail. Fix issues locally first.**
 
 #### Integration with Support Agents
 - **ALWAYS run pre-commit checks** before using the code-reviewer agent
@@ -390,6 +353,7 @@ This repository uses **automatic pre-merge synchronization** to maintain consist
 2. **Sync Agent**: Runs automatically and:
    - Analyzes changes in the PR
    - Updates affected instruction files
+   - **Optimizes prompts**: Replaces code snippets with file references
    - Commits changes to the same PR with `[skip-sync]` flag
    - Preserves tool-specific features
 
@@ -498,45 +462,28 @@ See [ADR-003](docs/decisions/adr-003-instruction-synchronization.md) for detaile
 ## Common Patterns
 
 ### Sequential Processing
-```python
-context = {"application": application_data}
-context["intake_result"] = await intake_agent.run(context)
-context["credit_result"] = await credit_agent.run(context)
-context["income_result"] = await income_agent.run(context)
-final_decision = await risk_agent.run(context)
-```
+See implementation: `loan_processing/agents/providers/openai/orchestration/sequential.py:43-102`
+- Context accumulation pattern for passing results between agents
+- Each agent adds results to shared context dictionary
 
-### Error Handling
-```python
-try:
-    result = await agent.run(input)
-except MCPServerError:
-    # Handle MCP server failures
-except AgentTimeoutError:
-    # Handle agent timeouts
-```
+### Error Handling  
+See implementation: `loan_processing/agents/providers/openai/orchestration/base.py:187-210`
+- MCPServerError handling for tool failures
+- AgentTimeoutError for long-running operations
+- Retry logic and fallback strategies
 
 ### Context Management (Loss Prevention)
-```python
-# Use /compact command after large refactoring sessions
-# Create checkpoints after major changes
-git commit -m "checkpoint: refactoring complete"
-
-# Provide context anchoring for new sessions
-"We just completed X refactoring. Key changes:
-1. Moved Y to Z
-2. Renamed A to B
-3. Next task: C"
-```
+**Best Practices**:
+- Use `/compact` command after large refactoring sessions
+- Create git checkpoints: `git commit -m "checkpoint: refactoring complete"`
+- Provide explicit context anchoring for new sessions
+- Document key changes when switching tasks
 
 ### Debugging Circular Loops
-```python
-# Detect when agent repeats failed solutions
-attempted_fixes = set()
-if current_fix in attempted_fixes:
-    print("LOOP DETECTED: Human intervention needed")
-    # Human provides strategic pivot
-```
+See pattern in: `loan_processing/utils/decorators.py`
+- Track attempted fixes to detect repetition
+- Request human intervention when loops detected
+- Apply "be pragmatic" guidance from humans
 
 ## Best Practices
 
