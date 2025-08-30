@@ -76,8 +76,8 @@ Claude has access to specialized development agents that MUST be used proactivel
 
 6. **sync-coordinator**:
    - USE WHEN: Instruction files need synchronization, ADRs are added/changed
-   - PROVIDES: Automatic synchronization of instruction files across tools
-   - NOTE: Usually runs automatically via GitHub Actions, manual invocation rarely needed
+   - PROVIDES: Manual synchronization of instruction files across tools
+   - NOTE: Developer-side only - run before committing instruction changes
 
 ### When to Use Support Agents
 
@@ -401,26 +401,26 @@ uv run pytest tests/test_agent_registry.py -v
 
 ## Instruction File Synchronization
 
-### Automatic Synchronization Process
+### Developer-Side Synchronization Process
 
-This repository uses **automatic pre-merge synchronization** to maintain consistency across all instruction files. When you update CLAUDE.md, ADRs, or developer agents, a sync coordinator agent automatically updates related files in the same PR.
+This repository uses **developer-side synchronization** to maintain consistency across all instruction files. When you update CLAUDE.md, ADRs, or developer agents, you must run the sync coordinator agent to update related files before committing.
 
 ### How It Works
 
-1. **Trigger**: When a PR modifies key instruction files:
+1. **Developer-side Trigger**: Before committing changes to instruction files:
    - `docs/decisions/*.md` (ADRs)
    - `CLAUDE.md` (this file)
    - `docs/developer-agents/*.md`
    - `.github/instructions/copilot-instructions.md`
+   - `.claude/agents/*.md` or `.github/chatmodes/*.md`
 
-2. **Sync Agent**: Runs automatically and:
-   - Analyzes changes in the PR
-   - Updates affected instruction files
-   - **Optimizes prompts**: Replaces code snippets with file references
-   - Commits changes to the same PR with `[skip-sync]` flag
-   - Preserves tool-specific features
+2. **Manual Sync Process**: Developer runs sync agent and:
+   - Uses Task tool with `subagent_type: agent-sync-coordinator`
+   - Agent analyzes git changes and recommends updates
+   - Developer applies suggested changes
+   - Commits all changes together in single commit
 
-3. **Single PR**: All changes (original + synchronized) are reviewed together
+3. **No CI/CD dependency**: Entirely developer-side, provider-agnostic
 
 ### Synchronization Hierarchy
 
