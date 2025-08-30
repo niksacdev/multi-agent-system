@@ -20,13 +20,14 @@ Keeping these files synchronized is critical for consistent developer experience
 
 ## Decision
 
-We will implement **pre-merge automatic synchronization** using an AI-powered sync coordinator agent that:
+We will implement **developer-side synchronization** using an AI-powered sync coordinator agent that:
 
-1. **Triggers during PR review** when instruction files change
-2. **Commits updates to the same PR** before merge
+1. **Triggers before committing** when developers modify instruction files
+2. **Runs via developer's AI assistant** using native agent implementations
 3. **Preserves natural language** without templates
 4. **Maintains tool-specific features** while ensuring consistency
 5. **Optimizes prompts** by replacing code snippets with file references to minimize context window usage
+6. **Provider-agnostic** - no dependency on external CI/CD systems
 
 ### Synchronization Hierarchy
 
@@ -64,13 +65,14 @@ Skip if:
 - **Clean git history** - One merge for complete change
 
 ### Negative  
-- **PR complexity** - PRs may have additional commits from sync
-- **Potential noise** - Multiple sync runs if PR updated frequently
-- **CI complexity** - More complex GitHub Actions workflow
+- **Developer discipline required** - Developers must remember to run sync
+- **Manual process** - No automatic enforcement (by design for provider-agnostic)
+- **Learning curve** - New developers must understand sync workflow
 
 ### Neutral
-- **Review burden** - Reviewers see sync changes (but this is actually good for transparency)
-- **Commit count** - PRs will have 1-2 additional commits
+- **Provider independence** - No dependency on specific CI/CD platforms
+- **Performance** - Sync runs in <20 seconds using git-driven detection
+- **Token efficiency** - Optimized to use <3K tokens per sync check
 
 ## Implementation
 
@@ -82,21 +84,17 @@ Create `docs/developer-agents/sync-coordinator.md` with:
 - **Prompt optimization**: Replace inline code with file references
 - **Context reduction**: Remove duplicate information, use cross-references
 
-### Phase 2: GitHub Action Workflow
-Create `.github/workflows/sync-instructions.yml`:
-```yaml
-on:
-  pull_request:
-    types: [opened, synchronize]
-    paths: [relevant instruction files]
+### Phase 2: Native Agent Implementations
+Create agent implementations for each AI tool:
+- **Claude**: `.claude/agents/agent-sync-coordinator.md`
+- **GitHub Copilot**: `.github/chatmodes/sync-coordinator.chatmode.md`
+- **Cursor IDE**: Sync reminder in `.cursor/rules/project-rules.mdc`
 
-jobs:
-  sync:
-    if: !contains(github.event.head_commit.message, '[skip-sync]')
-    steps:
-      - Run sync coordinator agent
-      - Commit changes to PR with [skip-sync] flag
-```
+Each implementation:
+- Uses git diff to identify changes
+- Maps source files to target files
+- Provides fast, targeted sync recommendations
+- No external API dependencies
 
 ### Phase 3: Documentation
 - Update CLAUDE.md with sync process

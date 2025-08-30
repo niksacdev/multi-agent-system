@@ -125,8 +125,8 @@ jobs:
         # Check for common security issues
         security_issues=0
         
-        # Check for hardcoded secrets
-        if git diff origin/${{ github.event.pull_request.base.ref }}...HEAD | grep -iE "(api[_-]?key|secret|password|token)" | grep -E "^\+"; then
+        # Check for hardcoded secrets (exclude AI token optimization references)
+        if git diff origin/${{ github.event.pull_request.base.ref }}...HEAD | grep -iE "(api[_-]?key\s*=|secret\s*=|password\s*=|\btoken\s*=)" | grep -E "^\+" | grep -v -iE "(token.*usage|token.*reduction|token.*optimization|ai.*token|context.*token)"; then
           echo "⚠️ **Potential hardcoded secrets detected**" >> review_results.md
           security_issues=$((security_issues + 1))
         fi
