@@ -78,7 +78,7 @@ We've extracted all our development agent configurations for reuse: **[Developer
 - Complete agent persona definitions with prompts
 - CLAUDE.md configuration templates  
 - Quality gate automation patterns
-- IDE integration examples (.cursorrules, copilot-instructions)
+- IDE integration examples (.cursor/rules/, copilot-instructions)
 
 ### Development Workflow Agents
 
@@ -357,7 +357,7 @@ Despite Claude Code's advantages, development teams often use different AI tools
 ```bash
 # Repository structure for multi-tool support
 CLAUDE.md                           # Master configuration (Claude Code)
-.cursorrules                        # Cursor IDE instructions  
+.cursor/rules/*.mdc                 # Cursor IDE rule files  
 .github/instructions/copilot-instructions.md  # GitHub Copilot instructions
 ```
 
@@ -374,7 +374,7 @@ CLAUDE.md                           # Master configuration (Claude Code)
 **Step 2**: Ask Claude to generate tool-specific versions
 ```bash
 # In Claude Code terminal:
-claude> Create .cursorrules file that mirrors our CLAUDE.md agent definitions
+claude> Create Cursor rules that mirror our CLAUDE.md agent definitions
 claude> Create GitHub Copilot instructions that follow our development workflow
 ```
 
@@ -382,7 +382,7 @@ claude> Create GitHub Copilot instructions that follow our development workflow
 ```markdown
 # In CLAUDE.md:
 > **📋 Instruction Sync**: This is the **master reference** for all development practices. 
-> When updating, sync changes to `.cursorrules` and `.github/instructions/copilot-instructions.md`. 
+> When updating, sync changes to `.cursor/rules/` and `.github/instructions/copilot-instructions.md`. 
 > See `.github/sync-instructions.md` for guidelines.
 ```
 
@@ -390,7 +390,7 @@ claude> Create GitHub Copilot instructions that follow our development workflow
 
 Any developer can join the project and get the same AI assistance:
 - **Claude Code users**: Follow CLAUDE.md directly
-- **Cursor users**: Get same agent patterns through .cursorrules
+- **Cursor users**: Get same agent patterns through .cursor/rules/
 - **GitHub Copilot users**: Follow adapted instructions for their tool
 - **Mixed teams**: All tools provide consistent guidance
 

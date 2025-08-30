@@ -197,7 +197,7 @@ Cursor uses a rules-based system with automatic context attachment:
 - Files use `.mdc` format (Markdown with metadata)
 - Rules auto-attach based on file patterns (globs)
 - Hierarchical: subdirectories can have specific rules
-- Old `.cursorrules` file is deprecated
+- Use `.cursor/rules/*.mdc` files with YAML frontmatter
 
 Project rules structure:
 - `.cursor/rules/project-rules.mdc` - Always applied
@@ -255,7 +255,7 @@ Project rules structure:
 git commit -m "feat: add agent registry configuration loading"
 git commit -m "test: add coverage for persona loading functionality" 
 git commit -m "fix: update persona_loader path for shared directory"
-git commit -m "docs: sync .cursorrules with new repository structure"
+git commit -m "docs: update cursor rules for new test patterns"
 
 # ❌ Bad: Large, unfocused commits
 git commit -m "update everything"

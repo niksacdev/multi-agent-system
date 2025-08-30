@@ -123,7 +123,7 @@ GitHub Copilot chatmodes are defined in `.github/chatmodes/` directory (SOURCE O
 
 6. **Agent Sync Coordinator** (`/sync-instructions` - `.github/chatmodes/sync-coordinator.chatmode.md`)
    - **USE WHEN**: **MANDATORY before committing** changes to instruction files, ADRs, or developer agents
-   - **PROVIDES**: Consistency analysis across `.claude/agents/` (if exists), `.github/chatmodes/`, `.cursor/rules/`, `.cursorrules`
+   - **PROVIDES**: Consistency analysis across `.claude/agents/` (if exists), `.github/chatmodes/`, `.cursor/rules/`
    - **QUESTIONS TO ASK**: "Are instruction files in sync?", "What needs updating?", "How should I resolve conflicts?"
    - **CRITICAL**: Always run before committing changes to CLAUDE.md, ADRs, developer agents, or instruction files
    - **NAMING**: Use "agent-sync-coordinator" not "instruction-sync-coordinator"
